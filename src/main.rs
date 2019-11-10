@@ -26,7 +26,19 @@ mod tests {
 
     #[test]
     fn test_isqrt() {
-        for i in 0..10000 {
+        for i in 0..(i16::max_value() as i32) {
+            let ours = ss_isqrt(i) as i32;
+            let theirs = unsafe { exported_ss_isqrt(i) } as i32;
+            assert_eq!(ours, theirs, "for i = {}", i);
+        }
+
+        for i in (0..i32::max_value()).step_by(111) {
+            let ours = ss_isqrt(i) as i32;
+            let theirs = unsafe { exported_ss_isqrt(i) } as i32;
+            assert_eq!(ours, theirs, "for i = {}", i);
+        }
+
+        for i in (0..i32::max_value()).step_by(317) {
             let ours = ss_isqrt(i) as i32;
             let theirs = unsafe { exported_ss_isqrt(i) } as i32;
             assert_eq!(ours, theirs, "for i = {}", i);

@@ -111,12 +111,13 @@ ss_isqrt(saidx_t x) {
   if(x >= (SS_BLOCKSIZE * SS_BLOCKSIZE)) { return SS_BLOCKSIZE; }
   e = (x & 0xffff0000) ?
         ((x & 0xff000000) ?
-          24 + lg_table[(x >> 24) & 0xff] :
-          16 + lg_table[(x >> 16) & 0xff]) :
+          (/*printf("24 + \n"),*/ 24 + lg_table[(x >> 24) & 0xff]) :
+          (/*printf("16 + \n"),*/ 16 + lg_table[(x >> 16) & 0xff])) :
         ((x & 0x0000ff00) ?
-           8 + lg_table[(x >>  8) & 0xff] :
-           0 + lg_table[(x >>  0) & 0xff]);
+           (/*printf("8 + \n"),*/ 8 + lg_table[(x >>  8) & 0xff]) :
+           (/*printf("0 + \n"),*/ 0 + lg_table[(x >>  0) & 0xff]));
 
+  // printf("e = %d\n", e);
   if(e >= 16) {
     y = sqq_table[x >> ((e - 6) - (e & 1))] << ((e >> 1) - 7);
     if(e >= 24) { y = (y + 1 + x / y) >> 1; }
@@ -124,6 +125,7 @@ ss_isqrt(saidx_t x) {
   } else if(e >= 8) {
     y = (sqq_table[x >> ((e - 6) - (e & 1))] >> (7 - (e >> 1))) + 1;
   } else {
+    // printf("using sqq_table[%d]\n", x);
     return sqq_table[x] >> 4;
   }
 
