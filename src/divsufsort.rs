@@ -42,28 +42,6 @@ pub fn divsufsort(T: &[Char], SA: &mut [Idx]) {
 
     // Suffixsort.
     let res = sort_typeBstar(&T, &mut SA);
-
-    for (i, &v) in res.A.iter().enumerate() {
-        if v == 0 {
-            continue;
-        }
-        let c = std::char::from_u32(i as u32).unwrap();
-        eprintln!("A[{:?}] = {}", c, v);
-    }
-
-    for (i, &v) in res.B.iter().enumerate() {
-        if v == 0 {
-            continue;
-        }
-        eprintln!("B[{}] = {}", i, v);
-    }
-
-    for (i, &v) in SA.0.iter().enumerate() {
-        if v == 0 {
-            continue;
-        }
-        eprintln!("SA[{}] = {}", i, v);
-    }
     eprintln!("done enumerating");
 }
 
@@ -149,6 +127,28 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
         }
     }
     m = n - m;
+
+    for (i, &v) in A.iter().enumerate() {
+        if v == 0 {
+            continue;
+        }
+        let c = std::char::from_u32(i as u32).unwrap();
+        eprintln!("A[{:?}] = {}", c, v);
+    }
+
+    for (i, &v) in B.iter().enumerate() {
+        if v == 0 {
+            continue;
+        }
+        eprintln!("B[{}] = {}", i, v);
+    }
+
+    for (i, &v) in SA.0.iter().enumerate() {
+        if v == 0 {
+            continue;
+        }
+        eprintln!("SA[{}] = {}", i, v);
+    }
 
     // Note: A type B* suffix is lexicographically smaller than a type B suffix
     // that beings with the same first two characters.
