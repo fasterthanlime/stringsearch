@@ -9,8 +9,8 @@ pub fn sssort(
     PA: Idx,
     mut first: Idx,
     last: Idx,
-    buf: Idx,
-    bufsize: Idx,
+    mut buf: Idx,
+    mut bufsize: Idx,
     depth: Idx,
     n: Idx,
     lastsuffix: bool,
@@ -29,8 +29,28 @@ pub fn sssort(
         first += 1;
     }
 
-    let limit = ss_isqrt(last - first);
-    if ((bufsize < SS_BLOCKSIZE) && (bufsize < (last - first)) && (bufsize < (limit))) {}
+    limit = ss_isqrt(last - first);
+    if ((bufsize < SS_BLOCKSIZE) && (bufsize < (last - first)) && (bufsize < limit)) {
+        if (SS_BLOCKSIZE < limit) {
+            limit = SS_BLOCKSIZE;
+        }
+        middle = last - limit;
+        buf = middle;
+        bufsize = limit;
+    } else {
+        middle = last;
+        limit = 0;
+    }
+
+    a = first;
+    i = 0;
+    while SS_BLOCKSIZE < (middle - a) {
+        ss_mintrosort(T, SA, PA, a, a + SS_BLOCKSIZE, depth);
+
+        // iter
+        a += SS_BLOCKSIZE;
+        i += 1;
+    }
 }
 
 const lg_table: [Idx; 256] = [
@@ -62,7 +82,9 @@ const sqq_table: [Idx; 256] = [
     255,
 ];
 
+/// Fast sqrt, using lookup tables
 #[allow(overflowing_literals)] // ☠☠☠
+#[inline(always)]
 pub fn ss_isqrt(x: Idx) -> Idx {
     let mut y: Idx;
     let e: Idx;
@@ -101,5 +123,69 @@ pub fn ss_isqrt(x: Idx) -> Idx {
         y - 1
     } else {
         y
+    }
+}
+
+/// Fast log2, using lookup tables
+pub fn ss_ilg(n: Idx) -> Idx {
+    if (n & 0xff00) > 0 {
+        8 + lg_table[((n >> 8) & 0xff) as usize]
+    } else {
+        0 + lg_table[((n >> 0) & 0xff) as usize]
+    }
+}
+
+pub fn ss_mintrosort(T: &Text, SA: &SuffixArray, PA: Idx, first: Idx, last: Idx, depth: Idx) {
+    const STACK_SIZE: usize = 16;
+    #[derive(Clone, Copy)]
+    struct StackItem {
+        a: Idx,
+        b: Idx,
+        c: Idx,
+        d: Idx,
+    }
+    let stack_item_zero = StackItem {
+        a: 0,
+        b: 0,
+        c: 0,
+        d: 0,
+    };
+
+    let stack: [StackItem; STACK_SIZE] = [
+        stack_item_zero,
+        stack_item_zero,
+        stack_item_zero,
+        stack_item_zero,
+        stack_item_zero,
+        stack_item_zero,
+        stack_item_zero,
+        stack_item_zero,
+        stack_item_zero,
+        stack_item_zero,
+        stack_item_zero,
+        stack_item_zero,
+        stack_item_zero,
+        stack_item_zero,
+        stack_item_zero,
+        stack_item_zero,
+    ];
+
+    let mut a: Idx;
+    let mut b: Idx;
+    let mut c: Idx;
+    let mut d: Idx;
+    let mut e: Idx;
+    let mut f: Idx;
+    let mut s: Idx;
+    let mut t: Idx;
+    let mut ssize: Idx;
+    let mut limit: Idx;
+    let mut v: Idx;
+    let mut x: Idx;
+
+    ssize = 0;
+    limit = ss_ilg(last - first);
+    loop {
+        unimplemented!();
     }
 }
