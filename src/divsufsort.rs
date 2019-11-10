@@ -1,14 +1,8 @@
 #![allow(nonstandard_style)]
 #![allow(unused)]
 
-pub type Char = u8;
-pub type Idx = i32;
-
-pub const ALPHABET_SIZE: usize = u8::max_value() as usize + 1;
-pub const BUCKET_A_SIZE: usize = ALPHABET_SIZE;
-pub const BUCKET_B_SIZE: usize = ALPHABET_SIZE * ALPHABET_SIZE;
-
-pub const MAX_INPUT_SIZE: usize = i32::max_value() as usize;
+use crate::common::*;
+use crate::sssort;
 
 pub fn divsufsort(T: &[Char], SA: &mut [Idx]) {
     if T.len() != SA.len() {
@@ -52,72 +46,6 @@ struct SortTypeBstarResult {
     m: Idx,
 }
 
-struct ABucket(Vec<Idx>);
-
-impl Index<Idx> for ABucket {
-    type Output = Idx;
-
-    fn index(&self, index: Idx) -> &Self::Output {
-        &self.0[index as usize]
-    }
-}
-
-impl IndexMut<Idx> for ABucket {
-    fn index_mut(&mut self, index: Idx) -> &mut Self::Output {
-        &mut self.0[index as usize]
-    }
-}
-
-struct BMixBucket(Vec<Idx>);
-
-impl BMixBucket {
-    #[inline(always)]
-    fn b<'a>(&'a mut self) -> BBucket<'a> {
-        BBucket(&mut self.0)
-    }
-
-    #[inline(always)]
-    fn bstar<'a>(&'a mut self) -> BStarBucket<'a> {
-        BStarBucket(&mut self.0)
-    }
-}
-
-struct BBucket<'a>(&'a mut [Idx]);
-
-impl<'a> Index<(Idx, Idx)> for BBucket<'a> {
-    type Output = Idx;
-
-    fn index(&self, index: (Idx, Idx)) -> &Self::Output {
-        let (c0, c1) = index;
-        &self.0[((c1 << 8) | c0) as usize]
-    }
-}
-
-impl<'a> IndexMut<(Idx, Idx)> for BBucket<'a> {
-    fn index_mut(&mut self, index: (Idx, Idx)) -> &mut Self::Output {
-        let (c0, c1) = index;
-        &mut self.0[((c1 << 8) | c0) as usize]
-    }
-}
-
-struct BStarBucket<'a>(&'a mut [Idx]);
-
-impl<'a> Index<(Idx, Idx)> for BStarBucket<'a> {
-    type Output = Idx;
-
-    fn index(&self, index: (Idx, Idx)) -> &Self::Output {
-        let (c0, c1) = index;
-        &self.0[((c0 << 8) | c1) as usize]
-    }
-}
-
-impl<'a> IndexMut<(Idx, Idx)> for BStarBucket<'a> {
-    fn index_mut(&mut self, index: (Idx, Idx)) -> &mut Self::Output {
-        let (c0, c1) = index;
-        &mut self.0[((c0 << 8) | c1) as usize]
-    }
-}
-
 fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
     let n = T.len();
 
@@ -127,14 +55,6 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
 
     let B: Vec<Idx> = vec![0; BUCKET_B_SIZE];
     let mut B = BMixBucket(B);
-
-    // #define BUCKET_A(_c0) bucket_A[(_c0)]
-    // #define BUCKET_B(_c0, _c1) (bucket_B[((_c1) << 8) | (_c0)])
-    // #define BUCKET_BSTAR(_c0, _c1) (bucket_B[((_c0) << 8) | (_c1)])
-
-    // let A_idx = |c0: usize| -> usize { c0 };
-    // let B_idx = |c0: usize, c1: usize| -> usize { ((c1 << 8) | c0) };
-    // let BS_idx = |c0: usize, c1: usize| -> usize { ((c0 << 8) | c1) };
 
     // temps
     let mut c0: Idx;
@@ -149,7 +69,7 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
     // type B* suffixes into the array SA.
     i = n - 1;
     m = n;
-    c0 = T[n - 1] as Idx;
+    c0 = T.get(n - 1);
 
     while 0 <= i {
         // type A suffix (originally do..while)
@@ -163,7 +83,7 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
                 break;
             }
 
-            c0 = T[i] as Idx;
+            c0 = T.get(i);
             if !(c0 >= c1) {
                 break;
             }
@@ -187,7 +107,7 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
                 if i < 0 {
                     break;
                 }
-                c0 = T[i] as Idx;
+                c0 = T.get(i);
                 if c0 > c1 {
                     break;
                 }
@@ -224,6 +144,47 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
         }
     }
 
+    // TODO: rest of sort..
+
+    if (0 < m) {
+        // Sort the type B* suffixes by their first two characters
+        let PAb = n - m;
+        let ISAb = m;
+
+        for i in ((m - 2)..=0).rev() {
+            t = SA[PAb + i];
+            c0 = T.get(t);
+            c1 = T.get(t + 1);
+
+            B.bstar()[(c0, c1)] -= 1;
+            SA[B.bstar()[(c0, c1)]] = i;
+        }
+        t = SA[PAb + m - 1];
+        c0 = T.get(t);
+        c1 = T.get(t + 1);
+        B.bstar()[(c0, c1)] = m - 1;
+        SA[B.bstar()[(c0, c1)]] = m - 1;
+
+        // Sort the type B* substrings using sssort.
+        let buf = m;
+        let bufsize = n - (2 * m);
+
+        // init (outer)
+        c0 = ALPHABET_SIZE as Idx - 2;
+        j = m;
+        while 0 < j {
+            // init (inner)
+            c1 = ALPHABET_SIZE as Idx - 1;
+            i = B.bstar()[(c0, c1)];
+            if (i < (j - i)) {
+                sssort::sssort(T, SA, PAb, i, j, buf, bufsize, 2, n, SA[i] == (m - 1));
+            }
+
+            // iter (outer)
+            c0 -= 1;
+        }
+    }
+
     for (i, &v) in A.0.iter().enumerate() {
         if v == 0 {
             continue;
@@ -246,43 +207,5 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
         eprintln!("SA[{}] = {}", i, v);
     }
 
-    // TODO: rest of sort..
-
     SortTypeBstarResult { A, B, m }
-}
-
-use std::ops::{Index, IndexMut};
-
-// Read-only input to suffix-sort
-struct Text<'a>(&'a [Char]);
-
-impl<'a> Index<Idx> for Text<'a> {
-    type Output = Char;
-
-    fn index(&self, index: Idx) -> &Self::Output {
-        &self.0[index as usize]
-    }
-}
-
-impl<'a> Text<'a> {
-    fn len(&self) -> Idx {
-        self.0.len() as Idx
-    }
-}
-
-// Indexes of all suffixes in lexicographical order
-struct SuffixArray<'a>(&'a mut [Idx]);
-
-impl<'a> Index<Idx> for SuffixArray<'a> {
-    type Output = Idx;
-
-    fn index(&self, index: Idx) -> &Self::Output {
-        &self.0[index as usize]
-    }
-}
-
-impl<'a> IndexMut<Idx> for SuffixArray<'a> {
-    fn index_mut(&mut self, index: Idx) -> &mut Self::Output {
-        &mut self.0[index as usize]
-    }
 }
