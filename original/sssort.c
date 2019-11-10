@@ -312,6 +312,8 @@ void
 ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
               saidx_t *first, saidx_t *last,
               saidx_t depth) {
+  printf("mintrosort first=%d last=%d depth=%d\n", first-PA, last-PA, depth);
+
 #define STACK_SIZE SS_MISORT_STACKSIZE
   struct { saidx_t *a, *b, c; saint_t d; } stack[STACK_SIZE];
   const sauchar_t *Td;
@@ -751,17 +753,14 @@ sssort(const sauchar_t *T, const saidx_t *PA,
        saidx_t *buf, saidx_t bufsize,
        saidx_t depth, saidx_t n, saint_t lastsuffix) {
   saidx_t *a;
-#if SS_BLOCKSIZE != 0
   saidx_t *b, *middle, *curbuf;
   saidx_t j, k, curbufsize, limit;
-#endif
   saidx_t i;
 
   if(lastsuffix != 0) { ++first; }
 
-#if SS_BLOCKSIZE == 0
-  ss_mintrosort(T, PA, first, last, depth);
-#else
+  // 🎃
+
   if((bufsize < SS_BLOCKSIZE) &&
       (bufsize < (last - first)) &&
       (bufsize < (limit = ss_isqrt(last - first)))) {
@@ -770,12 +769,11 @@ sssort(const sauchar_t *T, const saidx_t *PA,
   } else {
     middle = last, limit = 0;
   }
+
+  // ☕
+
   for(a = first, i = 0; SS_BLOCKSIZE < (middle - a); a += SS_BLOCKSIZE, ++i) {
-#if SS_INSERTIONSORT_THRESHOLD < SS_BLOCKSIZE
     ss_mintrosort(T, PA, a, a + SS_BLOCKSIZE, depth);
-#elif 1 < SS_BLOCKSIZE
-    ss_insertionsort(T, PA, a, a + SS_BLOCKSIZE, depth);
-#endif
     curbufsize = last - (a + SS_BLOCKSIZE);
     curbuf = a + SS_BLOCKSIZE;
     if(curbufsize <= bufsize) { curbufsize = bufsize, curbuf = buf; }
@@ -783,11 +781,7 @@ sssort(const sauchar_t *T, const saidx_t *PA,
       ss_swapmerge(T, PA, b - k, b, b + k, curbuf, curbufsize, depth);
     }
   }
-#if SS_INSERTIONSORT_THRESHOLD < SS_BLOCKSIZE
   ss_mintrosort(T, PA, a, middle, depth);
-#elif 1 < SS_BLOCKSIZE
-  ss_insertionsort(T, PA, a, middle, depth);
-#endif
   for(k = SS_BLOCKSIZE; i != 0; k <<= 1, i >>= 1) {
     if(i & 1) {
       ss_swapmerge(T, PA, a - k, a, middle, buf, bufsize, depth);
@@ -795,14 +789,9 @@ sssort(const sauchar_t *T, const saidx_t *PA,
     }
   }
   if(limit != 0) {
-#if SS_INSERTIONSORT_THRESHOLD < SS_BLOCKSIZE
     ss_mintrosort(T, PA, middle, last, depth);
-#elif 1 < SS_BLOCKSIZE
-    ss_insertionsort(T, PA, middle, last, depth);
-#endif
     ss_inplacemerge(T, PA, first, middle, last, depth);
   }
-#endif
 
   if(lastsuffix != 0) {
     /* Insert last type B* suffix. */

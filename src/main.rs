@@ -7,14 +7,33 @@ pub mod sssort;
 use common::*;
 
 fn main() {
+    extern "C" {
+        fn divsufsort(T: *const u8, SA: *mut i32, n: i32) -> i32;
+        fn dss_flush();
+    }
+
     let first_arg = std::env::args()
         .skip(1 /* skip our binary's name.. */)
         .next()
         .unwrap();
     let input = std::fs::read(first_arg).unwrap();
 
-    let mut SA = vec![0 as Idx; input.len()];
-    divsufsort::divsufsort(&input[..], &mut SA[..]);
+    println!();
+    println!("================= C =================");
+    unsafe {
+        let mut SA = vec![0 as Idx; input.len()];
+        divsufsort(input.as_ptr(), SA.as_mut_ptr(), input.len() as i32);
+        dss_flush();
+    }
+
+    println!();
+    println!("================ Rust ===============");
+    {
+        let mut SA = vec![0 as Idx; input.len()];
+        divsufsort::divsufsort(&input[..], &mut SA[..]);
+    }
+
+    println!();
 }
 
 #[cfg(test)]

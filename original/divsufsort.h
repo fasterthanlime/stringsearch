@@ -176,6 +176,10 @@ sa_simplesearch(const sauchar_t *T, saidx_t Tsize,
                 saint_t c, saidx_t *left);
 
 
+DIVSUFSORT_API
+void dss_flush();
+
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif /* __cplusplus */

@@ -144,29 +144,32 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
         }
     }
 
-    // TODO: rest of sort..
-
+    println!("before B* suffix sort, m = {}", m);
     if (0 < m) {
-        // Sort the type B* suffixes by their first two characters
-        let PAb = n - m;
-        let ISAb = m;
+        SA.dump("before B* suffix sort");
 
-        for i in ((m - 2)..=0).rev() {
-            t = SA[PAb + i];
+        // Sort the type B* suffixes by their first two characters
+        let PAb = SAPtr(n - m);
+        let ISAb = SAPtr(m);
+
+        for i in (0..=(m - 2)).rev() {
+            t = PAb.r(SA)[i];
             c0 = T.get(t);
             c1 = T.get(t + 1);
 
             B.bstar()[(c0, c1)] -= 1;
             SA[B.bstar()[(c0, c1)]] = i;
         }
-        t = SA[PAb + m - 1];
+        t = PAb.w(SA)[m - 1];
         c0 = T.get(t);
         c1 = T.get(t + 1);
-        B.bstar()[(c0, c1)] = m - 1;
+        B.bstar()[(c0, c1)] -= 1;
         SA[B.bstar()[(c0, c1)]] = m - 1;
 
+        SA.dump("before all ssort");
+
         // Sort the type B* substrings using sssort.
-        let buf = m;
+        let buf = SAPtr(m);
         let bufsize = n - (2 * m);
 
         // init (outer)
@@ -175,36 +178,36 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
         while 0 < j {
             // init (inner)
             c1 = ALPHABET_SIZE as Idx - 1;
-            i = B.bstar()[(c0, c1)];
-            if (i < (j - i)) {
-                sssort::sssort(T, SA, PAb, i, j, buf, bufsize, 2, n, SA[i] == (m - 1));
+            while c0 < c1 {
+                // body (inner)
+                i = B.bstar()[(c0, c1)];
+                if (1 < (j - i)) {
+                    println!("sssort() i={} j={}", i, j);
+                    sssort::sssort(
+                        T,
+                        SA,
+                        PAb,
+                        SAPtr(i),
+                        SAPtr(j),
+                        buf,
+                        bufsize,
+                        2,
+                        n,
+                        SA[i] == (m - 1),
+                    );
+                    SA.dump("");
+                }
+
+                // iter (inner)
+                j = i;
+                c1 -= 1;
             }
 
             // iter (outer)
             c0 -= 1;
         }
-    }
 
-    for (i, &v) in A.0.iter().enumerate() {
-        if v == 0 {
-            continue;
-        }
-        let c = std::char::from_u32(i as u32).unwrap();
-        eprintln!("A[{:?}] = {}", c, v);
-    }
-
-    for (i, &v) in B.0.iter().enumerate() {
-        if v == 0 {
-            continue;
-        }
-        eprintln!("B[{}] = {}", i, v);
-    }
-
-    for (i, &v) in SA.0.iter().enumerate() {
-        if v == 0 {
-            continue;
-        }
-        eprintln!("SA[{}] = {}", i, v);
+        SA.dump("after all sssort()");
     }
 
     SortTypeBstarResult { A, B, m }

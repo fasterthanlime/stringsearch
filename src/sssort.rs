@@ -6,19 +6,23 @@ use crate::common::*;
 pub fn sssort(
     T: &Text,
     SA: &mut SuffixArray,
-    PA: Idx,
-    mut first: Idx,
-    last: Idx,
-    mut buf: Idx,
+    PA: SAPtr,
+    mut first: SAPtr,
+    last: SAPtr,
+    mut buf: SAPtr,
     mut bufsize: Idx,
     depth: Idx,
     n: Idx,
     lastsuffix: bool,
 ) {
-    let mut a: Idx;
-    let mut b: Idx;
-    let mut middle: Idx;
-    let mut curbuf: Idx;
+    // Note: in most of this file "PA" seems to mean "Partition Array" - we're
+    // working on a slice of SA. This is also why SA (or a mutable reference to it)
+    // is passed around, so we don't run into lifetime issues.
+
+    let mut a: SAPtr;
+    let mut b: SAPtr;
+    let mut middle: SAPtr;
+    let mut curbuf: SAPtr;
     let mut j: Idx;
     let mut k: Idx;
     let mut curbufsize: Idx;
@@ -28,6 +32,8 @@ pub fn sssort(
     if lastsuffix {
         first += 1;
     }
+
+    // 🎃
 
     limit = ss_isqrt(last - first);
     if ((bufsize < SS_BLOCKSIZE) && (bufsize < (last - first)) && (bufsize < limit)) {
@@ -42,15 +48,109 @@ pub fn sssort(
         limit = 0;
     }
 
+    // ☕
+
     a = first;
     i = 0;
+    dbg!(SS_BLOCKSIZE, (middle - a));
     while SS_BLOCKSIZE < (middle - a) {
         ss_mintrosort(T, SA, PA, a, a + SS_BLOCKSIZE, depth);
+
+        curbufsize = (last - (a + SS_BLOCKSIZE)).into();
+        curbuf = a + SS_BLOCKSIZE;
+        if (curbufsize <= bufsize) {
+            curbufsize = bufsize;
+            curbuf = buf;
+        }
+
+        b = a;
+        k = SS_BLOCKSIZE;
+        j = i;
+        while (j & 1) > 0 {
+            ss_swapmerge(T, SA, PA, b - k, b, b + k, curbuf, curbufsize, depth);
+
+            // iter
+            b -= k;
+            k <<= 1;
+            j >>= 1;
+        }
 
         // iter
         a += SS_BLOCKSIZE;
         i += 1;
     }
+
+    ss_mintrosort(T, SA, PA, a, middle, depth);
+
+    // 😈
+
+    k = SS_BLOCKSIZE;
+    while i != 0 {
+        if (i & 1) > 0 {
+            ss_swapmerge(T, SA, PA, a - k, a, middle, buf, bufsize, depth);
+            a -= k;
+        }
+
+        // iter
+        k <<= 1;
+        i >>= 1;
+    }
+
+    if limit != 0 {
+        ss_mintrosort(T, SA, PA, middle, last, depth);
+        ss_inplacemerge(T, SA, PA, first, middle, last, depth);
+    }
+
+    if lastsuffix {
+        // Insert last type B* suffix
+        let PAi: &[Idx] = &[SA[first - 1], n - 2];
+
+        a = first;
+        i = SA[first - 1];
+        while (a < last) && ((SA[a] < 0) || (0 < ss_compare(T, &PAi[0], PA + SA[a], depth))) {
+            // body
+            SA[a - 1] = SA[a];
+
+            // iter
+            a += 1;
+        }
+    }
+}
+
+/// D&C (Divide & Conquer?) based merge
+pub fn ss_swapmerge(
+    T: &Text,
+    SA: &SuffixArray,
+    PA: SAPtr,
+    first: SAPtr,
+    middle: SAPtr,
+    last: SAPtr,
+    buf: SAPtr,
+    bufsize: Idx,
+    depth: Idx,
+) {
+    unimplemented!()
+}
+
+pub fn ss_inplacemerge(
+    T: &Text,
+    SA: &SuffixArray,
+    PA: SAPtr,
+    first: SAPtr,
+    middle: SAPtr,
+    last: SAPtr,
+    depth: Idx,
+) {
+    unimplemented!()
+}
+
+/// Compare two suffixes
+#[inline(always)]
+pub fn ss_compare(T: &Text, SA: &SuffixArray, p1: SAPtr, p2: SAPtr, depth: Idx) -> Idx {
+    let U1 = depth + SA[p1];
+    let U2 = depth + SA[p2];
+    let U1n = SA[p1 + 1] + 2;
+    let U2n = SA[p2 + 1] + 2;
 }
 
 const lg_table: [Idx; 256] = [
@@ -85,7 +185,9 @@ const sqq_table: [Idx; 256] = [
 /// Fast sqrt, using lookup tables
 #[allow(overflowing_literals)] // ☠☠☠
 #[inline(always)]
-pub fn ss_isqrt(x: Idx) -> Idx {
+pub fn ss_isqrt<X: Into<Idx>>(x: X) -> Idx {
+    let x: Idx = x.into();
+
     let mut y: Idx;
     let e: Idx;
 
@@ -127,7 +229,10 @@ pub fn ss_isqrt(x: Idx) -> Idx {
 }
 
 /// Fast log2, using lookup tables
-pub fn ss_ilg(n: Idx) -> Idx {
+#[inline(always)]
+pub fn ss_ilg<N: Into<Idx>>(n: N) -> Idx {
+    let n: Idx = n.into();
+
     if (n & 0xff00) > 0 {
         8 + lg_table[((n >> 8) & 0xff) as usize]
     } else {
@@ -135,18 +240,92 @@ pub fn ss_ilg(n: Idx) -> Idx {
     }
 }
 
-pub fn ss_mintrosort(T: &Text, SA: &SuffixArray, PA: Idx, first: Idx, last: Idx, depth: Idx) {
+/// Binary partition for substrings.
+#[inline(always)]
+pub fn ss_partition(
+    SA: &mut SuffixArray,
+    PA: SAPtr,
+    first: SAPtr,
+    last: SAPtr,
+    depth: Idx,
+) -> SAPtr {
+    let mut a: SAPtr;
+    let mut b: SAPtr;
+    let mut t: Idx;
+
+    a = first - 1;
+    b = last;
+
+    loop {
+        // for(; (++a < b) && ((PA[*a] + depth) >= (PA[*a + 1] + 1));) { *a = ~*a; }
+        loop {
+            a += 1;
+            if (a < b) {
+                if (PA.r(SA)[SA[a]] + depth) > (PA.r(SA)[SA[a] + 1] + 1) {
+                    // good, continue
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
+
+            // loop body
+            a.0 = !a.0;
+        }
+
+        // for(; (a < --b) && ((PA[*b] + depth) <  (PA[*b + 1] + 1));) { }
+        loop {
+            b -= 1;
+            if (a < b) {
+                if (PA.r(SA)[SA[b]] + depth) < (PA.r(SA)[SA[b] + 1] + 1) {
+                    // good, continue
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
+
+            // loop body is empty
+        }
+
+        t = !SA[b];
+        SA[b] = SA[a];
+        SA[a] = t;
+    }
+
+    if (first < 1) {
+        SA[first] = !SA[first];
+    }
+    a
+}
+
+/// Multikey introsort for medium size groups
+pub fn ss_mintrosort(
+    T: &Text,
+    SA: &mut SuffixArray,
+    PA: SAPtr,
+    mut first: SAPtr,
+    mut last: SAPtr,
+    mut depth: Idx,
+) {
+    println!(
+        "mintrosort first={} last={} depth={}",
+        first.0, last.0, depth
+    );
+
     const STACK_SIZE: usize = 16;
     #[derive(Clone, Copy)]
     struct StackItem {
-        a: Idx,
-        b: Idx,
+        a: SAPtr,
+        b: SAPtr,
         c: Idx,
         d: Idx,
     }
     let stack_item_zero = StackItem {
-        a: 0,
-        b: 0,
+        a: SAPtr(0),
+        b: SAPtr(0),
         c: 0,
         d: 0,
     };
@@ -170,22 +349,93 @@ pub fn ss_mintrosort(T: &Text, SA: &SuffixArray, PA: Idx, first: Idx, last: Idx,
         stack_item_zero,
     ];
 
-    let mut a: Idx;
-    let mut b: Idx;
+    let mut a: SAPtr;
+    let mut b: SAPtr;
     let mut c: Idx;
     let mut d: Idx;
     let mut e: Idx;
     let mut f: Idx;
     let mut s: Idx;
     let mut t: Idx;
-    let mut ssize: Idx;
+    let mut ssize: usize;
     let mut limit: Idx;
     let mut v: Idx;
     let mut x: Idx;
 
     ssize = 0;
     limit = ss_ilg(last - first);
+
+    macro_rules! stack_pop {
+        ($a: ident, $b: ident, $c: ident, $d: ident) => {
+            if (ssize == 0) {
+                return;
+            }
+
+            ssize -= 1;
+            $a = stack[ssize].a;
+            $b = stack[ssize].b;
+            $c = stack[ssize].c;
+            $d = stack[ssize].d;
+        };
+    };
+
     loop {
+        if ((last - first) <= SS_INSERTIONSORT_THRESHOLD) {
+            if (1 < (last - first)) {
+                ss_insertionsort(T, SA, PA, first, last, depth);
+            }
+            stack_pop!(first, last, depth, limit);
+            continue;
+        }
+
+        let Td = Text(&T.0[(depth as usize)..]);
+
+        limit -= 1;
+        if (limit == 0) {
+            ss_heapsort(&Td, SA, PA, first, (last - first).into());
+        }
+
+        if (limit < 0) {
+            a = first + 1;
+            v = Td[PA.w(SA)[first.0]] as Idx;
+
+            // for(a = first + 1, v = Td[PA[*first]]; a < last; ++a) { .. }
+            while a < last {
+                x = Td[PA.w(SA)[a]] as Idx;
+                if (x != v) {
+                    if (1 < (a - first)) {
+                        break;
+                    }
+                    v = x;
+                    first = a;
+                }
+
+                // loop iter
+                a += 1;
+            }
+
+            if ((Td[PA.w(SA)[first] - 1] as Idx) < v) {
+                first = ss_partition(SA, PA, first, a, depth);
+            }
+        }
+
         unimplemented!();
     }
+}
+
+/// Insertionsort for small size groups
+pub fn ss_insertionsort(
+    T: &Text,
+    SA: &SuffixArray,
+    PA: SAPtr,
+    first: SAPtr,
+    last: SAPtr,
+    depth: Idx,
+) {
+    unimplemented!()
+}
+
+/// Simple top-down heapsort.
+pub fn ss_heapsort(Td: &Text, SA: &SuffixArray, PA: SAPtr, first: SAPtr, size: Idx) {
+    unimplemented!()
 }

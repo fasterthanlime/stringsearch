@@ -32,6 +32,20 @@
 
 /*- Private Functions -*/
 
+#define SA_dump(label) \
+  do { \
+    printf("=> %s\n", label); \
+    printf("SA = ["); \
+    for (int z = 0; z < n; z++) { \
+      if (z == n - 1) { \
+        printf("%d", SA[z]); \
+      } else { \
+        printf("%d, ", SA[z]); \
+      } \
+    } \
+    printf("]\n"); \
+  } while (0);
+
 /* Sorts suffixes of type B*. */
 static
 saidx_t
@@ -127,7 +141,10 @@ note:
   // printf("Done enumerating!\n");
   //------------- DEBUG END
 
+  printf("before B* suffix sort, m = %d\n", m);
   if(0 < m) {
+    SA_dump("before B* suffix sort");
+
     /* Sort the type B* suffixes by their first two characters. */
     PAb = SA + n - m; ISAb = SA + m;
     for(i = m - 2; 0 <= i; --i) {
@@ -137,14 +154,20 @@ note:
     t = PAb[m - 1], c0 = T[t], c1 = T[t + 1];
     SA[--BUCKET_BSTAR(c0, c1)] = m - 1;
 
+    SA_dump("before all ssort");
+
     /* Sort the type B* substrings using sssort. */
     buf = SA + m, bufsize = n - (2 * m);
     for(c0 = ALPHABET_SIZE - 2, j = m; 0 < j; --c0) {
       for(c1 = ALPHABET_SIZE - 1; c0 < c1; j = i, --c1) {
         i = BUCKET_BSTAR(c0, c1);
         if(1 < (j - i)) {
+          printf("sssort() i=%d j=%d\n", i, j);
+
           sssort(T, PAb, SA + i, SA + j,
                  buf, bufsize, 2, n, *(SA + i) == (m - 1));
+
+          SA_dump("");
         }
       }
     }
@@ -402,4 +425,8 @@ divbwt(const sauchar_t *T, sauchar_t *U, saidx_t *A, saidx_t n) {
 const char *
 divsufsort_version(void) {
   return PROJECT_VERSION_FULL;
+}
+
+void dss_flush() {
+  fflush(stdout);
 }
