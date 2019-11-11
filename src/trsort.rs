@@ -15,6 +15,7 @@ const lg_table: [Idx; 256] = [
 ];
 
 #[inline(always)]
+#[allow(overflowing_literals)]
 pub fn tr_ilg(n: Idx) -> Idx {
     if (n & 0xffff_0000) > 0 {
         if (n & 0xff00_0000) > 0 {
@@ -77,16 +78,14 @@ pub fn tr_insertionsort(SA: &mut SuffixArray, ISAd: SAPtr, first: SAPtr, last: S
 }
 
 #[inline(always)]
-pub fn tr_fixdown(ISAd: SAPtr, SA: &mut SuffixArray, i: Idx, size: Idx) {
+pub fn tr_fixdown(ISAd: SAPtr, SA: &mut SuffixArray, mut i: Idx, size: Idx) {
     let mut j: Idx;
     let mut k: Idx;
-    let mut v: Idx;
-    let mut c: Idx;
     let mut d: Idx;
     let mut e: Idx;
 
-    v = SA[i];
-    c = SA[ISAd + v];
+    let v = SA[i];
+    let c = SA[ISAd + v];
 
     loop {
         // cond
@@ -125,7 +124,7 @@ pub fn tr_heapsort(ISAd: SAPtr, SA: &mut SuffixArray, size: Idx) {
     if (size % 2) == 0 {
         m -= 1;
         if SA[ISAd + SA[m / 2]] < SA[ISAd + SA[m]] {
-            swap(&mut SA[m], &mut SA[m / 2]);
+            SA.swap(m, m / 2);
         }
     }
 
@@ -133,7 +132,7 @@ pub fn tr_heapsort(ISAd: SAPtr, SA: &mut SuffixArray, size: Idx) {
         tr_fixdown(ISAd, SA, i, m);
     }
     if (size % 2) == 0 {
-        swap(&mut SA[0], &mut SA[m]);
+        SA.swap(0, m);
         tr_fixdown(ISAd, SA, 0, m);
     }
     for i in (1..m).rev() {
@@ -146,7 +145,7 @@ pub fn tr_heapsort(ISAd: SAPtr, SA: &mut SuffixArray, size: Idx) {
 
 /// Returns the median of three elements
 #[inline(always)]
-pub fn tr_median3(SA: &SuffixArray, ISAd: SAPtr, v1: SAPtr, v2: SAPtr, v3: SAPtr) -> SAPtr {
+pub fn tr_median3(SA: &SuffixArray, ISAd: SAPtr, mut v1: SAPtr, mut v2: SAPtr, v3: SAPtr) -> SAPtr {
     if SA[ISAd + SA[v1]] > SA[ISAd + SA[v2]] {
         swap(&mut v1, &mut v2);
     }
@@ -180,7 +179,7 @@ impl Budget {
 }
 
 /// Tandem repeat sort
-pub fn trsort(ISA: SAPtr, SA: &mut SuffixArray, depth: Idx) {
+pub fn trsort(ISA: SAPtr, SA: &mut SuffixArray, n: Idx, depth: Idx) {
     let n = SA.len();
 
     let mut ISAd: SAPtr;
@@ -190,4 +189,6 @@ pub fn trsort(ISA: SAPtr, SA: &mut SuffixArray, depth: Idx) {
     let mut skip: Idx;
     let mut unsorted: Idx;
     let mut budget = Budget::new(tr_ilg(n) * 2 / 3, n);
+
+    unimplemented!()
 }

@@ -103,7 +103,7 @@ pub fn sssort(
 
     if lastsuffix {
         // Insert last type B* suffix
-        let mut PAi: [Idx; 2] = [PA.r(SA)[SA[first - 1]], n - 2];
+        let mut PAi: [Idx; 2] = [SA[PA + SA[first - 1]], n - 2];
         let SAI = SuffixArray(&mut PAi);
 
         a = first;
@@ -273,19 +273,15 @@ pub fn ss_partition(
     last: SAPtr,
     depth: Idx,
 ) -> SAPtr {
-    let mut a: SAPtr;
-    let mut b: SAPtr;
-    let mut t: Idx;
-
-    a = first - 1;
-    b = last;
+    let mut a = first - 1;
+    let mut b = last;
 
     loop {
         // for(; (++a < b) && ((PA[*a] + depth) >= (PA[*a + 1] + 1));) { *a = ~*a; }
         loop {
             a += 1;
             if (a < b) {
-                if (PA.r(SA)[SA[a]] + depth) > (PA.r(SA)[SA[a] + 1] + 1) {
+                if (SA[PA + SA[a]] + depth) >= (SA[PA + SA[a] + 1] + 1) {
                     // good, continue
                 } else {
                     break;
@@ -295,14 +291,14 @@ pub fn ss_partition(
             }
 
             // loop body
-            a.0 = !a.0;
+            SA[a] = !SA[a];
         }
 
         // for(; (a < --b) && ((PA[*b] + depth) <  (PA[*b + 1] + 1));) { }
         loop {
             b -= 1;
             if (a < b) {
-                if (PA.r(SA)[SA[b]] + depth) < (PA.r(SA)[SA[b] + 1] + 1) {
+                if (SA[PA + SA[b]] + depth) < (SA[PA + SA[a] + 1] + 1) {
                     // good, continue
                 } else {
                     break;
@@ -314,7 +310,7 @@ pub fn ss_partition(
             // loop body is empty
         }
 
-        t = !SA[b];
+        let t = !SA[b];
         SA[b] = SA[a];
         SA[a] = t;
     }
@@ -323,6 +319,64 @@ pub fn ss_partition(
         SA[first] = !SA[first];
     }
     a
+}
+
+use std::default::Default;
+
+struct StackItem {
+    a: SAPtr,
+    b: SAPtr,
+    c: Idx,
+    d: Idx,
+}
+
+impl Default for StackItem {
+    fn default() -> Self {
+        Self {
+            a: SAPtr(0),
+            b: SAPtr(0),
+            c: 0,
+            d: 0,
+        }
+    }
+}
+
+const STACK_SIZE: usize = 16;
+
+struct Stack {
+    items: [StackItem; STACK_SIZE],
+    size: usize,
+}
+
+impl Stack {
+    fn new() -> Self {
+        Self {
+            items: Default::default(),
+            size: 0,
+        }
+    }
+
+    #[inline(always)]
+    fn push(&mut self, a: SAPtr, b: SAPtr, c: Idx, d: Idx) {
+        assert!(self.size < STACK_SIZE);
+        self.items[self.size].a = a;
+        self.items[self.size].b = b;
+        self.items[self.size].c = c;
+        self.items[self.size].d = d;
+        self.size += 1;
+    }
+
+    #[inline(always)]
+    fn pop(&mut self, a: &mut SAPtr, b: &mut SAPtr, c: &mut Idx, d: &mut Idx) {
+        if (self.size == 0) {
+            return;
+        }
+        *a = self.items[self.size].a;
+        *b = self.items[self.size].b;
+        *c = self.items[self.size].c;
+        *d = self.items[self.size].d;
+        self.size -= 1;
+    }
 }
 
 /// Multikey introsort for medium size groups
@@ -339,39 +393,7 @@ pub fn ss_mintrosort(
         first.0, last.0, depth
     );
 
-    const STACK_SIZE: usize = 16;
-    #[derive(Clone, Copy)]
-    struct StackItem {
-        a: SAPtr,
-        b: SAPtr,
-        c: Idx,
-        d: Idx,
-    }
-    let stack_item_zero = StackItem {
-        a: SAPtr(0),
-        b: SAPtr(0),
-        c: 0,
-        d: 0,
-    };
-
-    let stack: [StackItem; STACK_SIZE] = [
-        stack_item_zero,
-        stack_item_zero,
-        stack_item_zero,
-        stack_item_zero,
-        stack_item_zero,
-        stack_item_zero,
-        stack_item_zero,
-        stack_item_zero,
-        stack_item_zero,
-        stack_item_zero,
-        stack_item_zero,
-        stack_item_zero,
-        stack_item_zero,
-        stack_item_zero,
-        stack_item_zero,
-        stack_item_zero,
-    ];
+    let mut stack = Stack::new();
 
     let mut a: SAPtr;
     let mut b: SAPtr;
@@ -389,26 +411,12 @@ pub fn ss_mintrosort(
     ssize = 0;
     limit = ss_ilg(last - first);
 
-    macro_rules! stack_pop {
-        ($a: ident, $b: ident, $c: ident, $d: ident) => {
-            if (ssize == 0) {
-                return;
-            }
-
-            ssize -= 1;
-            $a = stack[ssize].a;
-            $b = stack[ssize].b;
-            $c = stack[ssize].c;
-            $d = stack[ssize].d;
-        };
-    };
-
     loop {
         if ((last - first) <= SS_INSERTIONSORT_THRESHOLD) {
             if (1 < (last - first)) {
                 ss_insertionsort(T, SA, PA, first, last, depth);
             }
-            stack_pop!(first, last, depth, limit);
+            stack.pop(&mut first, &mut last, &mut depth, &mut limit);
             continue;
         }
 
@@ -421,11 +429,11 @@ pub fn ss_mintrosort(
 
         if (limit < 0) {
             a = first + 1;
-            v = Td[PA.w(SA)[first.0]] as Idx;
+            v = Td[SA[PA + SA[first]]] as Idx;
 
             // for(a = first + 1, v = Td[PA[*first]]; a < last; ++a) { .. }
             while a < last {
-                x = Td[PA.w(SA)[a]] as Idx;
+                x = Td[SA[PA + SA[a]]] as Idx;
                 if (x != v) {
                     if (1 < (a - first)) {
                         break;
@@ -438,7 +446,7 @@ pub fn ss_mintrosort(
                 a += 1;
             }
 
-            if ((Td[PA.w(SA)[first] - 1] as Idx) < v) {
+            if (Td[SA[PA + SA[first]]] as Idx) < v {
                 first = ss_partition(SA, PA, first, a, depth);
             }
         }

@@ -3,6 +3,7 @@
 
 use crate::common::*;
 use crate::sssort;
+use crate::trsort;
 
 pub fn divsufsort(T: &[Char], SA: &mut [Idx]) {
     if T.len() != SA.len() {
@@ -153,14 +154,14 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
         let ISAb = SAPtr(m);
 
         for i in (0..=(m - 2)).rev() {
-            t = PAb.r(SA)[i];
+            t = SA[PAb + i];
             c0 = T.get(t);
             c1 = T.get(t + 1);
 
             B.bstar()[(c0, c1)] -= 1;
             SA[B.bstar()[(c0, c1)]] = i;
         }
-        t = PAb.w(SA)[m - 1];
+        t = SA[PAb + m - 1];
         c0 = T.get(t);
         c1 = T.get(t + 1);
         B.bstar()[(c0, c1)] -= 1;
@@ -215,8 +216,10 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
             if (0 <= SA[i]) {
                 j = i;
                 loop {
-                    let SAi = SA[i];
-                    ISAb.w(SA)[SAi] = i;
+                    {
+                        let SAi = SA[i];
+                        SA[ISAb + SAi] = i;
+                    }
 
                     i -= 1;
                     if !((0 <= i) && (0 <= SA[i])) {
@@ -232,22 +235,26 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
             j = i;
             loop {
                 SA[i] = !SA[i];
-                let SAi = SA[i];
-                ISAb.w(SA)[SAi] = j;
+                {
+                    let idx = ISAb + SA[i];
+                    SA[idx] = j;
+                }
 
                 i -= 1;
                 if !(SA[i] < 0) {
                     break;
                 }
             }
-            let SAi = SA[i];
-            ISAb.w(SA)[SAi] = j;
+            {
+                let idx = ISAb + SA[i];
+                SA[idx] = j;
+            }
 
             i -= 1;
         }
 
         // Construct the inverse suffix array of type B* suffixes using trsort.
-        trsort(ISAb, SA, m, 1);
+        trsort::trsort(ISAb, SA, m, 1);
     }
 
     SortTypeBstarResult { A, B, m }

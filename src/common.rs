@@ -40,6 +40,13 @@ impl<'a> Text<'a> {
 #[derive(Debug)]
 pub struct SuffixArray<'a>(pub &'a mut [Idx]);
 
+impl<'a> SuffixArray<'a> {
+    #[inline(always)]
+    pub fn swap(&mut self, a: Idx, b: Idx) {
+        self.0.swap(a as usize, b as usize);
+    }
+}
+
 impl<'a> Index<Idx> for SuffixArray<'a> {
     type Output = Idx;
 
@@ -227,20 +234,6 @@ impl PartialOrd<Self> for SAPtr {
     #[inline(always)]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         self.0.partial_cmp(&other.0)
-    }
-}
-
-impl SAPtr {
-    /// w is for write
-    #[inline(always)]
-    pub fn w<'a>(&self, sa: &'a mut SuffixArray<'_>) -> SuffixArray<'a> {
-        SuffixArray(&mut sa.0[(self.0 as usize)..])
-    }
-
-    /// r is for read
-    #[inline(always)]
-    pub fn r<'a>(&self, sa: &'a SuffixArray<'_>) -> SuffixArrayImm<'a> {
-        SuffixArrayImm(&sa.0[(self.0 as usize)..])
     }
 }
 
