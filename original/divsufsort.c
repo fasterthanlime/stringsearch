@@ -122,25 +122,6 @@ note:
     }
   }
 
-  //------------- DEBUG START
-  // for (int ii = 0; ii < BUCKET_A_SIZE; ii++) {
-  //   if (bucket_A[ii] != 0) {
-  //     printf("A['%c'] = %d\n", ii, bucket_A[ii]);
-  //   }
-  // }
-  // for (int ii = 0; ii < BUCKET_B_SIZE; ii++) {
-  //   if (bucket_B[ii] != 0) {
-  //     printf("B[%d] = %d\n", ii, bucket_B[ii]);
-  //   }
-  // }
-  // for (int ii = 0; ii < n; ii++) {
-  //   if (SA[ii] != 0) {
-  //     printf("SA[%d] = %d\n", ii, SA[ii]);
-  //   }
-  // }
-  // printf("Done enumerating!\n");
-  //------------- DEBUG END
-
   printf("before B* suffix sort, m = %d\n", m);
   if(0 < m) {
     SA_dump("before B* suffix sort");
@@ -171,6 +152,8 @@ note:
         }
       }
     }
+
+    SA_dump("after all sssort()");
 
     /* Compute ranks of type B* substrings. */
     for(i = m - 1; 0 <= i; --i) {
@@ -229,6 +212,7 @@ construct_SA(const sauchar_t *T, saidx_t *SA,
   saidx_t s;
   saint_t c0, c1, c2;
 
+  printf("m = %d\n", m);
   if(0 < m) {
     /* Construct the sorted order of type B suffixes by using
        the sorted order of type B* suffixes. */
@@ -238,6 +222,8 @@ construct_SA(const sauchar_t *T, saidx_t *SA,
           j = SA + BUCKET_A(c1 + 1) - 1, k = NULL, c2 = -1;
           i <= j;
           --j) {
+        printf("i = %d\n", i-SA);
+        printf("j = %d\n", j-SA);
         if(0 < (s = *j)) {
           assert(T[s] == c1);
           assert(((s + 1) < n) && (T[s] <= T[s + 1]));
@@ -280,6 +266,8 @@ construct_SA(const sauchar_t *T, saidx_t *SA,
       *i = ~s;
     }
   }
+
+  SA_dump("after construct");
 }
 
 /* Constructs the burrows-wheeler transformed string directly

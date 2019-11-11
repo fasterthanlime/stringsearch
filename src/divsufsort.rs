@@ -36,8 +36,8 @@ pub fn divsufsort(T: &[Char], SA: &mut [Idx]) {
     let mut SA = SuffixArray(SA);
 
     // Suffixsort.
-    let _res = sort_typeBstar(&T, &mut SA);
-    eprintln!("done enumerating");
+    let res = sort_typeBstar(&T, &mut SA);
+    construct_SA(&T, &mut SA, res.A, res.B, res.m);
 }
 
 struct SortTypeBstarResult {
@@ -208,7 +208,111 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
         }
 
         SA.dump("after all sssort()");
+
+        // Compute ranks of type B* substrings
+        i = m - 1;
+        while 0 <= i {
+            if (0 <= SA[i]) {
+                j = i;
+                loop {
+                    let SAi = SA[i];
+                    ISAb.w(SA)[SAi] = i;
+
+                    i -= 1;
+                    if !((0 <= i) && (0 <= SA[i])) {
+                        break;
+                    }
+                }
+
+                SA[i + 1] = i - j;
+                if (i <= 0) {
+                    break;
+                }
+            }
+            j = i;
+            loop {
+                SA[i] = !SA[i];
+                let SAi = SA[i];
+                ISAb.w(SA)[SAi] = j;
+
+                i -= 1;
+                if !(SA[i] < 0) {
+                    break;
+                }
+            }
+            let SAi = SA[i];
+            ISAb.w(SA)[SAi] = j;
+
+            i -= 1;
+        }
+
+        // Construct the inverse suffix array of type B* suffixes using trsort.
     }
 
     SortTypeBstarResult { A, B, m }
+}
+
+fn construct_SA(T: &Text, SA: &mut SuffixArray, A: ABucket, mut B: BMixBucket, m: Idx) {
+    let n = T.len() as Idx;
+    let mut i: SAPtr;
+    let mut j: SAPtr;
+    let mut k: Idx;
+    let mut s: Idx;
+    let mut c0: Idx;
+    let mut c1: Idx;
+    let mut c2: Idx;
+
+    dbg!(m);
+
+    if (0 < m) {
+        // Construct the sorted order of type B suffixes by using the
+        // sorted order of type B* suffixes
+        c1 = ALPHABET_SIZE as Idx - 2;
+        while 0 <= c1 {
+            // Scan the suffix array from right to left
+            i = SAPtr(B.bstar()[(c1, c1 + 1)]);
+            j = SAPtr(A[c1 + 1] - 1);
+            dbg!(i, j);
+            k = 0;
+            c2 = -1;
+
+            while i <= j {
+                s = SA[j];
+                if (0 < s) {
+                    assert_eq!(T[s] as Idx, c1);
+                    assert!((s + 1) < n);
+                    assert!(T[s] <= T[s + 1]);
+
+                    SA[j] = !s;
+                    s -= 1;
+                    c0 = T[s] as Idx;
+                    if (0 < s) && (T[s - 1] as Idx > c0) {
+                        s = !s;
+                    }
+                    if (c0 != c2) {
+                        if (0 <= c2) {
+                            B.b()[(c2, c1)] = k;
+                        }
+                        c2 = c0;
+                        k = B.b()[(c2, c1)];
+                    }
+                    assert!(k < j);
+                    SA[k] = s;
+                    k -= 1;
+                } else {
+                    dbg!(s, T[s], c1);
+                    assert!(((s == 0) && (T[s] as Idx == c1)) || (s < 0));
+                    SA[j] = !s;
+                }
+
+                // iter
+                j -= 1;
+            }
+
+            // iter
+            c1 -= 1;
+        }
+    }
+
+    SA.dump("after construct");
 }

@@ -773,6 +773,7 @@ sssort(const sauchar_t *T, const saidx_t *PA,
   // ☕
 
   for(a = first, i = 0; SS_BLOCKSIZE < (middle - a); a += SS_BLOCKSIZE, ++i) {
+    printf("in coffee\n");
     ss_mintrosort(T, PA, a, a + SS_BLOCKSIZE, depth);
     curbufsize = last - (a + SS_BLOCKSIZE);
     curbuf = a + SS_BLOCKSIZE;

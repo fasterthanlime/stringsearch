@@ -7,6 +7,8 @@ pub mod sssort;
 use common::*;
 
 fn main() {
+    better_panic::install();
+
     extern "C" {
         fn divsufsort(T: *const u8, SA: *mut i32, n: i32) -> i32;
         fn dss_flush();

@@ -52,8 +52,8 @@ pub fn sssort(
 
     a = first;
     i = 0;
-    dbg!(SS_BLOCKSIZE, (middle - a));
     while SS_BLOCKSIZE < (middle - a) {
+        println!("in coffee");
         ss_mintrosort(T, SA, PA, a, a + SS_BLOCKSIZE, depth);
 
         curbufsize = (last - (a + SS_BLOCKSIZE)).into();
@@ -103,11 +103,13 @@ pub fn sssort(
 
     if lastsuffix {
         // Insert last type B* suffix
-        let PAi: &[Idx] = &[SA[first - 1], n - 2];
+        let mut PAi: [Idx; 2] = [PA.r(SA)[SA[first - 1]], n - 2];
+        let SAI = SuffixArray(&mut PAi);
 
         a = first;
         i = SA[first - 1];
-        while (a < last) && ((SA[a] < 0) || (0 < ss_compare(T, &PAi[0], PA + SA[a], depth))) {
+        while (a < last) && ((SA[a] < 0) || (0 < ss_compare(T, &SAI, PA + SA[a], SAPtr(0), depth)))
+        {
             // body
             SA[a - 1] = SA[a];
 
@@ -147,10 +149,29 @@ pub fn ss_inplacemerge(
 /// Compare two suffixes
 #[inline(always)]
 pub fn ss_compare(T: &Text, SA: &SuffixArray, p1: SAPtr, p2: SAPtr, depth: Idx) -> Idx {
-    let U1 = depth + SA[p1];
-    let U2 = depth + SA[p2];
+    let mut U1 = depth + SA[p1];
+    let mut U2 = depth + SA[p2];
     let U1n = SA[p1 + 1] + 2;
     let U2n = SA[p2 + 1] + 2;
+
+    while (U1 < U1n) && (U2 < U2n) && (SA[U1] == SA[U2]) {
+        U1 += 1;
+        U2 += 1;
+    }
+
+    if U1 < U1n {
+        if U2 < U2n {
+            SA[U1] - SA[U2]
+        } else {
+            1
+        }
+    } else {
+        if U2 < U2n {
+            -1
+        } else {
+            0
+        }
+    }
 }
 
 const lg_table: [Idx; 256] = [
@@ -311,7 +332,7 @@ pub fn ss_mintrosort(
     mut depth: Idx,
 ) {
     println!(
-        "mintrosort first={} last={} depth={}",
+        "mintrosort first={} last={} depth={}\n",
         first.0, last.0, depth
     );
 
@@ -426,13 +447,41 @@ pub fn ss_mintrosort(
 /// Insertionsort for small size groups
 pub fn ss_insertionsort(
     T: &Text,
-    SA: &SuffixArray,
+    SA: &mut SuffixArray,
     PA: SAPtr,
     first: SAPtr,
     last: SAPtr,
     depth: Idx,
 ) {
-    unimplemented!()
+    let mut i: SAPtr;
+    let mut j: SAPtr;
+    let mut t: Idx;
+    let mut r: Idx;
+
+    i = last - 2;
+    while first <= i {
+        t = SA[i];
+        j = i + 1;
+
+        r = ss_compare(T, SA, PA + t, PA + SA[j], depth);
+        while 0 < r {
+            loop {
+                SA[j - 1] = SA[j];
+
+                j += 1;
+                if !((j < last) && SA[j] < 0) {
+                    break;
+                }
+            }
+
+            if (last <= j) {
+                break;
+            }
+        }
+
+        // iter
+        i -= 1;
+    }
 }
 
 /// Simple top-down heapsort.
