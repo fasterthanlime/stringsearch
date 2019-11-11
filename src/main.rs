@@ -3,6 +3,7 @@
 pub mod common;
 pub mod divsufsort;
 pub mod sssort;
+pub mod trsort;
 
 use common::*;
 
@@ -17,7 +18,12 @@ fn main() {
     let first_arg = std::env::args()
         .skip(1 /* skip our binary's name.. */)
         .next()
-        .unwrap();
+        .unwrap_or(
+            std::path::PathBuf::from("testdata")
+                .join("input.txt")
+                .to_string_lossy()
+                .into(),
+        );
     let input = std::fs::read(first_arg).unwrap();
 
     println!();

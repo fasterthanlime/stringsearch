@@ -247,6 +247,7 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
         }
 
         // Construct the inverse suffix array of type B* suffixes using trsort.
+        trsort(ISAb, SA, m, 1);
     }
 
     SortTypeBstarResult { A, B, m }

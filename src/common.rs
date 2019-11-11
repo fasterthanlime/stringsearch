@@ -1,5 +1,5 @@
 use std::cmp::{Ordering, PartialEq, PartialOrd};
-use std::ops::{Add, AddAssign, Index, IndexMut, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, Index, IndexMut, Sub, SubAssign};
 
 pub type Char = u8;
 pub type Idx = i32;
@@ -69,6 +69,10 @@ impl<'a> IndexMut<SAPtr> for SuffixArray<'a> {
 }
 
 impl<'a> SuffixArray<'a> {
+    pub fn len(&self) -> Idx {
+        self.0.len() as Idx
+    }
+
     pub fn dump(&self, label: &str) {
         println!("=> {}", label);
         println!("SA = {:?}", self.0);
@@ -101,8 +105,25 @@ impl<'a> Index<SAPtr> for SuffixArrayImm<'a> {
 // Suffix array pointers
 //-------------------------------------------
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
 pub struct SAPtr(pub Idx);
+
+use std::fmt;
+
+impl fmt::Debug for SAPtr {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "SAPtr({})", self.0)
+    }
+}
+
+impl Div<Idx> for SAPtr {
+    type Output = SAPtr;
+
+    #[inline(always)]
+    fn div(self, rhs: Idx) -> Self::Output {
+        SAPtr(self.0 / rhs)
+    }
+}
 
 impl Add<Idx> for SAPtr {
     type Output = SAPtr;
