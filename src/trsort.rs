@@ -1,6 +1,9 @@
-#![allow(nonstandard_style)]
 use crate::common::*;
 use std::mem::swap;
+
+//--------------------
+// Private functions
+//--------------------
 
 #[rustfmt::skip]
 const lg_table: [Idx; 256] = [
@@ -31,6 +34,136 @@ pub fn tr_ilg(n: Idx) -> Idx {
         }
     }
 }
+
+//------------------------------------------------------------------------------
+
+use std::default::Default;
+const STACK_SIZE: usize = 64;
+
+struct StackItem {
+    a: SAPtr,
+    b: SAPtr,
+    c: SAPtr,
+    d: Idx,
+    e: Idx,
+}
+
+impl Default for StackItem {
+    fn default() -> Self {
+        Self {
+            a: SAPtr(0),
+            b: SAPtr(0),
+            c: SAPtr(0),
+            d: 0,
+            e: 0,
+        }
+    }
+}
+
+struct Stack {
+    items: [StackItem; STACK_SIZE],
+    size: usize,
+}
+
+impl Stack {
+    fn new() -> Self {
+        Self {
+            items: [
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+                Default::default(),
+            ],
+            size: 0,
+        }
+    }
+
+    #[inline(always)]
+    fn push(&mut self, a: SAPtr, b: SAPtr, c: SAPtr, d: Idx, e: Idx) {
+        assert!(self.size < STACK_SIZE);
+        self.items[self.size].a = a;
+        self.items[self.size].b = b;
+        self.items[self.size].c = c;
+        self.items[self.size].d = d;
+        self.items[self.size].e = e;
+        self.size += 1;
+    }
+
+    #[inline(always)]
+    fn pop(&mut self, a: &mut SAPtr, b: &mut SAPtr, c: &mut SAPtr, d: &mut Idx, e: &mut Idx) {
+        if (self.size == 0) {
+            return;
+        }
+        *a = self.items[self.size].a;
+        *b = self.items[self.size].b;
+        *c = self.items[self.size].c;
+        *d = self.items[self.size].d;
+        *e = self.items[self.size].e;
+        self.size -= 1;
+    }
+}
+
+//------------------------------------------------------------------------------
 
 /// Simple insertionsort for small size groups
 pub fn tr_insertionsort(SA: &mut SuffixArray, ISAd: SAPtr, first: SAPtr, last: SAPtr) {
@@ -76,6 +209,8 @@ pub fn tr_insertionsort(SA: &mut SuffixArray, ISAd: SAPtr, first: SAPtr, last: S
         a += 1;
     }
 }
+
+//------------------------------------------------------------------------------
 
 #[inline(always)]
 pub fn tr_fixdown(ISAd: SAPtr, SA: &mut SuffixArray, mut i: Idx, size: Idx) {
@@ -143,6 +278,8 @@ pub fn tr_heapsort(ISAd: SAPtr, SA: &mut SuffixArray, size: Idx) {
     }
 }
 
+//------------------------------------------------------------------------------
+
 /// Returns the median of three elements
 #[inline(always)]
 pub fn tr_median3(SA: &SuffixArray, ISAd: SAPtr, mut v1: SAPtr, mut v2: SAPtr, v3: SAPtr) -> SAPtr {
@@ -160,15 +297,37 @@ pub fn tr_median3(SA: &SuffixArray, ISAd: SAPtr, mut v1: SAPtr, mut v2: SAPtr, v
     }
 }
 
-struct Budget {
-    chance: Idx,
-    remain: Idx,
-    incval: Idx,
-    count: Idx,
+/// Returns the median of five elements
+#[inline(always)]
+pub fn tr_median5(
+    SA: &SuffixArray,
+    ISAd: SAPtr,
+    mut v1: SAPtr,
+    mut v2: SAPtr,
+    v3: SAPtr,
+    v4: SAPtr,
+    v5: SAPtr,
+) -> SAPtr {
+    unimplemented!()
+}
+
+/// Returns the pivot element
+#[inline(always)]
+pub fn tr_pivot(SA: &SuffixArray, ISAd: SAPtr, first: SAPtr, last: SAPtr) {
+    unimplemented!()
+}
+
+//------------------------------------------------------------------------------
+
+pub struct Budget {
+    pub chance: Idx,
+    pub remain: Idx,
+    pub incval: Idx,
+    pub count: Idx,
 }
 
 impl Budget {
-    fn new(chance: Idx, incval: Idx) -> Self {
+    pub fn new(chance: Idx, incval: Idx) -> Self {
         Self {
             chance,
             remain: incval,
@@ -177,6 +336,65 @@ impl Budget {
         }
     }
 }
+
+//------------------------------------------------------------------------------
+
+#[inline(always)]
+pub fn tr_partition(
+    SA: &mut SuffixArray,
+    ISAd: SAPtr,
+    first: SAPtr,
+    middle: SAPtr,
+    last: SAPtr,
+    pa: &mut SAPtr,
+    pb: &mut SAPtr,
+    v: Idx,
+) {
+    unimplemented!()
+}
+
+pub fn tr_copy(
+    ISA: SAPtr,
+    SA: &mut SuffixArray,
+    first: SAPtr,
+    a: SAPtr,
+    b: SAPtr,
+    last: SAPtr,
+    depth: Idx,
+) {
+    unimplemented!()
+}
+
+pub fn tr_partialcopy(
+    ISA: SAPtr,
+    SA: &mut SuffixArray,
+    first: SAPtr,
+    a: SAPtr,
+    b: SAPtr,
+    last: SAPtr,
+    depth: Idx,
+) {
+    unimplemented!()
+}
+
+pub fn tr_introsort(
+    ISA: SAPtr,
+    ISAd: SAPtr,
+    SA: &mut SuffixArray,
+    first: SAPtr,
+    last: SAPtr,
+    budget: &mut Budget,
+) {
+    unimplemented!()
+}
+
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+
+//--------------------
+// Function
+//--------------------
 
 /// Tandem repeat sort
 pub fn trsort(ISA: SAPtr, SA: &mut SuffixArray, n: Idx, depth: Idx) {

@@ -1,4 +1,5 @@
 #![allow(nonstandard_style)]
+#![allow(unused)]
 
 pub mod common;
 pub mod divsufsort;

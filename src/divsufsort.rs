@@ -1,6 +1,3 @@
-#![allow(nonstandard_style)]
-#![allow(unused)]
-
 use crate::common::*;
 use crate::sssort;
 use crate::trsort;
