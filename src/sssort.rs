@@ -104,14 +104,14 @@ pub fn ss_compare(T: &Text, SA: &SuffixArray, p1: SAPtr, p2: SAPtr, depth: Idx) 
     let U1n = SA[p1 + 1] + 2;
     let U2n = SA[p2 + 1] + 2;
 
-    while (U1 < U1n) && (U2 < U2n) && (SA[U1] == SA[U2]) {
+    while (U1 < U1n) && (U2 < U2n) && (T[U1] == T[U2]) {
         U1 += 1;
         U2 += 1;
     }
 
-    if U1 < U1n {
+    let res = if U1 < U1n {
         if U2 < U2n {
-            SA[U1] - SA[U2]
+            T.get(U1) - T.get(U2)
         } else {
             1
         }
@@ -121,7 +121,9 @@ pub fn ss_compare(T: &Text, SA: &SuffixArray, p1: SAPtr, p2: SAPtr, depth: Idx) 
         } else {
             0
         }
-    }
+    };
+    crosscheck!("cmp {}", res);
+    res
 }
 
 //------------------------------------------------------------------------------
@@ -141,12 +143,22 @@ pub fn ss_insertionsort(
     let mut r: Idx;
 
     i = last - 2;
+    // for 1
     while first <= i {
+        crosscheck!("first={} leq i={}", first - PA, i - PA);
         t = SA[i];
         j = i + 1;
 
-        r = ss_compare(T, SA, PA + t, PA + SA[j], depth);
-        while 0 < r {
+        // for 2
+        loop {
+            // cond for 2
+            r = ss_compare(T, SA, PA + t, PA + SA[j], depth);
+            if !(0 < r) {
+                break;
+            }
+
+            // body for 2
+            // do while
             loop {
                 SA[j - 1] = SA[j];
 
@@ -159,7 +171,14 @@ pub fn ss_insertionsort(
             if (last <= j) {
                 break;
             }
+
+            // iter for 2 (empty)
         }
+
+        if (r == 0) {
+            SA[j] = !SA[j];
+        }
+        SA[j - 1] = t;
 
         // iter
         i -= 1;
@@ -310,9 +329,11 @@ pub fn ss_mintrosort(
     mut last: SAPtr,
     mut depth: Idx,
 ) {
-    println!(
-        "mintrosort first={} last={} depth={}\n",
-        first.0, last.0, depth
+    crosscheck!(
+        "mintrosort first={} last={} depth={}",
+        first - PA,
+        last - PA,
+        depth
     );
 
     let mut stack = Stack::new();
@@ -325,17 +346,28 @@ pub fn ss_mintrosort(
     let mut f: Idx;
     let mut s: Idx;
     let mut t: Idx;
-    let mut ssize: usize;
     let mut limit: Idx;
     let mut v: Idx;
     let mut x: Idx;
 
-    ssize = 0;
     limit = ss_ilg(last - first);
 
     loop {
+        crosscheck!(
+            "ssize={} limit={} last-first={} thresh={}",
+            stack.size,
+            limit,
+            last - first,
+            SS_INSERTIONSORT_THRESHOLD
+        );
         if ((last - first) <= SS_INSERTIONSORT_THRESHOLD) {
             if (1 < (last - first)) {
+                crosscheck!(
+                    "ss_insertionsort first={} last={} depth={}",
+                    first - PA,
+                    last - PA,
+                    depth
+                );
                 ss_insertionsort(T, SA, PA, first, last, depth);
             }
             stack.pop(&mut first, &mut last, &mut depth, &mut limit);
@@ -344,12 +376,14 @@ pub fn ss_mintrosort(
 
         let Td = Text(&T.0[(depth as usize)..]);
 
-        limit -= 1;
         if (limit == 0) {
+            crosscheck!("limit is 0");
             ss_heapsort(&Td, SA, PA, first, (last - first).into());
         }
+        limit -= 1;
 
         if (limit < 0) {
+            crosscheck!("limit is neg");
             a = first + 1;
             v = Td[SA[PA + SA[first]]] as Idx;
 
@@ -397,6 +431,7 @@ pub fn ss_mintrosort(
         }
 
         // choose pivot
+        crosscheck!("choose pivot");
         a = ss_pivot(&Td, SA, PA, first, last);
 
         unimplemented!();
@@ -586,21 +621,21 @@ pub fn sssort(
         crosscheck!("pumpkin else");
         middle = last;
         limit = 0;
-        crosscheck!("middle={}, limit={}", middle, limit);
+        crosscheck!("middle={} limit={}", middle - PA, limit);
     }
 
     // ☕
 
     a = first;
     i = 0;
-    crosscheck!(
-        "SS_BLOCKSIZE={}, middle={}, a={}, middle-a={}",
-        SS_BLOCKSIZE,
-        middle,
-        a,
-        middle - a
-    );
     while SS_BLOCKSIZE < (middle - a) {
+        crosscheck!(
+            "SS_BLOCKSIZE={} middle={} a={} middle-a={}",
+            SS_BLOCKSIZE,
+            middle - PA,
+            a - PA,
+            middle - a
+        );
         crosscheck!("call mintrosort, depth={}", depth);
         ss_mintrosort(T, SA, PA, a, a + SS_BLOCKSIZE, depth);
 

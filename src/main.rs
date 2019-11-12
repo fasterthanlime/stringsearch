@@ -48,6 +48,12 @@ fn main() {
         let res = std::panic::catch_unwind(|| {
             let mut SA_rust = vec![0 as Idx; input.len()];
             let before_rust = Instant::now();
+
+            std::thread::spawn(|| loop {
+                std::thread::sleep(std::time::Duration::from_millis(500));
+                crosscheck::flush();
+            });
+
             divsufsort::divsufsort(&input[..], &mut SA_rust[..]);
             let rust_duration = before_rust.elapsed();
             assert_eq!(SA_c, SA_rust);

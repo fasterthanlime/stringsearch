@@ -111,13 +111,12 @@ ss_isqrt(saidx_t x) {
   if(x >= (SS_BLOCKSIZE * SS_BLOCKSIZE)) { return SS_BLOCKSIZE; }
   e = (x & 0xffff0000) ?
         ((x & 0xff000000) ?
-          (/*printf("24 + \n"),*/ 24 + lg_table[(x >> 24) & 0xff]) :
-          (/*printf("16 + \n"),*/ 16 + lg_table[(x >> 16) & 0xff])) :
+          24 + lg_table[(x >> 24) & 0xff] :
+          16 + lg_table[(x >> 16) & 0xff]) :
         ((x & 0x0000ff00) ?
-           (/*printf("8 + \n"),*/ 8 + lg_table[(x >>  8) & 0xff]) :
-           (/*printf("0 + \n"),*/ 0 + lg_table[(x >>  0) & 0xff]));
+           8 + lg_table[(x >>  8) & 0xff] :
+           0 + lg_table[(x >>  0) & 0xff]);
 
-  // printf("e = %d\n", e);
   if(e >= 16) {
     y = sqq_table[x >> ((e - 6) - (e & 1))] << ((e >> 1) - 7);
     if(e >= 24) { y = (y + 1 + x / y) >> 1; }
@@ -125,7 +124,6 @@ ss_isqrt(saidx_t x) {
   } else if(e >= 8) {
     y = (sqq_table[x >> ((e - 6) - (e & 1))] >> (7 - (e >> 1))) + 1;
   } else {
-    // printf("using sqq_table[%d]\n", x);
     return sqq_table[x] >> 4;
   }
 
@@ -153,9 +151,27 @@ ss_compare(const sauchar_t *T,
       ++U1, ++U2) {
   }
 
-  return U1 < U1n ?
-        (U2 < U2n ? *U1 - *U2 : 1) :
-        (U2 < U2n ? -1 : 0);
+  // return U1 < U1n ?
+  //       (U2 < U2n ? *U1 - *U2 : 1) :
+  //       (U2 < U2n ? -1 : 0);
+
+  if (U1 < U1n) {
+    if (U2 < U2n) {
+      crosscheck("cmp %d", *U1 - *U2);
+      return *U1 - *U2;
+    } else {
+      crosscheck("cmp 1");
+      return 1;
+    }
+  } else {
+    if (U2 < U2n) {
+      crosscheck("cmp -1");
+      return -1;
+    } else {
+      crosscheck("cmp 0");
+      return 0;
+    }
+  }
 }
 
 
@@ -173,6 +189,7 @@ ss_insertionsort(const sauchar_t *T, const saidx_t *PA,
   saint_t r;
 
   for(i = last - 2; first <= i; --i) {
+    crosscheck("first=%d leq i=%d", first-PA, i-PA);
     for(t = *i, j = i + 1; 0 < (r = ss_compare(T, PA + t, PA + *j, depth));) {
       do { *(j - 1) = *j; } while((++j < last) && (*j < 0));
       if(last <= j) { break; }
@@ -312,7 +329,7 @@ void
 ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
               saidx_t *first, saidx_t *last,
               saidx_t depth) {
-  printf("mintrosort first=%d last=%d depth=%d\n", first-PA, last-PA, depth);
+  crosscheck("mintrosort first=%d last=%d depth=%d", first-PA, last-PA, depth);
 
 #define STACK_SIZE SS_MISORT_STACKSIZE
   struct { saidx_t *a, *b, c; saint_t d; } stack[STACK_SIZE];
@@ -324,18 +341,27 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
   saint_t v, x = 0;
 
   for(ssize = 0, limit = ss_ilg(last - first);;) {
+    crosscheck("ssize=%d limit=%d last-first=%d thresh=%d", ssize, limit, last-first, SS_INSERTIONSORT_THRESHOLD);
 
     if((last - first) <= SS_INSERTIONSORT_THRESHOLD) {
 #if 1 < SS_INSERTIONSORT_THRESHOLD
-      if(1 < (last - first)) { ss_insertionsort(T, PA, first, last, depth); }
+      if(1 < (last - first)) {
+        crosscheck("ss_insertionsort first=%d last=%d depth=%d",
+          first - PA, last - PA, depth);
+        ss_insertionsort(T, PA, first, last, depth);
+      }
 #endif
       STACK_POP(first, last, depth, limit);
       continue;
     }
 
     Td = T + depth;
-    if(limit-- == 0) { ss_heapsort(Td, PA, first, last - first); }
+    if(limit-- == 0) {
+      crosscheck("limit is 0");
+      ss_heapsort(Td, PA, first, last - first);
+    }
     if(limit < 0) {
+      crosscheck("limit is neg");
       for(a = first + 1, v = Td[PA[*first]]; a < last; ++a) {
         if((x = Td[PA[*a]]) != v) {
           if(1 < (a - first)) { break; }
@@ -365,6 +391,7 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
     }
 
     /* choose pivot */
+    crosscheck("choose pivot");
     a = ss_pivot(Td, PA, first, last);
     v = Td[PA[*a]];
     SWAP(*first, *a);
@@ -771,13 +798,13 @@ sssort(const sauchar_t *T, const saidx_t *PA,
   } else {
     crosscheck("pumpkin else");
     middle = last, limit = 0;
-    crosscheck("middle=%d, limit=%d", middle, limit);
+    crosscheck("middle=%d limit=%d", middle-PA, limit);
   }
 
   // ☕
 
-  crosscheck("SS_BLOCKSIZE={}, middle={}, a={}, middle-a={}", SS_BLOCKSIZE, middle, a, middle-a);
   for(a = first, i = 0; SS_BLOCKSIZE < (middle - a); a += SS_BLOCKSIZE, ++i) {
+    crosscheck("SS_BLOCKSIZE=%d middle=%d a=%d middle-a=%d", SS_BLOCKSIZE, middle-PA, a-PA, middle-a);
     crosscheck("call mintrosort, depth=%d", depth);
     ss_mintrosort(T, PA, a, a + SS_BLOCKSIZE, depth);
     curbufsize = last - (a + SS_BLOCKSIZE);
