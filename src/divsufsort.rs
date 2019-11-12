@@ -126,6 +126,7 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
     }
     m = n - m;
 
+    SA_dump(SA, "post-count");
     BSTAR_dump(&mut B, "post-count");
 
     // Note: A type B* suffix is lexicographically smaller than a type B suffix
@@ -270,11 +271,13 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
             i -= 1;
         }
 
+        SA_dump(SA, "post-rank");
         BSTAR_dump(&mut B, "post-rank");
 
         // Construct the inverse suffix array of type B* suffixes using trsort.
         trsort::trsort(ISAb, SA, m, 1);
 
+        SA_dump(SA, "post-tr");
         BSTAR_dump(&mut B, "post-tr");
 
         // Set the sorted order of type B* suffixes
@@ -294,7 +297,7 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
                         break;
                     }
                     c0 = T.get(i);
-                    if !(c0 <= c1) {
+                    if !(c0 >= c1) {
                         break;
                     }
 
@@ -338,6 +341,7 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
             }
         } // End: Set the sorted order of type B* suffixes
 
+        SA_dump(SA, "post-so");
         BSTAR_dump(&mut B, "post-so");
 
         // Calculate the index of start/end point of each bucket

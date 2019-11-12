@@ -104,6 +104,7 @@ note:
   begins with the same first two characters.
 */
 
+  SA_dump(SA, "post-count");
   BSTAR_dump("post-count");
 
   /* Calculate the index of start/end point of each bucket. */
@@ -177,11 +178,13 @@ note:
       ISAb[SA[i]] = j;
     }
 
+    SA_dump(SA, "post-rank");
     BSTAR_dump("post-rank");
 
     /* Construct the inverse suffix array of type B* suffixes using trsort. */
     trsort(ISAb, SA, m, 1);
 
+    SA_dump(SA, "post-tr");
     BSTAR_dump("post-tr");
 
     /* Set the sorted order of tyoe B* suffixes. */
@@ -194,6 +197,7 @@ note:
       }
     }
 
+    SA_dump(SA, "post-so");
     BSTAR_dump("post-so");
 
     /* Calculate the index of start/end point of each bucket. */
