@@ -11,7 +11,9 @@ fn main() {
             build.flag("-DENABLE_CROSSCHECK=1");
         }
         "release" => {
-            build.flag("/Oi").flag("/Ot").flag("/Ox").flag("/Oy");
+            if build.get_compiler().is_like_msvc() {
+                build.flag("/Oi").flag("/Ot").flag("/Ox").flag("/Oy");
+            }
         }
         _ => {}
     };
