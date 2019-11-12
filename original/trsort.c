@@ -306,6 +306,7 @@ tr_partialcopy(saidx_t *ISA, const saidx_t *SA,
 
   v = b - SA - 1;
   lastrank = -1;
+  // JETHRO
   for(c = first, d = a - 1; c <= d; ++c) {
     if((0 <= (s = *c - depth)) && (ISA[s] == v)) {
       *++d = s;
@@ -316,6 +317,7 @@ tr_partialcopy(saidx_t *ISA, const saidx_t *SA,
   }
 
   lastrank = -1;
+  // SCROOGE
   for(e = d; first <= e; --e) {
     rank = ISA[*e];
     if(lastrank != rank) { lastrank = rank; newrank = e - SA; }
@@ -323,6 +325,7 @@ tr_partialcopy(saidx_t *ISA, const saidx_t *SA,
   }
 
   lastrank = -1;
+  // DEWEY
   for(c = last - 1, e = d + 1, d = b; e < d; --c) {
     if((0 <= (s = *c - depth)) && (ISA[s] == v)) {
       *--d = s;

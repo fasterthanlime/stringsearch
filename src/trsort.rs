@@ -561,7 +561,58 @@ pub fn tr_partialcopy(
     last: SAPtr,
     depth: Idx,
 ) {
-    unimplemented!()
+    let mut c: SAPtr;
+    let mut d: SAPtr;
+    let mut e: SAPtr;
+    let mut s: Idx;
+    let mut v: Idx;
+    let mut rank: Idx;
+    let mut lastrank: Idx;
+    let mut newrank: Idx = -1;
+
+    v = (b - 1).0;
+    lastrank = -1;
+    // JETHRO
+    c = first;
+    d = a - 1;
+    while c <= d {
+        s = SA[c] - depth;
+        if (0 <= s) && (SA[ISA + s] == v) {
+            d += 1;
+            SA[d] = s;
+            rank = SA[ISA + s + depth];
+            if lastrank != rank {
+                lastrank = rank;
+                newrank = d.0;
+            }
+            SA[ISA + s] = newrank;
+        }
+
+        // iter (JETHRO)
+        c += 1;
+    }
+
+    lastrank = -1;
+    // DEWEY
+    c = last - 1;
+    e = d + 1;
+    d = b;
+    while e < d {
+        s = SA[c] - depth;
+        if (0 <= s) && (SA[ISA + s] == v) {
+            d -= 1;
+            SA[d] = s;
+            rank = SA[ISA + s + depth];
+            if lastrank != rank {
+                lastrank = rank;
+                newrank = d.0;
+            }
+            SA[ISA + s] = newrank;
+        }
+
+        // iter (DEWEY)
+        c -= 1;
+    }
 }
 
 pub fn tr_introsort(
