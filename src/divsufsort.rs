@@ -382,6 +382,8 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
                 c0 -= 1;
             }
         } // End: Calculate the index of start/end point of each bucket
+
+        BSTAR_dump(&mut B, "post-sten2");
     }
 
     SortTypeBstarResult { A, B, m }
@@ -399,6 +401,7 @@ fn construct_SA(T: &Text, SA: &mut SuffixArray, A: ABucket, mut B: BMixBucket, m
 
     crosscheck!("construct_SA start");
     crosscheck!("m = {}", m);
+    SA_dump(SA, "construct-begin");
 
     BSTAR_dump(&mut B, "csa-s");
 
@@ -419,9 +422,10 @@ fn construct_SA(T: &Text, SA: &mut SuffixArray, A: ABucket, mut B: BMixBucket, m
             c2 = -1;
 
             while i <= j {
-                crosscheck!("c1={} i={} j={}", c1, i, j);
+                crosscheck!("c1={} i={} j={} SA[j]={}", c1, i, j, SA[j]);
                 s = SA[j];
                 if (0 < s) {
+                    crosscheck!("s={}, T[s]={}, c1={}", s, T.get(s), c1);
                     assert_eq!(T.get(s), c1);
                     assert!((s + 1) < n);
                     assert!(T[s] <= T[s + 1]);

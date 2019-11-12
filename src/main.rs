@@ -39,8 +39,12 @@ fn main() {
     println!();
     println!("================ Rust ===============");
     {
-        let mut SA = vec![0 as Idx; input.len()];
-        divsufsort::divsufsort(&input[..], &mut SA[..]);
+        let res = std::panic::catch_unwind(|| {
+            let mut SA = vec![0 as Idx; input.len()];
+            divsufsort::divsufsort(&input[..], &mut SA[..]);
+        });
+        crosscheck::flush();
+        res.unwrap();
     }
 
     println!();

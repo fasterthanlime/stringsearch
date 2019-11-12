@@ -20,6 +20,11 @@ macro_rules! crosscheck {
     };
 }
 
+pub fn flush() {
+    let mut f = crate::crosscheck::CROSSCHECK_FILE.lock().unwrap();
+    f.flush().unwrap();
+}
+
 pub fn SA_dump(SA: &SuffixArray, label: &str) {
     crosscheck!(":: {}", label);
     crosscheck!("SA = {:?}", SA.0);

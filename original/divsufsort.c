@@ -212,6 +212,8 @@ note:
       BUCKET_BSTAR(c0, c0 + 1) = i - BUCKET_B(c0, c0) + 1; /* start point */
       BUCKET_B(c0, c0) = i; /* end point */
     }
+
+    BSTAR_dump("post-sten2");
   }
 
   return m;
@@ -230,6 +232,7 @@ construct_SA(const sauchar_t *T, saidx_t *SA,
 
   crosscheck("construct_SA start");
   crosscheck("m = %d", m);
+  SA_dump(SA, "construct-begin");
 
   BSTAR_dump("csa-s");
 
@@ -247,8 +250,9 @@ construct_SA(const sauchar_t *T, saidx_t *SA,
           j = SA + BUCKET_A(c1 + 1) - 1, k = NULL, c2 = -1;
           i <= j;
           --j) {
-        crosscheck("c1=%d i=%d j=%d", c1, i-SA, j-SA);
+        crosscheck("c1=%d i=%d j=%d SA[j]=%d", c1, i-SA, j-SA, *j);
         if(0 < (s = *j)) {
+          crosscheck("s=%d T[s]=%d c1=%d", s, T[s], c1);
           assert(T[s] == c1);
           assert(((s + 1) < n) && (T[s] <= T[s + 1]));
           assert(T[s - 1] <= T[s]);
