@@ -287,6 +287,8 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
             j = m;
             c0 = T.get(n - 1);
             while 0 <= i {
+                crosscheck!("so l1 i={} j={} c0={}", i, j, c0);
+
                 // init
                 i -= 1;
                 c1 = c0;
@@ -302,6 +304,7 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
                     }
 
                     // body (empty)
+                    crosscheck!("so l2 i={} j={} c0={} c1={}", i, j, c0, c1);
 
                     // iter
                     i -= 1;
@@ -309,10 +312,11 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
                 }
 
                 if 0 <= i {
+                    crosscheck!("0 leq i");
                     t = i;
 
                     // init
-                    i = -1;
+                    i -= 1;
                     c1 = c0;
 
                     loop {
@@ -326,6 +330,7 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
                         }
 
                         // body (empty)
+                        crosscheck!("so l2 i={} j={} c0={} c1={}", i, j, c0, c1);
 
                         // iter
                         i -= 1;
@@ -426,6 +431,7 @@ fn construct_SA(T: &Text, SA: &mut SuffixArray, mut A: ABucket, mut B: BMixBucke
             c2 = -1;
 
             while i <= j {
+                SA_dump(SA, "rtl-scan");
                 crosscheck!("c1={} i={} j={} SA[j]={}", c1, i, j, SA[j]);
                 s = SA[j];
                 if (0 < s) {

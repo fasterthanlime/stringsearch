@@ -189,10 +189,16 @@ note:
 
     /* Set the sorted order of tyoe B* suffixes. */
     for(i = n - 1, j = m, c0 = T[n - 1]; 0 <= i;) {
-      for(--i, c1 = c0; (0 <= i) && ((c0 = T[i]) >= c1); --i, c1 = c0) { }
+      crosscheck("so l1 i=%d j=%d c0=%d", i, j, c0);
+      for(--i, c1 = c0; (0 <= i) && ((c0 = T[i]) >= c1); --i, c1 = c0) {
+        crosscheck("so l2 i=%d j=%d c0=%d c1=%d", i, j, c0, c1);
+      }
       if(0 <= i) {
+        crosscheck("0 leq i");
         t = i;
-        for(--i, c1 = c0; (0 <= i) && ((c0 = T[i]) <= c1); --i, c1 = c0) { }
+        for(--i, c1 = c0; (0 <= i) && ((c0 = T[i]) <= c1); --i, c1 = c0) {
+          crosscheck("so l2b i=%d j=%d c0=%d c1=%d", i, j, c0, c1);
+        }
         SA[ISAb[--j]] = ((t == 0) || (1 < (t - i))) ? t : ~t;
       }
     }
@@ -254,6 +260,7 @@ construct_SA(const sauchar_t *T, saidx_t *SA,
           j = SA + BUCKET_A(c1 + 1) - 1, k = NULL, c2 = -1;
           i <= j;
           --j) {
+        SA_dump(SA, "rtl-scan");
         crosscheck("c1=%d i=%d j=%d SA[j]=%d", c1, i-SA, j-SA, *j);
         if(0 < (s = *j)) {
           crosscheck("s=%d T[s]=%d c1=%d", s, T[s], c1);
