@@ -757,6 +757,7 @@ sssort(const sauchar_t *T, const saidx_t *PA,
   saidx_t j, k, curbufsize, limit;
   saidx_t i;
 
+  crosscheck("start of sssort");
   if(lastsuffix != 0) { ++first; }
 
   // 🎃
@@ -765,15 +766,19 @@ sssort(const sauchar_t *T, const saidx_t *PA,
       (bufsize < (last - first)) &&
       (bufsize < (limit = ss_isqrt(last - first)))) {
     if(SS_BLOCKSIZE < limit) { limit = SS_BLOCKSIZE; }
+    crosscheck("pumpkin if");
     buf = middle = last - limit, bufsize = limit;
   } else {
+    crosscheck("pumpkin else");
     middle = last, limit = 0;
+    crosscheck("middle=%d, limit=%d", middle, limit);
   }
 
   // ☕
 
+  crosscheck("SS_BLOCKSIZE={}, middle={}, a={}, middle-a={}", SS_BLOCKSIZE, middle, a, middle-a);
   for(a = first, i = 0; SS_BLOCKSIZE < (middle - a); a += SS_BLOCKSIZE, ++i) {
-    printf("in coffee\n");
+    crosscheck("call mintrosort, depth=%d", depth);
     ss_mintrosort(T, PA, a, a + SS_BLOCKSIZE, depth);
     curbufsize = last - (a + SS_BLOCKSIZE);
     curbuf = a + SS_BLOCKSIZE;

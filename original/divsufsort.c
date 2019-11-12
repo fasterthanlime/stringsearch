@@ -29,6 +29,8 @@
 # include <omp.h>
 #endif
 
+/*- Cross-checking -*/
+FILE *CROSSCHECK_FILE;
 
 /*- Private Functions -*/
 
@@ -67,7 +69,7 @@ sort_typeBstar(const sauchar_t *T, saidx_t *SA,
     /* type A suffix. */
     do {
       c1 = c0;
-      printf("increment A[%d]\n", c1);
+      crosscheck("increment A[%d]", c1);
       ++BUCKET_A(c1);
     } while(
         (0 <= --i) &&
@@ -75,7 +77,7 @@ sort_typeBstar(const sauchar_t *T, saidx_t *SA,
       );
     if(0 <= i) {
       /* type B* suffix. */
-      printf("increment BSTAR[%d, %d]\n", c0, c1);
+      crosscheck("increment BSTAR[%d, %d]", c0, c1);
       ++BUCKET_BSTAR(c0, c1);
       SA[--m] = i;
       /* type B suffix. */
@@ -86,7 +88,7 @@ sort_typeBstar(const sauchar_t *T, saidx_t *SA,
         /* iter */ --i,
                    c1 = c0) {
 
-        printf("increment B[%d, %d]\n", c0, c1);
+        crosscheck("increment B[%d, %d]", c0, c1);
         ++BUCKET_B(c0, c1);
       }
     }
@@ -99,63 +101,58 @@ note:
   begins with the same first two characters.
 */
 
-  FILE *f = fopen("crosscheck/typeBstar-c", "wb");
-
   /* Calculate the index of start/end point of each bucket. */
   for(c0 = 0, i = 0, j = 0; c0 < ALPHABET_SIZE; ++c0) {
     t = i + BUCKET_A(c0);
     BUCKET_A(c0) = i + j; /* start point */
-    fprintf(f, "sp=%d\n", BUCKET_A(c0));
+    crosscheck("sp=%d", BUCKET_A(c0));
     i = t + BUCKET_B(c0, c0);
     for(c1 = c0 + 1; c1 < ALPHABET_SIZE; ++c1) {
       j += BUCKET_BSTAR(c0, c1);
-      fprintf(f, "j+=%d\n", BUCKET_BSTAR(c0, c1));
+      crosscheck("j+=%d", BUCKET_BSTAR(c0, c1));
       BUCKET_BSTAR(c0, c1) = j; /* end point */
-      fprintf(f, "ep=%d\n", BUCKET_BSTAR(c0, c1));
+      crosscheck("ep=%d", BUCKET_BSTAR(c0, c1));
       i += BUCKET_B(c0, c1);
-      fprintf(f, "i+=%d\n", BUCKET_B(c0, c1));
+      crosscheck("i+=%d", BUCKET_B(c0, c1));
     }
   }
 
-  fflush(f);
+  crosscheck("before-0<m, m = %d", m);
 
-  fprintf(f, "before-0<m, m = %d\n", m);
-
-  printf("before B* suffix sort, m = %d\n", m);
+  crosscheck("before B* suffix sort, m = %d", m);
   if(0 < m) {
-    SA_dump("before B* suffix sort");
+    SA_dump(SA, "before B* suffix sort");
 
     /* Sort the type B* suffixes by their first two characters. */
     PAb = SA + n - m; ISAb = SA + m;
     for(i = m - 2; 0 <= i; --i) {
       t = PAb[i], c0 = T[t], c1 = T[t + 1];
-      fprintf(f, "t=%d c0=%d c1=%d\n", t, c0, c1);
+      crosscheck("t=%d c0=%d c1=%d", t, c0, c1);
       SA[--BUCKET_BSTAR(c0, c1)] = i;
     }
     t = PAb[m - 1], c0 = T[t], c1 = T[t + 1];
-    fprintf(f, "(*) t=%d c0=%d c1=%d\n", t, c0, c1);
+    crosscheck("(*) t=%d c0=%d c1=%d", t, c0, c1);
     SA[--BUCKET_BSTAR(c0, c1)] = m - 1;
 
-    SA_dump("before all ssort");
+    SA_dump(SA, "before all ssort");
 
     /* Sort the type B* substrings using sssort. */
     buf = SA + m, bufsize = n - (2 * m);
     for(c0 = ALPHABET_SIZE - 2, j = m; 0 < j; --c0) {
       for(c1 = ALPHABET_SIZE - 1; c0 < c1; j = i, --c1) {
         i = BUCKET_BSTAR(c0, c1);
-        fprintf(f, "(sort-with-sssort) c0=%d c1=%d i=%d j=%d\n", c0, c1, i, j);
         if(1 < (j - i)) {
-          printf("sssort() i=%d j=%d\n", i, j);
+          crosscheck("sssort() i=%d j=%d", i, j);
 
           sssort(T, PAb, SA + i, SA + j,
                  buf, bufsize, 2, n, *(SA + i) == (m - 1));
 
-          SA_dump("");
+          SA_dump(SA, "for-for");
         }
       }
     }
 
-    SA_dump("after all sssort()");
+    SA_dump(SA, "after all sssort()");
 
     /* Compute ranks of type B* substrings. */
     for(i = m - 1; 0 <= i; --i) {
@@ -201,8 +198,6 @@ note:
     }
   }
 
-  fclose(f);
-
   return m;
 }
 
@@ -217,24 +212,23 @@ construct_SA(const sauchar_t *T, saidx_t *SA,
   saint_t c0, c1, c2;
 
 
-  printf("m = %d\n", m);
+  crosscheck("construct_SA start");
+  crosscheck("m = %d", m);
   if(0 < m) {
-    A_dump("in if(0 < m)");
+    A_dump(A, "in if(0 < m)");
 
     /* Construct the sorted order of type B suffixes by using
        the sorted order of type B* suffixes. */
     for(c1 = ALPHABET_SIZE - 2; 0 <= c1; --c1) {
-      printf("for.c1 = %d\n", c1);
-      printf("BSTAR(c, c1 + 1) = %d\n", BUCKET_BSTAR(c1, c1 + 1));
+      crosscheck("(for) c1 = %d", c1);
+      crosscheck("BSTAR(c, c1 + 1) = %d", BUCKET_BSTAR(c1, c1 + 1));
 
       /* Scan the suffix array from right to left. */
       for(i = SA + BUCKET_BSTAR(c1, c1 + 1),
           j = SA + BUCKET_A(c1 + 1) - 1, k = NULL, c2 = -1;
           i <= j;
           --j) {
-        printf("c1 = %d\n", c1);
-        printf("i = %d\n", i-SA);
-        printf("j = %d\n", j-SA);
+        crosscheck("c1=%d i=%d j=%d", c1, i-SA, j-SA);
         if(0 < (s = *j)) {
           assert(T[s] == c1);
           assert(((s + 1) < n) && (T[s] <= T[s + 1]));
@@ -278,7 +272,7 @@ construct_SA(const sauchar_t *T, saidx_t *SA,
     }
   }
 
-  SA_dump("after construct");
+  SA_dump(SA, "after construct");
 }
 
 /* Constructs the burrows-wheeler transformed string directly
@@ -359,6 +353,12 @@ construct_BWT(const sauchar_t *T, saidx_t *SA,
 
 saint_t
 divsufsort(const sauchar_t *T, saidx_t *SA, saidx_t n) {
+  CROSSCHECK_FILE = fopen("crosscheck/c", "wb");
+  if (!CROSSCHECK_FILE) {
+    fprintf(stderr, "Could not open crosscheck file");
+    return -2;
+  }
+
   saidx_t *bucket_A, *bucket_B;
   saidx_t m;
   saint_t err = 0;
@@ -382,6 +382,8 @@ divsufsort(const sauchar_t *T, saidx_t *SA, saidx_t n) {
 
   free(bucket_B);
   free(bucket_A);
+
+  fclose(CROSSCHECK_FILE);
 
   return err;
 }

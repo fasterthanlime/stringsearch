@@ -1,4 +1,4 @@
-use crate::common::*;
+use crate::{common::*, crosscheck, crosscheck::*};
 
 //--------------------
 // Private functions
@@ -566,6 +566,7 @@ pub fn sssort(
     let mut limit: Idx;
     let mut i: Idx;
 
+    crosscheck!("start of sssort");
     if lastsuffix {
         first += 1;
     }
@@ -574,6 +575,7 @@ pub fn sssort(
 
     limit = ss_isqrt(last - first);
     if ((bufsize < SS_BLOCKSIZE) && (bufsize < (last - first)) && (bufsize < limit)) {
+        crosscheck!("pumpkin if");
         if (SS_BLOCKSIZE < limit) {
             limit = SS_BLOCKSIZE;
         }
@@ -581,16 +583,25 @@ pub fn sssort(
         buf = middle;
         bufsize = limit;
     } else {
+        crosscheck!("pumpkin else");
         middle = last;
         limit = 0;
+        crosscheck!("middle={}, limit={}", middle, limit);
     }
 
     // ☕
 
     a = first;
     i = 0;
+    crosscheck!(
+        "SS_BLOCKSIZE={}, middle={}, a={}, middle-a={}",
+        SS_BLOCKSIZE,
+        middle,
+        a,
+        middle - a
+    );
     while SS_BLOCKSIZE < (middle - a) {
-        println!("in coffee");
+        crosscheck!("call mintrosort, depth={}", depth);
         ss_mintrosort(T, SA, PA, a, a + SS_BLOCKSIZE, depth);
 
         curbufsize = (last - (a + SS_BLOCKSIZE)).into();

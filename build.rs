@@ -3,6 +3,7 @@ fn main() {
 
     cc::Build::new()
         .flag("-DHAVE_CONFIG_H")
+        .flag("/w") // I know, I know
         .file("original/divsufsort.c")
         .file("original/sssort.c")
         .file("original/trsort.c")

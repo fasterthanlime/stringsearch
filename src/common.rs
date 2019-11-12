@@ -89,11 +89,6 @@ impl<'a> SuffixArray<'a> {
     pub fn len(&self) -> Idx {
         self.0.len() as Idx
     }
-
-    pub fn dump(&self, label: &str) {
-        println!("=> {}", label);
-        println!("SA = {:?}", self.0);
-    }
 }
 
 // ---------- Immutable variant ----------- *shakes fist at borrowck*
@@ -126,6 +121,12 @@ impl<'a> Index<SAPtr> for SuffixArrayImm<'a> {
 pub struct SAPtr(pub Idx);
 
 use std::fmt;
+
+impl fmt::Display for SAPtr {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 impl fmt::Debug for SAPtr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -272,13 +273,6 @@ impl BMixBucket {
 }
 
 pub struct ABucket(pub Vec<Idx>);
-
-impl ABucket {
-    pub fn dump(&self, label: &str) {
-        println!("=> {}", label);
-        println!("A = {:?}", self.0);
-    }
-}
 
 impl Index<Idx> for ABucket {
     type Output = Idx;

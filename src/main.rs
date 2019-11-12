@@ -2,6 +2,7 @@
 #![allow(unused)]
 
 pub mod common;
+pub mod crosscheck;
 pub mod divsufsort;
 pub mod sssort;
 pub mod trsort;

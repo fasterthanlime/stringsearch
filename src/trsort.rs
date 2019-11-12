@@ -1,4 +1,4 @@
-use crate::common::*;
+use crate::{common::*, crosscheck, crosscheck::*};
 use std::mem::swap;
 
 //--------------------
@@ -396,8 +396,8 @@ pub fn tr_introsort(
 
 /// Tandem repeat sort
 pub fn trsort(ISA: SAPtr, SA: &mut SuffixArray, n: Idx, depth: Idx) {
-    SA.range_to(..n).dump("start of trsort");
-    dbg!(ISA, n, depth);
+    SA_dump(&SA.range_to(..n), "start of trsort");
+    crosscheck!("ISA = {}, n = {}, depth = {}", ISA, n, depth);
 
     let mut ISAd: SAPtr;
     let mut first: SAPtr;
@@ -418,20 +418,15 @@ pub fn trsort(ISA: SAPtr, SA: &mut SuffixArray, n: Idx, depth: Idx) {
             // body for do..while
             t = SA[first];
             if (t < 0) {
-                dbg!();
                 first -= t;
                 skip += t;
             } else {
-                dbg!();
                 if (skip != 0) {
-                    dbg!();
                     SA[first + skip] = skip;
                     skip = 0;
                 }
-                dbg!();
                 last = SAPtr(SA[ISA + t] + 1);
                 if (1 < (last - first)) {
-                    dbg!();
                     budget.count = 0;
                     tr_introsort(ISA, ISAd, SA, first, last, &mut budget);
                     if (budget.count != 0) {
@@ -440,15 +435,12 @@ pub fn trsort(ISA: SAPtr, SA: &mut SuffixArray, n: Idx, depth: Idx) {
                         skip = (first - last).0;
                     }
                 } else if (last - first) == 1 {
-                    dbg!();
                     skip = -1;
                 }
-                dbg!(first, last);
                 first = last;
             }
 
             // cond for do..while
-            dbg!(first, n);
             if !(first < n) {
                 break;
             }

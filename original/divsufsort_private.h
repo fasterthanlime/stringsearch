@@ -142,33 +142,41 @@ extern "C" {
 # define TR_STACKSIZE (64)
 #endif
 
-/*- More macros -*/
-#define SA_dump(label) \
+/*- Cross-checking -*/
+extern FILE *CROSSCHECK_FILE;
+
+#define crosscheck(...) \
+    do { \
+      fprintf(CROSSCHECK_FILE, __VA_ARGS__); \
+      fprintf(CROSSCHECK_FILE, "\n"); \
+    } while (0)
+
+#define SA_dump(SA, label) \
   do { \
-    printf("=> %s\n", label); \
-    printf("SA = ["); \
+    fprintf(CROSSCHECK_FILE, ":: %s\n", label); \
+    fprintf(CROSSCHECK_FILE, "SA = ["); \
     for (int z = 0; z < n; z++) { \
       if (z == n - 1) { \
-        printf("%d", SA[z]); \
+        fprintf(CROSSCHECK_FILE, "%d", SA[z]); \
       } else { \
-        printf("%d, ", SA[z]); \
+        fprintf(CROSSCHECK_FILE, "%d, ", SA[z]); \
       } \
     } \
-    printf("]\n"); \
+    fprintf(CROSSCHECK_FILE, "]\n"); \
   } while (0);
 
-#define A_dump(label) \
+#define A_dump(A, label) \
   do { \
-    printf("=> %s\n", label); \
-    printf("A = ["); \
+    fprintf(CROSSCHECK_FILE, ":: %s\n", label); \
+    fprintf(CROSSCHECK_FILE, "A = ["); \
     for (int z = 0; z < BUCKET_A_SIZE; z++) { \
       if (z == BUCKET_A_SIZE - 1) { \
-        printf("%d", BUCKET_A(z)); \
+        fprintf(CROSSCHECK_FILE, "%d", BUCKET_A(z)); \
       } else { \
-        printf("%d, ", BUCKET_A(z)); \
+        fprintf(CROSSCHECK_FILE, "%d, ", BUCKET_A(z)); \
       } \
     } \
-    printf("]\n"); \
+    fprintf(CROSSCHECK_FILE, "]\n"); \
   } while (0);
 
 /*- Macros -*/
