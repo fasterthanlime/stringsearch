@@ -408,16 +408,22 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
         /* sorted partition */
         if(0 <= *first) {
           a = first;
+          crosscheck("GEMINI");
           // GEMINI
           do { ISA[*a] = a - SA; } while((++a < last) && (0 <= *a));
           first = a;
         }
         if(first < last) {
           a = first;
+          crosscheck("MONSTRO");
           // MONSTRO
           do { *a = ~*a; } while(*++a < 0);
           next = (ISA[*a] != ISAd[*a]) ? tr_ilg(a - first + 1) : -1;
-          if(++a < last) { for(b = first, v = a - SA - 1; b < a; ++b) { ISA[*b] = v; } }
+          if(++a < last) {
+            crosscheck("CLEMENTINE");
+            // CLEMENTINE
+            for(b = first, v = a - SA - 1; b < a; ++b) { ISA[*b] = v; }
+          }
 
           /* push */
           if(trbudget_check(budget, a - first)) {
@@ -442,10 +448,10 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
           }
         } else {
           STACK_POP5(ISAd, first, last, limit, trlink);
-        }
+        } // end if first < last 
       }
       continue;
-    } // limit < 0
+    } // end if limit < 0
 
     if((last - first) <= TR_INSERTIONSORT_THRESHOLD) {
       tr_insertionsort(ISAd, first, last);
@@ -455,8 +461,13 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
 
     if(limit-- == 0) {
       tr_heapsort(ISAd, first, last - first);
+
+      // YOHAN
       for(a = last - 1; first < a; a = b) {
-        for(x = ISAd[*a], b = a - 1; (first <= b) && (ISAd[*b] == x); --b) { *b = ~*b; }
+        // VINCENT
+        for(x = ISAd[*a], b = a - 1; (first <= b) && (ISAd[*b] == x); --b) {
+          *b = ~*b;
+        }
       }
       limit = -3;
       continue;

@@ -4,6 +4,8 @@ use std::ops::{self, Add, AddAssign, Div, Index, IndexMut, Sub, SubAssign};
 pub type Char = u8;
 pub type Idx = i32;
 
+pub const TR_INSERTIONSORT_THRESHOLD: Idx = 8;
+
 pub const SS_INSERTIONSORT_THRESHOLD: Idx = 8;
 pub const SS_BLOCKSIZE: Idx = 1024;
 
@@ -46,13 +48,18 @@ impl<'a> SuffixArray<'a> {
         self.0.swap(a.into() as usize, b.into() as usize);
     }
 
-    pub fn range<'b>(&'b mut self, range: ops::Range<Idx>) -> SuffixArray<'b> {
-        let usize_range = (range.start as usize)..(range.end as usize);
+    pub fn range<'b, I: Into<Idx>>(&'b mut self, range: ops::Range<I>) -> SuffixArray<'b> {
+        let usize_range = (range.start.into() as usize)..(range.end.into() as usize);
         SuffixArray(&mut self.0[usize_range])
     }
 
-    pub fn range_to<'b>(&'b mut self, range: ops::RangeTo<Idx>) -> SuffixArray<'b> {
-        let usize_range = ..(range.end as usize);
+    pub fn range_to<'b, I: Into<Idx>>(&'b mut self, range: ops::RangeTo<I>) -> SuffixArray<'b> {
+        let usize_range = ..(range.end.into() as usize);
+        SuffixArray(&mut self.0[usize_range])
+    }
+
+    pub fn range_from<'b, I: Into<Idx>>(&'b mut self, range: ops::RangeFrom<I>) -> SuffixArray<'b> {
+        let usize_range = (range.start.into() as usize)..;
         SuffixArray(&mut self.0[usize_range])
     }
 }

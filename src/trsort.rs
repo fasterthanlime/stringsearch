@@ -324,7 +324,7 @@ pub fn tr_median5(
 
 /// Returns the pivot element
 #[inline(always)]
-pub fn tr_pivot(SA: &SuffixArray, ISAd: SAPtr, first: SAPtr, last: SAPtr) {
+pub fn tr_pivot(SA: &SuffixArray, ISAd: SAPtr, first: SAPtr, last: SAPtr) -> SAPtr {
     unimplemented!()
 }
 
@@ -689,6 +689,7 @@ pub fn tr_introsort(
                 if 0 <= SA[first] {
                     a = first;
                     // GEMINI
+                    crosscheck!("GEMINI");
                     loop {
                         {
                             let SA_a = SA[a];
@@ -707,6 +708,7 @@ pub fn tr_introsort(
                 if first < last {
                     a = first;
                     // MONSTRO
+                    crosscheck!("MONSTRO");
                     loop {
                         SA[a] = !SA[a];
 
@@ -723,6 +725,7 @@ pub fn tr_introsort(
                     };
                     a += 1;
                     if a < last {
+                        crosscheck!("CLEMENTINE");
                         // CLEMENTINE
                         b = first;
                         v = (a - 1).0;
@@ -736,27 +739,90 @@ pub fn tr_introsort(
                     }
 
                     // push
-                    // TODO: trbudget_check etc.
-                    unimplemented!()
-                }
+                    if (budget.check((last - first).0)) {
+                        if (a - first) <= (last - a) {
+                            stack.push(ISAd, a, last, -3, trlink);
+                            ISAd += incr;
+                            last = a;
+                            limit = next;
+                        } else {
+                            if 1 < (last - a) {
+                                stack.push(ISAd + incr, first, a, next, trlink);
+                                first = a;
+                                limit = -3;
+                            } else {
+                                ISAd += incr;
+                                last = a;
+                                limit = next;
+                            }
+                        }
+                    } else {
+                        if 0 <= trlink {
+                            stack.items[trlink as usize].d = -1;
+                        }
+                        if 1 < (last - a) {
+                            first = a;
+                            limit = -3;
+                        } else {
+                            if !stack
+                                .pop(&mut ISAd, &mut first, &mut last, &mut limit, &mut trlink)
+                                .is_ok()
+                            {
+                                return;
+                            }
+                        }
+                    }
+                } else {
+                    if !stack
+                        .pop(&mut ISAd, &mut first, &mut last, &mut limit, &mut trlink)
+                        .is_ok()
+                    {
+                        return;
+                    }
+                } // end if first < last
 
                 unimplemented!()
-            }
-        } else {
-            // end if limit < 0
-            if (budget.check((last - first).0)) {
-            } else {
-                if 0 <= trlink {
-                    stack.items[trlink as usize].d = -1;
+            } // end if limit == -1, -2, or something else
+            continue;
+        } // end if limit < 0
+
+        if (last - first) <= TR_INSERTIONSORT_THRESHOLD {
+            tr_insertionsort(SA, ISAd, first, last);
+            limit = -3;
+            continue;
+        }
+
+        let old_limit = limit;
+        limit -= 1;
+        if (old_limit == 0) {
+            let mut SAfirst = SA.range_from(first..);
+            tr_heapsort(ISAd, &mut SAfirst, (last - first).0);
+
+            // YOHAN
+            a = last - 1;
+            while first < a {
+                // VINCENT
+                x = SA[ISAd + SA[a]];
+                b = a - 1;
+                while (first <= b) && SA[ISAd + SA[b]] == x {
+                    SA[b] = !SA[b];
+
+                    // iter (VINCENT)
+                    b -= 1;
                 }
-                if !stack
-                    .pop(&mut ISAd, &mut first, &mut last, &mut limit, &mut trlink)
-                    .is_ok()
-                {
-                    return;
-                }
+
+                // iter (YOHAN)
+                a = b;
             }
-        } // end else limit < 0
+            limit = -3;
+        }
+
+        // chose pivot
+        a = tr_pivot(SA, ISAd, first, last);
+        SA.swap(first, a);
+        v = SA[ISAd + SA[first]];
+
+        unimplemented!();
     } // end PASCAL
 }
 
