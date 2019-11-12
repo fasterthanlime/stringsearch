@@ -1,6 +1,8 @@
 #![allow(nonstandard_style)]
 #![allow(unused)]
 
+use std::time::Instant;
+
 pub mod common;
 pub mod crosscheck;
 pub mod divsufsort;
@@ -28,24 +30,35 @@ fn main() {
         );
     let input = std::fs::read(first_arg).unwrap();
 
-    println!();
-    println!("================= C =================");
+    println!("{:>20} {}", "C", "Running...");
+
+    let mut SA_c = vec![0 as Idx; input.len()];
+    let before_c = Instant::now();
+    let c_duration;
+
     unsafe {
-        let mut SA = vec![0 as Idx; input.len()];
-        divsufsort(input.as_ptr(), SA.as_mut_ptr(), input.len() as i32);
+        divsufsort(input.as_ptr(), SA_c.as_mut_ptr(), input.len() as i32);
+        c_duration = before_c.elapsed();
         dss_flush();
     }
 
-    println!();
-    println!("================ Rust ===============");
-    {
+    println!("{:>20} {}", "Rust", "Running...");
+
+    let rust_duration = {
         let res = std::panic::catch_unwind(|| {
-            let mut SA = vec![0 as Idx; input.len()];
-            divsufsort::divsufsort(&input[..], &mut SA[..]);
+            let mut SA_rust = vec![0 as Idx; input.len()];
+            let before_rust = Instant::now();
+            divsufsort::divsufsort(&input[..], &mut SA_rust[..]);
+            let rust_duration = before_rust.elapsed();
+            assert_eq!(SA_c, SA_rust);
+            println!("{:>20} {}", "Result", "Matching suffix arrays!");
+
+            println!("{:>20} {:?}", "C duration", c_duration);
+            println!("{:>20} {:?}", "Rust duration", rust_duration);
         });
         crosscheck::flush();
-        res.unwrap();
-    }
+        res.unwrap()
+    };
 
     println!();
 }
