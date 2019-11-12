@@ -330,7 +330,7 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
                         }
 
                         // body (empty)
-                        crosscheck!("so l2 i={} j={} c0={} c1={}", i, j, c0, c1);
+                        crosscheck!("so l2b i={} j={} c0={} c1={}", i, j, c0, c1);
 
                         // iter
                         i -= 1;
@@ -435,7 +435,7 @@ fn construct_SA(T: &Text, SA: &mut SuffixArray, mut A: ABucket, mut B: BMixBucke
                 crosscheck!("c1={} i={} j={} SA[j]={}", c1, i, j, SA[j]);
                 s = SA[j];
                 if (0 < s) {
-                    crosscheck!("s={}, T[s]={}, c1={}", s, T.get(s), c1);
+                    crosscheck!("s={} T[s]={} c1={}", s, T.get(s), c1);
                     assert_eq!(T.get(s), c1);
                     assert!((s + 1) < n);
                     assert!(T[s] <= T[s + 1]);
