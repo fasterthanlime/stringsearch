@@ -393,7 +393,7 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
     SortTypeBstarResult { A, B, m }
 }
 
-fn construct_SA(T: &Text, SA: &mut SuffixArray, A: ABucket, mut B: BMixBucket, m: Idx) {
+fn construct_SA(T: &Text, SA: &mut SuffixArray, mut A: ABucket, mut B: BMixBucket, m: Idx) {
     let n = T.len() as Idx;
     let mut i: SAPtr;
     let mut j: SAPtr;
@@ -461,6 +461,44 @@ fn construct_SA(T: &Text, SA: &mut SuffixArray, A: ABucket, mut B: BMixBucket, m
 
             // iter
             c1 -= 1;
+        }
+    }
+
+    // Construct the suffix array by using the sorted order of type B suffixes
+    c2 = T.get(n - 1);
+    k = A[c2];
+    SA[k] = if T.get(n - 1) < c2 { !(n - 1) } else { n - 1 };
+    k += 1;
+    // Scan the suffix array from left to right
+    {
+        // init
+        i = SAPtr(0);
+        j = SAPtr(n);
+
+        while i < j {
+            s = SA[i];
+            if 0 < s {
+                assert!(T[s - 1] >= T[s]);
+                s -= 1;
+                c0 = T.get(s);
+                if (s == 0) || (T.get(s - 1) < c0) {
+                    s = !s;
+                }
+                if (c0 != c2) {
+                    A[c2] = k;
+                    c2 = c0;
+                    k = A[c2];
+                }
+                assert!(i < k);
+                SA[k] = s;
+                k += 1;
+            } else {
+                assert!(s < 0);
+                SA[i] = !s;
+            }
+
+            // iter
+            i += 1;
         }
     }
 
