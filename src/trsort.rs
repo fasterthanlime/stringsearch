@@ -259,7 +259,7 @@ pub fn tr_heapsort(ISAd: SAPtr, SA: &mut SuffixArray, size: Idx) {
     if (size % 2) == 0 {
         m -= 1;
         if SA[ISAd + SA[m / 2]] < SA[ISAd + SA[m]] {
-            SA.swap(m, m / 2);
+            SA.swap(m, (m / 2));
         }
     }
 
@@ -350,7 +350,153 @@ pub fn tr_partition(
     pb: &mut SAPtr,
     v: Idx,
 ) {
-    unimplemented!()
+    let mut a: SAPtr;
+    let mut b: SAPtr;
+    let mut c: SAPtr;
+    let mut d: SAPtr;
+    let mut e: SAPtr;
+    let mut f: SAPtr;
+    let mut t: Idx;
+    let mut s: Idx;
+    let mut x: Idx = 0;
+
+    // JOSEPH
+    b = middle - 1;
+    loop {
+        // cond
+        b += 1;
+        if !(b < last) {
+            break;
+        }
+        x = SA[ISAd + SA[b]];
+        if !(x == v) {
+            break;
+        }
+
+        // body: empty
+        // iter: empty
+    }
+    a = b;
+    if (a < last) && (x < v) {
+        // MARY
+        loop {
+            b += 1;
+            if !(b < last) {
+                break;
+            }
+            x = SA[ISAd + SA[b]];
+            if !(x <= v) {
+                break;
+            }
+
+            // body
+            if (x == v) {
+                SA.swap(b, a);
+                a += 1;
+            }
+
+            // iter: empty
+        }
+    }
+
+    // JEREMIAH
+    c = last;
+    loop {
+        c -= 1;
+        if !(b < c) {
+            break;
+        }
+        x = SA[ISAd + SA[c]];
+        if !(x == v) {
+            break;
+        }
+    }
+    d = c;
+    if (b < d) && (x > v) {
+        // BEDELIA
+        loop {
+            c -= 1;
+            if !(b < c) {
+                break;
+            }
+            x = SA[ISAd + SA[c]];
+            if !(c >= v) {
+                break;
+            }
+            if x == v {
+                SA.swap(c, d);
+                d -= 1;
+            }
+        }
+    }
+
+    // ALEX
+    while b < c {
+        SA.swap(b, c);
+        // SIMON
+        loop {
+            b += 1;
+            if !(b < c) {
+                break;
+            }
+            x = SA[ISAd + SA[b]];
+            if !(x <= v) {
+                break;
+            }
+            if x == v {
+                SA.swap(b, a);
+                a += 1;
+            }
+        }
+
+        // GREGORY
+        loop {
+            c -= 1;
+            if !(b < c) {
+                break;
+            }
+            x = SA[ISAd + SA[c]];
+            if !(x >= v) {
+                break;
+            }
+            if x == v {
+                SA.swap(c, d);
+                d -= 1;
+            }
+        }
+    } // end ALEX
+
+    if a <= d {
+        c = b - 1;
+
+        s = (a - first).0;
+        t = (b - a).0;
+        if (s > t) {
+            s = t
+        }
+
+        // GENEVIEVE
+        e = first;
+        f = b - s;
+        while 0 < s {
+            SA.swap(e, f);
+            s -= 1;
+            e += 1;
+            f += 1;
+        }
+
+        // MARISSA
+        e = b;
+        f = last - s;
+        while 0 < s {
+            SA.swap(e, f);
+            s -= 1;
+            e += 1;
+            f += 1;
+        }
+    }
+    pa.0 = first.0;
+    pb.0 = last.0;
 }
 
 pub fn tr_copy(

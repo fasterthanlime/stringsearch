@@ -226,23 +226,30 @@ tr_partition(const saidx_t *ISAd,
   saidx_t t, s;
   saidx_t x = 0;
 
+  // JOSEPH
   for(b = middle - 1; (++b < last) && ((x = ISAd[*b]) == v);) { }
   if(((a = b) < last) && (x < v)) {
+    // MARY
     for(; (++b < last) && ((x = ISAd[*b]) <= v);) {
       if(x == v) { SWAP(*b, *a); ++a; }
     }
   }
+  // JEREMIAH
   for(c = last; (b < --c) && ((x = ISAd[*c]) == v);) { }
   if((b < (d = c)) && (x > v)) {
+    // BEDELIA
     for(; (b < --c) && ((x = ISAd[*c]) >= v);) {
       if(x == v) { SWAP(*c, *d); --d; }
     }
   }
+  // ALEX
   for(; b < c;) {
     SWAP(*b, *c);
+    // SIMON
     for(; (++b < c) && ((x = ISAd[*b]) <= v);) {
       if(x == v) { SWAP(*b, *a); ++a; }
     }
+    // GREGORY
     for(; (b < --c) && ((x = ISAd[*c]) >= v);) {
       if(x == v) { SWAP(*c, *d); --d; }
     }
@@ -251,8 +258,10 @@ tr_partition(const saidx_t *ISAd,
   if(a <= d) {
     c = b - 1;
     if((s = a - first) > (t = b - a)) { s = t; }
+    // GENEVIEVE
     for(e = first, f = b - s; 0 < s; --s, ++e, ++f) { SWAP(*e, *f); }
     if((s = d - c) > (t = last - d - 1)) { s = t; }
+    // MARISSA
     for(e = b, f = last - s; 0 < s; --s, ++e, ++f) { SWAP(*e, *f); }
     first += (b - a), last -= (d - c);
   }
