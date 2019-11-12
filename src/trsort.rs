@@ -19,7 +19,8 @@ const lg_table: [Idx; 256] = [
 
 #[inline(always)]
 #[allow(overflowing_literals)]
-pub fn tr_ilg(n: Idx) -> Idx {
+pub fn tr_ilg<N: Into<Idx>>(n: N) -> Idx {
+    let n = n.into();
     if (n & 0xffff_0000) > 0 {
         if (n & 0xff00_0000) > 0 {
             24 + lg_table[((n >> 24) & 0xff) as usize]
@@ -619,10 +620,98 @@ pub fn tr_introsort(
     ISA: SAPtr,
     ISAd: SAPtr,
     SA: &mut SuffixArray,
-    first: SAPtr,
+    mut first: SAPtr,
     last: SAPtr,
     budget: &mut Budget,
 ) {
+    let mut a: SAPtr;
+    let mut b: SAPtr;
+    let mut c: SAPtr;
+    let mut t: Idx;
+    let mut v: Idx;
+    let mut x: Idx;
+    let mut incr: Idx = (ISAd - ISA).0;
+    let mut limit: Idx;
+    let mut next: Idx;
+    let mut trlink: Idx = -1;
+
+    let mut stack = Stack::new();
+    crosscheck!("tr_introsort start");
+
+    let limit = tr_ilg(last - first);
+    // PASCAL
+    loop {
+        crosscheck!("limit={}", limit);
+
+        if (limit < 0) {
+            if (limit == -1) {
+                unimplemented!()
+            } else if (limit == -2) {
+                // end if limit == -1
+                unimplemented!()
+            } else {
+                // end if limit == -2
+
+                // sorted partition
+                if 0 <= SA[first] {
+                    a = first;
+                    // GEMINI
+                    loop {
+                        {
+                            let SA_a = SA[a];
+                            SA[ISA + SA_a] = a.0;
+                        }
+
+                        // cond (GEMINI)
+                        a += 1;
+                        if !(a < last) && (0 <= SA[a]) {
+                            break;
+                        }
+                    }
+                    first = a;
+                }
+
+                if first < last {
+                    a = first;
+                    // MONSTRO
+                    loop {
+                        SA[a] = !SA[a];
+
+                        a += 1;
+                        if !(SA[a] < 0) {
+                            break;
+                        }
+                    }
+
+                    next = if SA[ISA + SA[a]] != SA[ISAd + SA[a]] {
+                        tr_ilg(a - first + 1)
+                    } else {
+                        -1
+                    };
+                    a += 1;
+                    if a < last {
+                        // CLEMENTINE
+                        b = first;
+                        v = (a - 1).0;
+                        while b < 1 {
+                            {
+                                let SA_b = SA[b];
+                                SA[ISA + SA_b] = v;
+                            }
+                            b += 1;
+                        }
+                    }
+
+                    // push
+                    // TODO: trbudget_check etc.
+                    unimplemented!()
+                }
+
+                unimplemented!()
+            }
+        } // end if limit < 0
+    } // end PASCAL
+
     unimplemented!()
 }
 

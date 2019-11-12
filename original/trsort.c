@@ -350,7 +350,11 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
   saint_t limit, next;
   saint_t ssize, trlink = -1;
 
+  crosscheck("tr_introsort start");
+
+  // PASCAL
   for(ssize = 0, limit = tr_ilg(last - first);;) {
+    crosscheck("limit=%d", limit);
 
     if(limit < 0) {
       if(limit == -1) {
@@ -390,7 +394,7 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
             STACK_POP5(ISAd, first, last, limit, trlink);
           }
         }
-      } else if(limit == -2) {
+      } else if(limit == -2) { // end if limit == -1
         /* tandem repeat copy */
         a = stack[--ssize].b, b = stack[ssize].c;
         if(stack[ssize].d == 0) {
@@ -400,15 +404,18 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
           tr_partialcopy(ISA, SA, first, a, b, last, ISAd - ISA);
         }
         STACK_POP5(ISAd, first, last, limit, trlink);
-      } else {
+      } else { // end if limit == -2
         /* sorted partition */
         if(0 <= *first) {
           a = first;
+          // GEMINI
           do { ISA[*a] = a - SA; } while((++a < last) && (0 <= *a));
           first = a;
         }
         if(first < last) {
-          a = first; do { *a = ~*a; } while(*++a < 0);
+          a = first;
+          // MONSTRO
+          do { *a = ~*a; } while(*++a < 0);
           next = (ISA[*a] != ISAd[*a]) ? tr_ilg(a - first + 1) : -1;
           if(++a < last) { for(b = first, v = a - SA - 1; b < a; ++b) { ISA[*b] = v; } }
 
@@ -438,7 +445,7 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
         }
       }
       continue;
-    }
+    } // limit < 0
 
     if((last - first) <= TR_INSERTIONSORT_THRESHOLD) {
       tr_insertionsort(ISAd, first, last);
@@ -554,7 +561,7 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
         STACK_POP5(ISAd, first, last, limit, trlink);
       }
     }
-  }
+  } // end PASCAL
 #undef STACK_SIZE
 }
 
