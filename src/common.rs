@@ -42,8 +42,8 @@ pub struct SuffixArray<'a>(pub &'a mut [Idx]);
 
 impl<'a> SuffixArray<'a> {
     #[inline(always)]
-    pub fn swap(&mut self, a: Idx, b: Idx) {
-        self.0.swap(a as usize, b as usize);
+    pub fn swap<A: Into<Idx>, B: Into<Idx>>(&mut self, a: A, b: B) {
+        self.0.swap(a.into() as usize, b.into() as usize);
     }
 
     pub fn range<'b>(&'b mut self, range: ops::Range<Idx>) -> SuffixArray<'b> {
