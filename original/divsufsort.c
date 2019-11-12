@@ -71,6 +71,7 @@ sort_typeBstar(const sauchar_t *T, saidx_t *SA,
       c1 = c0;
       crosscheck("increment A[%d]", c1);
       ++BUCKET_A(c1);
+      crosscheck("now %d", BUCKET_A(c1));
     } while(
         (0 <= --i) &&
         ((c0 = T[i]) >= c1)
@@ -79,6 +80,7 @@ sort_typeBstar(const sauchar_t *T, saidx_t *SA,
       /* type B* suffix. */
       crosscheck("increment BSTAR[%d, %d]", c0, c1);
       ++BUCKET_BSTAR(c0, c1);
+      crosscheck("now %d", BUCKET_BSTAR(c0, c1));
       SA[--m] = i;
       /* type B suffix. */
       for(
@@ -90,6 +92,7 @@ sort_typeBstar(const sauchar_t *T, saidx_t *SA,
 
         crosscheck("increment B[%d, %d]", c0, c1);
         ++BUCKET_B(c0, c1);
+        crosscheck("now %d", BUCKET_B(c0, c1));
       }
     }
   }
@@ -100,6 +103,8 @@ note:
   A type B* suffix is lexicographically smaller than a type B suffix that
   begins with the same first two characters.
 */
+
+  BSTAR_dump("post-count");
 
   /* Calculate the index of start/end point of each bucket. */
   for(c0 = 0, i = 0, j = 0; c0 < ALPHABET_SIZE; ++c0) {
@@ -117,6 +122,8 @@ note:
     }
   }
 
+  BSTAR_dump("post-sten");
+
   crosscheck("before-0<m, m = %d", m);
 
   crosscheck("before B* suffix sort, m = %d", m);
@@ -129,10 +136,12 @@ note:
       t = PAb[i], c0 = T[t], c1 = T[t + 1];
       crosscheck("t=%d c0=%d c1=%d", t, c0, c1);
       SA[--BUCKET_BSTAR(c0, c1)] = i;
+      crosscheck("bstar(c0, c1)=%d", BUCKET_BSTAR(c0, c1));
     }
     t = PAb[m - 1], c0 = T[t], c1 = T[t + 1];
     crosscheck("(*) t=%d c0=%d c1=%d", t, c0, c1);
     SA[--BUCKET_BSTAR(c0, c1)] = m - 1;
+    crosscheck("(*) bstar(c0, c1)=%d", BUCKET_BSTAR(c0, c1));
 
     SA_dump(SA, "before all ssort");
 
@@ -153,6 +162,7 @@ note:
     }
 
     SA_dump(SA, "after all sssort()");
+    BSTAR_dump("post-sss");
 
     /* Compute ranks of type B* substrings. */
     for(i = m - 1; 0 <= i; --i) {
@@ -167,8 +177,12 @@ note:
       ISAb[SA[i]] = j;
     }
 
+    BSTAR_dump("post-rank");
+
     /* Construct the inverse suffix array of type B* suffixes using trsort. */
     trsort(ISAb, SA, m, 1);
+
+    BSTAR_dump("post-tr");
 
     /* Set the sorted order of tyoe B* suffixes. */
     for(i = n - 1, j = m, c0 = T[n - 1]; 0 <= i;) {
@@ -179,6 +193,8 @@ note:
         SA[ISAb[--j]] = ((t == 0) || (1 < (t - i))) ? t : ~t;
       }
     }
+
+    BSTAR_dump("post-so");
 
     /* Calculate the index of start/end point of each bucket. */
     BUCKET_B(ALPHABET_SIZE - 1, ALPHABET_SIZE - 1) = n; /* end point */
@@ -214,6 +230,9 @@ construct_SA(const sauchar_t *T, saidx_t *SA,
 
   crosscheck("construct_SA start");
   crosscheck("m = %d", m);
+
+  BSTAR_dump("csa-s");
+
   if(0 < m) {
     A_dump(A, "in if(0 < m)");
 

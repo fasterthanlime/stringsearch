@@ -563,7 +563,9 @@ trsort(saidx_t *ISA, saidx_t *SA, saidx_t n, saidx_t depth) {
 
   trbudget_init(&budget, tr_ilg(n) * 2 / 3, n);
 /*  trbudget_init(&budget, tr_ilg(n) * 3 / 4, n); */
+  crosscheck("(*) -n=%d SA[0]=%d", -n, SA[0]);
   for(ISAd = ISA + depth; -n < *SA; ISAd += ISAd - ISA) {
+    crosscheck("-n=%d SA[0]=%d", -n, SA[0]);
     first = SA;
     skip = 0;
     unsorted = 0;

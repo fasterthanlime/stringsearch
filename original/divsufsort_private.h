@@ -179,6 +179,16 @@ extern FILE *CROSSCHECK_FILE;
     fprintf(CROSSCHECK_FILE, "]\n"); \
   } while (0);
 
+#define BSTAR_dump(label) \
+  do { \
+    crosscheck("%s B* dump:", label); \
+    for (int ii = 0; ii < ALPHABET_SIZE; ii++) { \
+      for (int jj = 0; jj < ALPHABET_SIZE; jj++) { \
+        crosscheck("%s B*[%d,%d]=%d", label, ii, jj, BUCKET_BSTAR(ii, jj)); \
+      } \
+    } \
+  } while (0);
+
 /*- Macros -*/
 #ifndef SWAP
 # define SWAP(_a, _b) do { t = (_a); (_a) = (_b); (_b) = t; } while(0)

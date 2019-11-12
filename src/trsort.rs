@@ -408,7 +408,9 @@ pub fn trsort(ISA: SAPtr, SA: &mut SuffixArray, n: Idx, depth: Idx) {
     let mut budget = Budget::new(tr_ilg(n) * 2 / 3, n);
 
     ISAd = ISA + depth;
+    crosscheck!("(*) -n={} SA[0]={}", -n, SA[0]);
     while (-n < SA[0]) {
+        crosscheck!("-n={} SA[0]={}", -n, SA[0]);
         first = SAPtr(0);
         skip = 0;
         unsorted = 0;
