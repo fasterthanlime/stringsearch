@@ -143,8 +143,10 @@ extern "C" {
 #endif
 
 /*- Cross-checking -*/
-extern FILE *CROSSCHECK_FILE;
 
+#ifdef ENABLE_CROSSCHECK
+
+extern FILE *CROSSCHECK_FILE;
 #define crosscheck(...) \
     do { \
       fprintf(CROSSCHECK_FILE, __VA_ARGS__); \
@@ -188,6 +190,15 @@ extern FILE *CROSSCHECK_FILE;
       } \
     } \
   } while (0);
+
+#else
+
+#define crosscheck(...) 
+#define SA_dump(SA, label) 
+#define A_dump(A, label) 
+#define BSTAR_dump(label)
+
+#endif // ENABLE_CROSSCHECK else
 
 /*- Macros -*/
 #ifndef SWAP

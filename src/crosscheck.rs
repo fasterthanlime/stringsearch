@@ -12,6 +12,7 @@ pub static CROSSCHECK_FILE: Lazy<Mutex<BufWriter<File>>> =
 #[macro_export]
 macro_rules! crosscheck {
     ($($arg: expr),*) => {
+        #[cfg(debug_assertions)]
         {
             use std::io::Write;
             let mut f = crate::crosscheck::CROSSCHECK_FILE.lock().unwrap();
@@ -21,25 +22,37 @@ macro_rules! crosscheck {
 }
 
 pub fn flush() {
-    let mut f = crate::crosscheck::CROSSCHECK_FILE.lock().unwrap();
-    f.flush().unwrap();
+    #[cfg(debug_assertions)]
+    {
+        let mut f = crate::crosscheck::CROSSCHECK_FILE.lock().unwrap();
+        f.flush().unwrap();
+    }
 }
 
 pub fn SA_dump(SA: &SuffixArray, label: &str) {
-    crosscheck!(":: {}", label);
-    crosscheck!("SA = {:?}", SA.0);
+    #[cfg(debug_assertions)]
+    {
+        crosscheck!(":: {}", label);
+        crosscheck!("SA = {:?}", SA.0);
+    }
 }
 
 pub fn A_dump(A: &ABucket, label: &str) {
-    crosscheck!(":: {}", label);
-    crosscheck!("A = {:?}", A.0);
+    #[cfg(debug_assertions)]
+    {
+        crosscheck!(":: {}", label);
+        crosscheck!("A = {:?}", A.0);
+    }
 }
 
 pub fn BSTAR_dump(B: &mut BMixBucket, label: &str) {
-    crosscheck!("{} B* dump:", label);
-    for ii in 0..(ALPHABET_SIZE as Idx) {
-        for jj in 0..(ALPHABET_SIZE as Idx) {
-            crosscheck!("{} B*[{},{}]={}", label, ii, jj, B.bstar()[(ii, jj)]);
+    #[cfg(debug_assertions)]
+    {
+        crosscheck!("{} B* dump:", label);
+        for ii in 0..(ALPHABET_SIZE as Idx) {
+            for jj in 0..(ALPHABET_SIZE as Idx) {
+                crosscheck!("{} B*[{},{}]={}", label, ii, jj, B.bstar()[(ii, jj)]);
+            }
         }
     }
 }

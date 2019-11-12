@@ -380,11 +380,13 @@ construct_BWT(const sauchar_t *T, saidx_t *SA,
 
 saint_t
 divsufsort(const sauchar_t *T, saidx_t *SA, saidx_t n) {
+#ifdef ENABLE_CROSSCHECK
   CROSSCHECK_FILE = fopen("crosscheck/c", "wb");
   if (!CROSSCHECK_FILE) {
     fprintf(stderr, "Could not open crosscheck file");
     return -2;
   }
+#endif
 
   saidx_t *bucket_A, *bucket_B;
   saidx_t m;
@@ -410,7 +412,9 @@ divsufsort(const sauchar_t *T, saidx_t *SA, saidx_t n) {
   free(bucket_B);
   free(bucket_A);
 
+#ifdef ENABLE_CROSSCHECK
   fclose(CROSSCHECK_FILE);
+#endif
 
   return err;
 }
