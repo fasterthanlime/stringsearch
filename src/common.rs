@@ -1,5 +1,5 @@
 use std::cmp::{Ordering, PartialEq, PartialOrd};
-use std::ops::{Add, AddAssign, Div, Index, IndexMut, Sub, SubAssign};
+use std::ops::{self, Add, AddAssign, Div, Index, IndexMut, Sub, SubAssign};
 
 pub type Char = u8;
 pub type Idx = i32;
@@ -44,6 +44,16 @@ impl<'a> SuffixArray<'a> {
     #[inline(always)]
     pub fn swap(&mut self, a: Idx, b: Idx) {
         self.0.swap(a as usize, b as usize);
+    }
+
+    pub fn range<'b>(&'b mut self, range: ops::Range<Idx>) -> SuffixArray<'b> {
+        let usize_range = (range.start as usize)..(range.end as usize);
+        SuffixArray(&mut self.0[usize_range])
+    }
+
+    pub fn range_to<'b>(&'b mut self, range: ops::RangeTo<Idx>) -> SuffixArray<'b> {
+        let usize_range = ..(range.end as usize);
+        SuffixArray(&mut self.0[usize_range])
     }
 }
 
@@ -156,6 +166,12 @@ impl AddAssign<Idx> for SAPtr {
     }
 }
 
+impl AddAssign<Self> for SAPtr {
+    fn add_assign(&mut self, rhs: Self) {
+        self.0 += rhs.0
+    }
+}
+
 impl Sub<Idx> for SAPtr {
     type Output = SAPtr;
 
@@ -256,6 +272,13 @@ impl BMixBucket {
 }
 
 pub struct ABucket(pub Vec<Idx>);
+
+impl ABucket {
+    pub fn dump(&self, label: &str) {
+        println!("=> {}", label);
+        println!("A = {:?}", self.0);
+    }
+}
 
 impl Index<Idx> for ABucket {
     type Output = Idx;

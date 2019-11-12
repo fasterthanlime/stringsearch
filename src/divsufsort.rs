@@ -73,6 +73,7 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
         // type A suffix (originally do..while)
         loop {
             c1 = c0;
+            println!("increment A[{}]", c1);
             A[c1] += 1;
 
             // original loop condition
@@ -89,6 +90,7 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
 
         if 0 <= i {
             // type B* suffix
+            println!("increment BSTAR[{}, {}]", c0, c1);
             B.bstar()[(c0, c1)] += 1;
 
             m -= 1;
@@ -102,15 +104,16 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
 
             loop {
                 // cond
-                if i < 0 {
+                if !(0 <= i) {
                     break;
                 }
                 c0 = T.get(i);
-                if c0 > c1 {
+                if !(c0 <= c1) {
                     break;
                 }
 
                 // body
+                println!("increment B[{}, {}]", c0, c1);
                 B.b()[(c0, c1)] += 1;
 
                 // iter
@@ -124,6 +127,9 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
     // Note: A type B* suffix is lexicographically smaller than a type B suffix
     // that beings with the same first two characters.
 
+    use std::io::Write;
+    let mut f = std::fs::File::create("crosscheck/typeBstar-rust").unwrap();
+
     // Calculate the index of start/end point of each bucket.
     {
         i = 0;
@@ -132,15 +138,23 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
             // body
             t = i + A[c0];
             A[c0] = i + j; // start point
+            writeln!(f, "sp={}", A[c0]);
             i = t + B.b()[(c0, c0)];
 
             for c1 in (c0 + 1)..(ALPHABET_SIZE as Idx) {
                 j += B.bstar()[(c0, c1)];
+                writeln!(f, "j+={}", B.bstar()[(c0, c1)]);
                 B.bstar()[(c0, c1)] = j; // end point
+                writeln!(f, "ep={}", B.bstar()[(c0, c1)]);
                 i += B.b()[(c0, c1)];
+                writeln!(f, "i+={}", B.b()[(c0, c1)]);
             }
         }
     }
+
+    f.flush().unwrap();
+
+    write!(f, "before-0<m, m = {}\n", m);
 
     println!("before B* suffix sort, m = {}", m);
     if (0 < m) {
@@ -154,13 +168,14 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
             t = SA[PAb + i];
             c0 = T.get(t);
             c1 = T.get(t + 1);
-
+            write!(f, "t={} c0={} c1={}\n", t, c0, c1);
             B.bstar()[(c0, c1)] -= 1;
             SA[B.bstar()[(c0, c1)]] = i;
         }
         t = SA[PAb + m - 1];
         c0 = T.get(t);
         c1 = T.get(t + 1);
+        write!(f, "(*) t={} c0={} c1={}\n", t, c0, c1);
         B.bstar()[(c0, c1)] -= 1;
         SA[B.bstar()[(c0, c1)]] = m - 1;
 
@@ -179,6 +194,12 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
             while c0 < c1 {
                 // body (inner)
                 i = B.bstar()[(c0, c1)];
+                write!(
+                    f,
+                    "(sort-with-sssort) c0={} c1={} i={} j={}\n",
+                    c0, c1, i, j
+                );
+
                 if (1 < (j - i)) {
                     println!("sssort() i={} j={}", i, j);
                     sssort::sssort(
@@ -269,29 +290,32 @@ fn construct_SA(T: &Text, SA: &mut SuffixArray, A: ABucket, mut B: BMixBucket, m
 
     dbg!(m);
 
-    if (0 < m) {
+    if 0 < m {
+        A.dump("in if(0 < m)");
+
         // Construct the sorted order of type B suffixes by using the
         // sorted order of type B* suffixes
         c1 = ALPHABET_SIZE as Idx - 2;
         while 0 <= c1 {
+            dbg!(B.bstar()[(c1, c1 + 1)]);
             // Scan the suffix array from right to left
             i = SAPtr(B.bstar()[(c1, c1 + 1)]);
             j = SAPtr(A[c1 + 1] - 1);
-            dbg!(i, j);
+            dbg!(c1, i, j);
             k = 0;
             c2 = -1;
 
             while i <= j {
                 s = SA[j];
                 if (0 < s) {
-                    assert_eq!(T[s] as Idx, c1);
+                    assert_eq!(T.get(s), c1);
                     assert!((s + 1) < n);
                     assert!(T[s] <= T[s + 1]);
 
                     SA[j] = !s;
                     s -= 1;
-                    c0 = T[s] as Idx;
-                    if (0 < s) && (T[s - 1] as Idx > c0) {
+                    c0 = T.get(s);
+                    if (0 < s) && (T.get(s - 1) > c0) {
                         s = !s;
                     }
                     if (c0 != c2) {
@@ -306,7 +330,7 @@ fn construct_SA(T: &Text, SA: &mut SuffixArray, A: ABucket, mut B: BMixBucket, m
                     k -= 1;
                 } else {
                     dbg!(s, T[s], c1);
-                    assert!(((s == 0) && (T[s] as Idx == c1)) || (s < 0));
+                    assert!(((s == 0) && (T.get(s) == c1)) || (s < 0));
                     SA[j] = !s;
                 }
 

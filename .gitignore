@@ -1,2 +1,3 @@
 /target
+/crosscheck
 **/*.rs.bk

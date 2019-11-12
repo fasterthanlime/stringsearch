@@ -142,6 +142,34 @@ extern "C" {
 # define TR_STACKSIZE (64)
 #endif
 
+/*- More macros -*/
+#define SA_dump(label) \
+  do { \
+    printf("=> %s\n", label); \
+    printf("SA = ["); \
+    for (int z = 0; z < n; z++) { \
+      if (z == n - 1) { \
+        printf("%d", SA[z]); \
+      } else { \
+        printf("%d, ", SA[z]); \
+      } \
+    } \
+    printf("]\n"); \
+  } while (0);
+
+#define A_dump(label) \
+  do { \
+    printf("=> %s\n", label); \
+    printf("A = ["); \
+    for (int z = 0; z < BUCKET_A_SIZE; z++) { \
+      if (z == BUCKET_A_SIZE - 1) { \
+        printf("%d", BUCKET_A(z)); \
+      } else { \
+        printf("%d, ", BUCKET_A(z)); \
+      } \
+    } \
+    printf("]\n"); \
+  } while (0);
 
 /*- Macros -*/
 #ifndef SWAP

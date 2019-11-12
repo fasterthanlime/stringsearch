@@ -558,6 +558,9 @@ trsort(saidx_t *ISA, saidx_t *SA, saidx_t n, saidx_t depth) {
   trbudget_t budget;
   saidx_t t, skip, unsorted;
 
+  SA_dump("start of trsort");
+  printf("ISA = %d, n = %d, depth = %d\n", ISA-SA, n, depth);
+
   trbudget_init(&budget, tr_ilg(n) * 2 / 3, n);
 /*  trbudget_init(&budget, tr_ilg(n) * 3 / 4, n); */
   for(ISAd = ISA + depth; -n < *SA; ISAd += ISAd - ISA) {
