@@ -339,6 +339,7 @@ impl Budget {
 
 //------------------------------------------------------------------------------
 
+/// Tandem repeat partition
 #[inline(always)]
 pub fn tr_partition(
     SA: &mut SuffixArray,
@@ -499,6 +500,7 @@ pub fn tr_partition(
     pb.0 = last.0;
 }
 
+/// Tandem repeat copy
 pub fn tr_copy(
     ISA: SAPtr,
     SA: &mut SuffixArray,
@@ -508,7 +510,46 @@ pub fn tr_copy(
     last: SAPtr,
     depth: Idx,
 ) {
-    unimplemented!()
+    // sort suffixes of middle partition
+    // by using sorted order of suffixes of left and right partition.
+    let mut c: SAPtr;
+    let mut d: SAPtr;
+    let mut e: SAPtr;
+    let mut s: Idx;
+    let mut v: Idx;
+
+    v = (b - 1).0;
+
+    // JACK
+    c = first;
+    d = a - 1;
+    while c <= d {
+        s = SA[c] - depth;
+        if (0 <= s) && (SA[ISA + s] == v) {
+            d += 1;
+            SA[d] = s;
+            SA[ISA + s] = d.0;
+        }
+
+        // iter (JACK)
+        c += 1;
+    }
+
+    // JILL
+    c = last - 1;
+    e = d + 1;
+    d = b;
+    while e < d {
+        s = SA[c] - depth;
+        if (0 <= s) && (SA[ISA + s] == v) {
+            d -= 1;
+            SA[d] = s;
+            SA[ISA + s] = d.0;
+        }
+
+        // iter (JILL)
+        c -= 1;
+    }
 }
 
 pub fn tr_partialcopy(

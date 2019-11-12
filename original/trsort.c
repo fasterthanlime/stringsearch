@@ -279,12 +279,14 @@ tr_copy(saidx_t *ISA, const saidx_t *SA,
   saidx_t s, v;
 
   v = b - SA - 1;
+  // JACK
   for(c = first, d = a - 1; c <= d; ++c) {
     if((0 <= (s = *c - depth)) && (ISA[s] == v)) {
       *++d = s;
       ISA[s] = d - SA;
     }
   }
+  // JILL
   for(c = last - 1, e = d + 1, d = b; e < d; --c) {
     if((0 <= (s = *c - depth)) && (ISA[s] == v)) {
       *--d = s;
