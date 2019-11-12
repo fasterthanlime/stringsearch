@@ -157,7 +157,7 @@ note:
           sssort(T, PAb, SA + i, SA + j,
                  buf, bufsize, 2, n, *(SA + i) == (m - 1));
 
-          SA_dump(SA, "for-for");
+          SA_dump(SA, "sss-double-loop");
         }
       }
     }

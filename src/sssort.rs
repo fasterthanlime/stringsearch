@@ -98,11 +98,18 @@ pub fn ss_isqrt<X: Into<Idx>>(x: X) -> Idx {
 
 /// Compare two suffixes
 #[inline(always)]
-pub fn ss_compare(T: &Text, SA: &SuffixArray, p1: SAPtr, p2: SAPtr, depth: Idx) -> Idx {
-    let mut U1 = depth + SA[p1];
-    let mut U2 = depth + SA[p2];
-    let U1n = SA[p1 + 1] + 2;
-    let U2n = SA[p2 + 1] + 2;
+pub fn ss_compare(
+    T: &Text,
+    SAp1: &SuffixArray,
+    p1: SAPtr,
+    SAp2: &SuffixArray,
+    p2: SAPtr,
+    depth: Idx,
+) -> Idx {
+    let mut U1 = depth + SAp1[p1];
+    let mut U2 = depth + SAp2[p2];
+    let U1n = SAp1[p1 + 1] + 2;
+    let U2n = SAp2[p2 + 1] + 2;
 
     while (U1 < U1n) && (U2 < U2n) && (T[U1] == T[U2]) {
         U1 += 1;
@@ -152,12 +159,13 @@ pub fn ss_insertionsort(
         // for 2
         loop {
             // cond for 2
-            r = ss_compare(T, SA, PA + t, PA + SA[j], depth);
+            r = ss_compare(T, SA, PA + t, SA, PA + SA[j], depth);
             if !(0 < r) {
                 break;
             }
 
             // body for 2
+
             // do while
             loop {
                 SA[j - 1] = SA[j];
@@ -370,7 +378,10 @@ pub fn ss_mintrosort(
                 );
                 ss_insertionsort(T, SA, PA, first, last, depth);
             }
-            stack.pop(&mut first, &mut last, &mut depth, &mut limit);
+            if !stack.pop(&mut first, &mut last, &mut depth, &mut limit) {
+                return;
+            }
+            crosscheck!("post-is continue");
             continue;
         }
 
@@ -556,15 +567,17 @@ impl Stack {
     }
 
     #[inline(always)]
-    fn pop(&mut self, a: &mut SAPtr, b: &mut SAPtr, c: &mut Idx, d: &mut Idx) {
+    fn pop(&mut self, a: &mut SAPtr, b: &mut SAPtr, c: &mut Idx, d: &mut Idx) -> bool {
         if (self.size == 0) {
-            return;
+            false
+        } else {
+            *a = self.items[self.size].a;
+            *b = self.items[self.size].b;
+            *c = self.items[self.size].c;
+            *d = self.items[self.size].d;
+            self.size -= 1;
+            true
         }
-        *a = self.items[self.size].a;
-        *b = self.items[self.size].b;
-        *c = self.items[self.size].c;
-        *d = self.items[self.size].d;
-        self.size -= 1;
     }
 }
 
@@ -686,12 +699,17 @@ pub fn sssort(
 
     if lastsuffix {
         // Insert last type B* suffix
+        crosscheck!("last type B*");
         let mut PAi: [Idx; 2] = [SA[PA + SA[first - 1]], n - 2];
+        crosscheck!("PAi[0]={}", PAi[0]);
+        crosscheck!("PAi[1]={}", PAi[1]);
         let SAI = SuffixArray(&mut PAi);
 
         a = first;
         i = SA[first - 1];
-        while (a < last) && ((SA[a] < 0) || (0 < ss_compare(T, &SAI, PA + SA[a], SAPtr(0), depth)))
+
+        while (a < last)
+            && ((SA[a] < 0) || (0 < ss_compare(T, &SAI, SAPtr(0), SA, PA + SA[a], depth)))
         {
             // body
             SA[a - 1] = SA[a];

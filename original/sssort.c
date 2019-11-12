@@ -352,6 +352,7 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
       }
 #endif
       STACK_POP(first, last, depth, limit);
+      crosscheck("post-is continue");
       continue;
     }
 
@@ -828,7 +829,10 @@ sssort(const sauchar_t *T, const saidx_t *PA,
 
   if(lastsuffix != 0) {
     /* Insert last type B* suffix. */
+    crosscheck("last type B*");
     saidx_t PAi[2]; PAi[0] = PA[*(first - 1)], PAi[1] = n - 2;
+    crosscheck("PAi[0]=%d", PAi[0]);
+    crosscheck("PAi[1]=%d", PAi[1]);
     for(a = first, i = *(first - 1);
         (a < last) && ((*a < 0) || (0 < ss_compare(T, &(PAi[0]), PA + *a, depth)));
         ++a) {

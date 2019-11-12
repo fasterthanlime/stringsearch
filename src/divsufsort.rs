@@ -213,7 +213,7 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
                         n,
                         SA[i] == (m - 1),
                     );
-                    SA_dump(SA, "");
+                    SA_dump(SA, "sss-double-loop");
                 }
 
                 // iter (inner)
