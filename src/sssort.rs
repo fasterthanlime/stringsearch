@@ -280,11 +280,12 @@ pub fn ss_partition(
     last: SAPtr,
     depth: Idx,
 ) -> SAPtr {
+    // JIMMY
     let mut a = first - 1;
     let mut b = last;
 
     loop {
-        // for(; (++a < b) && ((PA[*a] + depth) >= (PA[*a + 1] + 1));) { *a = ~*a; }
+        // JANINE
         loop {
             a += 1;
             if (a < b) {
@@ -301,7 +302,7 @@ pub fn ss_partition(
             SA[a] = !SA[a];
         }
 
-        // for(; (a < --b) && ((PA[*b] + depth) <  (PA[*b + 1] + 1));) { }
+        // GEORGIO
         loop {
             b -= 1;
             if (a < b) {
@@ -317,12 +318,16 @@ pub fn ss_partition(
             // loop body is empty
         }
 
+        if b <= a {
+            break;
+        }
+
         let t = !SA[b];
         SA[b] = SA[a];
         SA[a] = t;
     }
 
-    if (first < 1) {
+    if (first < a) {
         SA[first] = !SA[first];
     }
     a
@@ -378,7 +383,10 @@ pub fn ss_mintrosort(
                 );
                 ss_insertionsort(T, SA, PA, first, last, depth);
             }
-            if !stack.pop(&mut first, &mut last, &mut depth, &mut limit) {
+            if !stack
+                .pop(&mut first, &mut last, &mut depth, &mut limit)
+                .is_ok()
+            {
                 return;
             }
             crosscheck!("post-is continue");
@@ -567,16 +575,16 @@ impl Stack {
     }
 
     #[inline(always)]
-    fn pop(&mut self, a: &mut SAPtr, b: &mut SAPtr, c: &mut Idx, d: &mut Idx) -> bool {
+    fn pop(&mut self, a: &mut SAPtr, b: &mut SAPtr, c: &mut Idx, d: &mut Idx) -> Result<(), ()> {
         if (self.size == 0) {
-            false
+            Err(())
         } else {
             *a = self.items[self.size].a;
             *b = self.items[self.size].b;
             *c = self.items[self.size].c;
             *d = self.items[self.size].d;
             self.size -= 1;
-            true
+            Ok(())
         }
     }
 }
@@ -708,6 +716,7 @@ pub fn sssort(
         a = first;
         i = SA[first - 1];
 
+        // CELINE
         while (a < last)
             && ((SA[a] < 0) || (0 < ss_compare(T, &SAI, SAPtr(0), SA, PA + SA[a], depth)))
         {
@@ -717,5 +726,6 @@ pub fn sssort(
             // iter
             a += 1;
         }
+        SA[a - 1] = i;
     }
 }

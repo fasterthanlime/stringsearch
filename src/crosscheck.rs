@@ -16,7 +16,7 @@ macro_rules! crosscheck {
         {
             use std::io::Write;
             let mut f = crate::crosscheck::CROSSCHECK_FILE.lock().unwrap();
-            writeln!(f, $($arg),*);
+            writeln!(f, $($arg),*).unwrap();
         }
     };
 }

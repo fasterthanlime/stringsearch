@@ -253,7 +253,7 @@ tr_partition(const saidx_t *ISAd,
     for(; (b < --c) && ((x = ISAd[*c]) >= v);) {
       if(x == v) { SWAP(*c, *d); --d; }
     }
-  }
+  } // end ALEX
 
   if(a <= d) {
     c = b - 1;

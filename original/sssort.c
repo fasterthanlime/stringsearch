@@ -311,8 +311,11 @@ ss_partition(const saidx_t *PA,
                     saidx_t *first, saidx_t *last, saidx_t depth) {
   saidx_t *a, *b;
   saidx_t t;
+  // JIMMY
   for(a = first - 1, b = last;;) {
+    // JANINE
     for(; (++a < b) && ((PA[*a] + depth) >= (PA[*a + 1] + 1));) { *a = ~*a; }
+    // GEORGIO
     for(; (a < --b) && ((PA[*b] + depth) <  (PA[*b + 1] + 1));) { }
     if(b <= a) { break; }
     t = ~*b;
@@ -833,6 +836,7 @@ sssort(const sauchar_t *T, const saidx_t *PA,
     saidx_t PAi[2]; PAi[0] = PA[*(first - 1)], PAi[1] = n - 2;
     crosscheck("PAi[0]=%d", PAi[0]);
     crosscheck("PAi[1]=%d", PAi[1]);
+    // CELINE
     for(a = first, i = *(first - 1);
         (a < last) && ((*a < 0) || (0 < ss_compare(T, &(PAi[0]), PA + *a, depth)));
         ++a) {

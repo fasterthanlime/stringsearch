@@ -1,5 +1,9 @@
 #![allow(nonstandard_style)]
-#![allow(unused)]
+#![allow(unused_variables)]
+#![allow(unused_parens)]
+#![allow(unused_mut)]
+#![allow(unused_imports)]
+#![allow(dead_code)]
 
 use std::time::Instant;
 

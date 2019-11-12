@@ -151,16 +151,26 @@ impl Stack {
     }
 
     #[inline(always)]
-    fn pop(&mut self, a: &mut SAPtr, b: &mut SAPtr, c: &mut SAPtr, d: &mut Idx, e: &mut Idx) {
+    #[must_use]
+    fn pop(
+        &mut self,
+        a: &mut SAPtr,
+        b: &mut SAPtr,
+        c: &mut SAPtr,
+        d: &mut Idx,
+        e: &mut Idx,
+    ) -> Result<(), ()> {
         if (self.size == 0) {
-            return;
+            Err(())
+        } else {
+            *a = self.items[self.size].a;
+            *b = self.items[self.size].b;
+            *c = self.items[self.size].c;
+            *d = self.items[self.size].d;
+            *e = self.items[self.size].e;
+            self.size -= 1;
+            Ok(())
         }
-        *a = self.items[self.size].a;
-        *b = self.items[self.size].b;
-        *c = self.items[self.size].c;
-        *d = self.items[self.size].d;
-        *e = self.items[self.size].e;
-        self.size -= 1;
     }
 }
 
@@ -336,6 +346,22 @@ impl Budget {
             count: 0,
         }
     }
+
+    pub fn check(&mut self, size: Idx) -> bool {
+        if (size <= self.remain) {
+            self.remain -= size;
+            return true;
+        }
+
+        if (self.chance == 0) {
+            self.count += size;
+            return false;
+        }
+
+        self.remain += self.incval - size;
+        self.chance -= 1;
+        return true;
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -345,9 +371,9 @@ impl Budget {
 pub fn tr_partition(
     SA: &mut SuffixArray,
     ISAd: SAPtr,
-    first: SAPtr,
+    mut first: SAPtr,
     middle: SAPtr,
-    last: SAPtr,
+    mut last: SAPtr,
     pa: &mut SAPtr,
     pb: &mut SAPtr,
     v: Idx,
@@ -486,6 +512,11 @@ pub fn tr_partition(
             e += 1;
             f += 1;
         }
+        s = (d - c).0;
+        t = (last - d - 1).0;
+        if s > t {
+            s = t;
+        }
 
         // MARISSA
         e = b;
@@ -496,6 +527,8 @@ pub fn tr_partition(
             e += 1;
             f += 1;
         }
+        first += (b - a);
+        last -= (d - c).0;
     }
     pa.0 = first.0;
     pb.0 = last.0;
@@ -618,10 +651,10 @@ pub fn tr_partialcopy(
 
 pub fn tr_introsort(
     ISA: SAPtr,
-    ISAd: SAPtr,
+    mut ISAd: SAPtr,
     SA: &mut SuffixArray,
     mut first: SAPtr,
-    last: SAPtr,
+    mut last: SAPtr,
     budget: &mut Budget,
 ) {
     let mut a: SAPtr;
@@ -638,7 +671,7 @@ pub fn tr_introsort(
     let mut stack = Stack::new();
     crosscheck!("tr_introsort start");
 
-    let limit = tr_ilg(last - first);
+    let mut limit = tr_ilg(last - first);
     // PASCAL
     loop {
         crosscheck!("limit={}", limit);
@@ -709,10 +742,22 @@ pub fn tr_introsort(
 
                 unimplemented!()
             }
-        } // end if limit < 0
+        } else {
+            // end if limit < 0
+            if (budget.check((last - first).0)) {
+            } else {
+                if 0 <= trlink {
+                    stack.items[trlink as usize].d = -1;
+                }
+                if !stack
+                    .pop(&mut ISAd, &mut first, &mut last, &mut limit, &mut trlink)
+                    .is_ok()
+                {
+                    return;
+                }
+            }
+        } // end else limit < 0
     } // end PASCAL
-
-    unimplemented!()
 }
 
 //------------------------------------------------------------------------------
