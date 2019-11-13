@@ -355,6 +355,7 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
       }
 #endif
       STACK_POP(first, last, depth, limit);
+      crosscheck("popped first=%d last=%d depth=%d limit=%d", first-PA, last-PA, depth, limit);
       crosscheck("post-is continue");
       continue;
     }
@@ -379,6 +380,7 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
       }
       if((a - first) <= (last - a)) {
         if(1 < (a - first)) {
+          crosscheck("push %d %d %d %d", a-PA, last-PA, depth, -1);
           STACK_PUSH(a, last, depth, -1);
           last = a, depth += 1, limit = ss_ilg(a - first);
         } else {
@@ -386,6 +388,7 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
         }
       } else {
         if(1 < (last - a)) {
+          crosscheck("push %d %d %d %d", first-PA, a-PA, depth+1, ss_ilg(a-first));
           STACK_PUSH(first, a, depth + 1, ss_ilg(a - first));
           first = a, limit = -1;
         } else {
@@ -405,19 +408,23 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
     /* partition */
     // NORA
     for(b = first; (++b < last) && ((x = Td[PA[*b]]) == v);) { }
+    crosscheck("post-NORA b=%d",b-PA);
     if(((a = b) < last) && (x < v)) {
       // STAN
       for(; (++b < last) && ((x = Td[PA[*b]]) <= v);) {
         if(x == v) { SWAP(*b, *a); ++a; }
       }
+      crosscheck("post-STAN a=%d b=%d",a-PA,b-PA);
     }
     // NATHAN
     for(c = last; (b < --c) && ((x = Td[PA[*c]]) == v);) { }
+    crosscheck("post-STAN c=%d",c-PA);
     if((b < (d = c)) && (x > v)) {
       // JACOB
       for(; (b < --c) && ((x = Td[PA[*c]]) >= v);) {
         if(x == v) { SWAP(*c, *d); --d; }
       }
+      crosscheck("post-JACOB c=%d d=%d",c-PA,d-PA);
     }
     // RITA
     for(; b < c;) {
@@ -436,40 +443,59 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
       c = b - 1;
 
       if((s = a - first) > (t = b - a)) { s = t; }
+
+      crosscheck("pre-JOSHUA, a=%d b=%d c=%d d=%d s=%d t=%d",
+        a-PA,b-PA,c-PA,d-PA,s,t);
+        
       // JOSHUA
       for(e = first, f = b - s; 0 < s; --s, ++e, ++f) { SWAP(*e, *f); }
+      crosscheck("post-JOSHUA e=%d f=%d s=%d", e-PA, f-PA, s);
       if((s = d - c) > (t = last - d - 1)) { s = t; }
       // BERENICE
       for(e = b, f = last - s; 0 < s; --s, ++e, ++f) { SWAP(*e, *f); }
+      crosscheck("post-BERENICE e=%d f=%d s=%d", e-PA, f-PA, s);
 
       a = first + (b - a), c = last - (d - c);
       b = (v <= Td[PA[*a] - 1]) ? a : ss_partition(PA, a, c, depth);
 
+      crosscheck("bif a=%d first=%d last=%d c=%d", a-PA, first-PA, last-PA, c-PA);
       if((a - first) <= (last - c)) {
         if((last - c) <= (c - b)) {
+          crosscheck("A push %d %d %d %d", b-PA, c-PA, depth+1, ss_ilg(c-b));
           STACK_PUSH(b, c, depth + 1, ss_ilg(c - b));
+          crosscheck("B push %d %d %d %d", c-PA, last-PA, depth, limit);
           STACK_PUSH(c, last, depth, limit);
           last = a;
         } else if((a - first) <= (c - b)) {
+          crosscheck("C push %d %d %d %d", c-PA, last-PA, depth, limit);
           STACK_PUSH(c, last, depth, limit);
+          crosscheck("D push %d %d %d %d", b-PA, c-PA, depth+1, ss_ilg(c-b));
           STACK_PUSH(b, c, depth + 1, ss_ilg(c - b));
           last = a;
         } else {
+          crosscheck("E push %d %d %d %d", c-PA, last-PA, depth, limit);
           STACK_PUSH(c, last, depth, limit);
+          crosscheck("F push %d %d %d %d", first-PA, first-PA, depth, limit);
           STACK_PUSH(first, a, depth, limit);
           first = b, last = c, depth += 1, limit = ss_ilg(c - b);
         }
       } else {
         if((a - first) <= (c - b)) {
+          crosscheck("G push %d %d %d %d", first-PA, first-PA, depth, limit);
           STACK_PUSH(b, c, depth + 1, ss_ilg(c - b));
+          crosscheck("H push %d %d %d %d", first-PA, first-PA, depth, limit);
           STACK_PUSH(first, a, depth, limit);
           first = c;
         } else if((last - c) <= (c - b)) {
+          crosscheck("I push %d %d %d %d", first-PA, a-PA, depth, limit);
           STACK_PUSH(first, a, depth, limit);
+          crosscheck("J push %d %d %d %d", b-PA, c-PA, depth+1, ss_ilg(c-b));
           STACK_PUSH(b, c, depth + 1, ss_ilg(c - b));
           first = c;
         } else {
+          crosscheck("K push %d %d %d %d", first-PA, a-PA, depth, limit);
           STACK_PUSH(first, a, depth, limit);
+          crosscheck("L push %d %d %d %d", c-PA, last-PA, depth, limit);
           STACK_PUSH(c, last, depth, limit);
           first = b, last = c, depth += 1, limit = ss_ilg(c - b);
         }

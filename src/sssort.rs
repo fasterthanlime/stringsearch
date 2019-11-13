@@ -465,6 +465,13 @@ pub fn ss_mintrosort(
             {
                 return;
             }
+            crosscheck!(
+                "popped first={} last={} depth={} limit={}",
+                first - PA,
+                last - PA,
+                depth,
+                limit
+            );
             crosscheck!("post-is continue");
             continue;
         }
@@ -508,6 +515,7 @@ pub fn ss_mintrosort(
 
             if (a - first) <= (last - a) {
                 if 1 < (a - first) {
+                    crosscheck!("push {} {} {} {}", a - PA, last - PA, depth, -1);
                     stack.push(a, last, depth, -1);
                     last.0 = 1;
                     depth += 1;
@@ -518,7 +526,14 @@ pub fn ss_mintrosort(
                 }
             } else {
                 if 1 < (last - a) {
-                    stack.push(first, a, depth + a.0, ss_ilg(a - first));
+                    crosscheck!(
+                        "push {} {} {} {}",
+                        first - PA,
+                        a - PA,
+                        depth + 1,
+                        ss_ilg(a - first)
+                    );
+                    stack.push(first, a, depth + 1, ss_ilg(a - first));
                     first = a;
                     limit = -1;
                 } else {
@@ -550,6 +565,7 @@ pub fn ss_mintrosort(
                 break;
             }
         }
+        crosscheck!("post-NORA b={}", b - PA);
         a = b;
         if (a < last) && (x < v) {
             // STAN
@@ -567,6 +583,7 @@ pub fn ss_mintrosort(
                     a += 1;
                 }
             }
+            crosscheck!("post-STAN a={} b={}", a - PA, b - PA);
         }
 
         // NATHAN
@@ -581,6 +598,7 @@ pub fn ss_mintrosort(
                 break;
             }
         }
+        crosscheck!("post-STAN c={}", c - PA);
         d = c;
         if (b < d) && (x > v) {
             // JACOB
@@ -599,11 +617,12 @@ pub fn ss_mintrosort(
                     d -= 1;
                 }
             }
+            crosscheck!("post-JACOB c={} d={}", c - PA, d - PA);
         }
 
         // RITA
         while b < c {
-            mem::swap(&mut b, &mut c);
+            SA.swap(b, c);
             // ROMEO
             loop {
                 b += 1;
@@ -643,6 +662,15 @@ pub fn ss_mintrosort(
             if s > t {
                 s = t;
             }
+            crosscheck!(
+                "pre-JOSHUA, a={} b={} c={} d={} s={} t={}",
+                a - PA,
+                b - PA,
+                c - PA,
+                d - PA,
+                s,
+                t
+            );
 
             // JOSHUA
             e = first;
@@ -653,6 +681,7 @@ pub fn ss_mintrosort(
                 e += 1;
                 f += 1;
             }
+            crosscheck!("post-JOSHUA e={} f={} s={}", e - PA, f - PA, s);
             s = (d - c).0;
             t = (last - d - 1).0;
             if s > t {
@@ -667,6 +696,7 @@ pub fn ss_mintrosort(
                 e += 1;
                 f += 1;
             }
+            crosscheck!("post-BERENICE e={} f={} s={}", e - PA, f - PA, s);
 
             a = first + (b - a);
             c = last - (d - c);
@@ -676,17 +706,42 @@ pub fn ss_mintrosort(
                 ss_partition(SA, PA, a, c, depth)
             };
 
+            crosscheck!(
+                "bif a={} first={} last={} c={}",
+                a - PA,
+                first - PA,
+                last - PA,
+                c - PA
+            );
             if (a - first) <= (last - c) {
                 if (last - c) <= (c - b) {
+                    crosscheck!(
+                        "A push {} {} {} {}",
+                        b - PA,
+                        c - PA,
+                        depth + 1,
+                        ss_ilg(c - b)
+                    );
                     stack.push(b, c, depth + 1, ss_ilg(c - b));
+                    crosscheck!("B push {} {} {} {}", c - PA, last - PA, depth, limit);
                     stack.push(c, last, depth, limit);
                     last = a;
                 } else if (a - first) <= (c - b) {
+                    crosscheck!("C push {} {} {} {}", c - PA, last - PA, depth, limit);
                     stack.push(c, last, depth, limit);
+                    crosscheck!(
+                        "D push {} {} {} {}",
+                        b - PA,
+                        c - PA,
+                        depth + 1,
+                        ss_ilg(c - b)
+                    );
                     stack.push(b, c, depth + 1, ss_ilg(c - b));
                     last = a;
                 } else {
+                    crosscheck!("E push {} {} {} {}", c - PA, last - PA, depth, limit);
                     stack.push(c, last, depth, limit);
+                    crosscheck!("F push {} {} {} {}", first - PA, a - PA, depth, limit);
                     stack.push(first, a, depth, limit);
                     first = b;
                     last = c;
@@ -695,15 +750,33 @@ pub fn ss_mintrosort(
                 }
             } else {
                 if (a - first) <= (c - b) {
+                    crosscheck!(
+                        "G push {} {} {} {}",
+                        b - PA,
+                        c - PA,
+                        depth + 1,
+                        ss_ilg(c - b)
+                    );
                     stack.push(b, c, depth + 1, ss_ilg(c - b));
+                    crosscheck!("H push {} {} {} {}", first - PA, a - PA, depth, limit);
                     stack.push(first, a, depth, limit);
                     first = c;
                 } else if (last - c) <= (c - b) {
+                    crosscheck!("I push {} {} {} {}", first - PA, a - PA, depth, limit);
                     stack.push(first, a, depth, limit);
+                    crosscheck!(
+                        "J push {} {} {} {}",
+                        b - PA,
+                        c - PA,
+                        depth + 1,
+                        ss_ilg(c - b)
+                    );
                     stack.push(b, c, depth + 1, ss_ilg(c - b));
                     first = c;
                 } else {
+                    crosscheck!("K push {} {} {} {}", first - PA, a - PA, depth, limit);
                     stack.push(first, a, depth, limit);
+                    crosscheck!("L push {} {} {} {}", c - PA, last - PA, depth, limit);
                     stack.push(c, last, depth, limit);
                     first = b;
                     last = c;
