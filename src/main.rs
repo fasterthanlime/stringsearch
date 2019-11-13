@@ -34,7 +34,7 @@ fn main() {
         );
     let input = std::fs::read(first_arg).unwrap();
 
-    println!("{:>20} {}", "C", "Running...");
+    // println!("{:>20} {}", "C", "Running...");
 
     let mut SA_c = vec![0 as Idx; input.len()];
     let before_c = Instant::now();
@@ -46,7 +46,7 @@ fn main() {
         dss_flush();
     }
 
-    println!("{:>20} {}", "Rust", "Running...");
+    // println!("{:>20} {}", "Rust", "Running...");
 
     let rust_duration = {
         let res = std::panic::catch_unwind(|| {
@@ -61,16 +61,14 @@ fn main() {
             divsufsort::divsufsort(&input[..], &mut SA_rust[..]);
             let rust_duration = before_rust.elapsed();
             assert_eq!(SA_c, SA_rust);
-            println!("{:>20} {}", "Result", "Matching suffix arrays!");
-
-            println!("{:>20} {:?}", "C duration", c_duration);
-            println!("{:>20} {:?}", "Rust duration", rust_duration);
+            println!(
+                "{:>20} c {:?} rust {:?}",
+                "Durations", c_duration, rust_duration
+            );
         });
         crosscheck::flush();
         res.unwrap()
     };
-
-    println!();
 }
 
 #[cfg(test)]
