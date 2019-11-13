@@ -607,7 +607,7 @@ pub fn ss_mintrosort(
                 break;
             }
         }
-        crosscheck!("post-STAN c={}", c - PA);
+        crosscheck!("post-NATHAN c={}", c - PA);
         d = c;
         if (b < d) && (x > v) {
             // JACOB
@@ -647,6 +647,7 @@ pub fn ss_mintrosort(
                     a += 1;
                 }
             }
+            crosscheck!("post-ROMEO b={} c={}", b - PA, c - PA);
             // JULIET
             loop {
                 c -= 1;
@@ -662,7 +663,9 @@ pub fn ss_mintrosort(
                     d -= 1;
                 }
             }
+            crosscheck!("post-JULIET b={} c={}", b - PA, c - PA);
         }
+        crosscheck!("post-RITA b={} c={}", b - PA, c - PA);
 
         if a <= d {
             c = b - 1;
@@ -820,7 +823,7 @@ pub fn ss_mintrosort(
             }
         } else {
             limit += 1;
-            if Td.get(SA[PA + SA[first] - 1]) < v {
+            if Td.get(SA[PA + SA[first]] - 1) < v {
                 first = ss_partition(SA, PA, first, last, depth);
                 limit = ss_ilg(last - first);
             }

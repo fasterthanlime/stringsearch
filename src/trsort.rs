@@ -735,6 +735,7 @@ pub fn tr_introsort(
     // PASCAL
     loop {
         crosscheck!("limit={}", limit);
+        SA_dump(&SA.range_to(..last), "pascal-start");
 
         if (limit < 0) {
             if (limit == -1) {
@@ -744,6 +745,7 @@ pub fn tr_introsort(
                 unimplemented!()
             } else {
                 // end if limit == -2
+                crosscheck!("limit<-2");
 
                 // sorted partition
                 if 0 <= SA[first] {
@@ -801,13 +803,16 @@ pub fn tr_introsort(
 
                     // push
                     if (budget.check((last - first).0)) {
+                        crosscheck!("pass budget check");
                         if (a - first) <= (last - a) {
+                            crosscheck!("A push");
                             stack.push(ISAd, a, last, -3, trlink);
                             ISAd += incr;
                             last = a;
                             limit = next;
                         } else {
                             if 1 < (last - a) {
+                                crosscheck!("B push");
                                 stack.push(ISAd + incr, first, a, next, trlink);
                                 first = a;
                                 limit = -3;
@@ -818,30 +823,39 @@ pub fn tr_introsort(
                             }
                         }
                     } else {
+                        crosscheck!("fail budget check");
                         if 0 <= trlink {
+                            crosscheck!("trlink > 0");
                             stack.items[trlink as usize].d = -1;
                         }
                         if 1 < (last - a) {
+                            crosscheck!("1<(last-a)");
                             first = a;
                             limit = -3;
                         } else {
+                            crosscheck!("pop");
                             if !stack
                                 .pop(&mut ISAd, &mut first, &mut last, &mut limit, &mut trlink)
                                 .is_ok()
                             {
                                 return;
                             }
+                            crosscheck!("post-pop");
                         }
                     }
                 } else {
+                    crosscheck!("failed first<last");
                     if !stack
                         .pop(&mut ISAd, &mut first, &mut last, &mut limit, &mut trlink)
                         .is_ok()
                     {
                         return;
                     }
+                    crosscheck!("failed first<last post-pop");
                 } // end if first < last
+                crosscheck!("end first<last");
             } // end if limit == -1, -2, or something else
+            crosscheck!("continue limit-loop");
             continue;
         } // end if limit < 0
 

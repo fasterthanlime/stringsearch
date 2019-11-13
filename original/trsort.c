@@ -367,6 +367,10 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
   // PASCAL
   for(ssize = 0, limit = tr_ilg(last - first);;) {
     crosscheck("limit=%d", limit);
+    {
+      saidx_t n = last-SA;
+      SA_dump(SA, "pascal-start");
+    }
 
     if(limit < 0) {
       if(limit == -1) {
@@ -417,6 +421,7 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
         }
         STACK_POP5(ISAd, first, last, limit, trlink);
       } else { // end if limit == -2
+        crosscheck("limit<-2");
 
         /* sorted partition */
         if(0 <= *first) {
@@ -442,11 +447,14 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
 
           /* push */
           if(trbudget_check(budget, a - first)) {
+            crosscheck("pass budget check");
             if((a - first) <= (last - a)) {
+              crosscheck("A push");
               STACK_PUSH5(ISAd, a, last, -3, trlink);
               ISAd += incr, last = a, limit = next;
             } else {
               if(1 < (last - a)) {
+                crosscheck("B push");
                 STACK_PUSH5(ISAd + incr, first, a, next, trlink);
                 first = a, limit = -3;
               } else {
@@ -454,17 +462,28 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
               }
             }
           } else {
-            if(0 <= trlink) { stack[trlink].d = -1; }
+            crosscheck("fail budget check");
+            if(0 <= trlink) {
+              crosscheck("trlink > 0");
+              stack[trlink].d = -1;
+            }
             if(1 < (last - a)) {
+              crosscheck("1<(last-a)");
               first = a, limit = -3;
             } else {
+              crosscheck("pop");
               STACK_POP5(ISAd, first, last, limit, trlink);
+              crosscheck("post-pop");
             }
           }
         } else {
+          crosscheck("failed first<last");
           STACK_POP5(ISAd, first, last, limit, trlink);
+          crosscheck("failed first<last post-pop");
         } // end if first < last 
+        crosscheck("end first<last");
       } // end if limit == -1, -2, or something else
+      crosscheck("continue limit-loop");
       continue;
     } // end if limit < 0
 

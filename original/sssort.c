@@ -418,7 +418,7 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
     }
     // NATHAN
     for(c = last; (b < --c) && ((x = Td[PA[*c]]) == v);) { }
-    crosscheck("post-STAN c=%d",c-PA);
+    crosscheck("post-NATHAN c=%d",c-PA);
     if((b < (d = c)) && (x > v)) {
       // JACOB
       for(; (b < --c) && ((x = Td[PA[*c]]) >= v);) {
@@ -433,11 +433,14 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
       for(; (++b < c) && ((x = Td[PA[*b]]) <= v);) {
         if(x == v) { SWAP(*b, *a); ++a; }
       }
+      crosscheck("post-ROMEO b=%d c=%d", b - PA, c - PA);
       // JULIET
       for(; (b < --c) && ((x = Td[PA[*c]]) >= v);) {
         if(x == v) { SWAP(*c, *d); --d; }
       }
+      crosscheck("post-JULIET b=%d c=%d", b - PA, c - PA);
     }
+    crosscheck("post-RITA b=%d c=%d", b - PA, c - PA);
 
     if(a <= d) {
       c = b - 1;
