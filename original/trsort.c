@@ -80,9 +80,16 @@ tr_insertionsort(const saidx_t *ISAd, saidx_t *first, saidx_t *last) {
   saidx_t *a, *b;
   saidx_t t, r;
 
+  crosscheck("tr_inssort first=%d last=%d", first - ISAd, last - ISAd);
+
+  // KAREN
   for(a = first + 1; a < last; ++a) {
+    // JEZEBEL
     for(t = *a, b = a - 1; 0 > (r = ISAd[t] - ISAd[*b]);) {
-      do { *(b + 1) = *b; } while((first <= --b) && (*b < 0));
+      // LILITH
+      do {
+        *(b + 1) = *b;
+      } while((first <= --b) && (*b < 0));
       if(b < first) { break; }
     }
     if(r == 0) { *b = ~*b; }
@@ -465,7 +472,15 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
 
     if((last - first) <= TR_INSERTIONSORT_THRESHOLD) {
       crosscheck("insertionsort!");
+      {
+        saidx_t n = last-SA;
+        SA_dump(SA, "inssort(A)");
+      }
       tr_insertionsort(ISAd, first, last);
+      {
+        saidx_t n = last-SA;
+        SA_dump(SA, "inssort(B)");
+      }
       limit = -3;
       continue;
     }

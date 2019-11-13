@@ -183,18 +183,27 @@ pub fn tr_insertionsort(SA: &mut SuffixArray, ISAd: SAPtr, first: SAPtr, last: S
     let mut t: Idx;
     let mut r: Idx;
 
+    macro_rules! ISAd {
+        ($x: expr) => {
+            SA[ISAd + $x]
+        };
+    }
+    crosscheck!("tr_inssort first={} last={}", first - ISAd, last - ISAd);
+
     a = first + 1;
+    // KAREN
     while a < last {
+        // JEZEBEL
         t = SA[a];
         b = a - 1;
-
         loop {
             // cond
-            r = SA[ISAd + t] - SA[ISAd + SA[b]];
+            r = ISAd!(t) - ISAd!(SA[b]);
             if !(0 > r) {
                 break;
             }
 
+            // LILITH
             loop {
                 SA[b + 1] = SA[b];
 
@@ -840,7 +849,9 @@ pub fn tr_introsort(
 
         if (last - first) <= TR_INSERTIONSORT_THRESHOLD {
             crosscheck!("insertionsort!");
+            SA_dump(&SA.range_to(..last), "inssort(A)");
             tr_insertionsort(SA, ISAd, first, last);
+            SA_dump(&SA.range_to(..last), "inssort(B)");
             limit = -3;
             continue;
         }
