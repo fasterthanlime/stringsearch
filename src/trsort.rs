@@ -163,12 +163,12 @@ impl Stack {
         if (self.size == 0) {
             Err(())
         } else {
+            self.size -= 1;
             *a = self.items[self.size].a;
             *b = self.items[self.size].b;
             *c = self.items[self.size].c;
             *d = self.items[self.size].d;
             *e = self.items[self.size].e;
-            self.size -= 1;
             Ok(())
         }
     }
