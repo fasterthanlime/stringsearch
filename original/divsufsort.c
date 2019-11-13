@@ -182,6 +182,7 @@ note:
     BSTAR_dump("post-rank");
 
     /* Construct the inverse suffix array of type B* suffixes using trsort. */
+    SA_dump(SA, "pre-tr");
     trsort(ISAb, SA, m, 1);
 
     SA_dump(SA, "post-tr");

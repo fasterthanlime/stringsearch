@@ -1125,22 +1125,36 @@ pub fn trsort(ISA: SAPtr, SA: &mut SuffixArray, n: Idx, depth: Idx) {
         skip = 0;
         unsorted = 0;
 
-        // do..while
+        // PETER
         loop {
-            // body for do..while
             t = SA[first];
             if (t < 0) {
+                crosscheck!("t < 0");
                 first -= t;
                 skip += t;
+                crosscheck!("first={} skip={}", first, skip);
             } else {
+                crosscheck!("t >= 0");
                 if (skip != 0) {
+                    crosscheck!("SA[first={} + skip={}] = skip={}", first, skip, skip);
                     SA[first + skip] = skip;
                     skip = 0;
                 }
                 last = SAPtr(SA[ISA + t] + 1);
+                crosscheck!("last={}", last);
                 if (1 < (last - first)) {
+                    crosscheck!("1<(last-first)");
                     budget.count = 0;
+                    SA_dump(&SA.range_to(..n), "tr_introsort(A)");
+                    crosscheck!(
+                        "call tr_introsort ISA={} ISAd={} first={} last={}",
+                        ISA,
+                        ISAd,
+                        first,
+                        last
+                    );
                     tr_introsort(ISA, ISAd, SA, first, last, &mut budget);
+                    SA_dump(&SA.range_to(..n), "tr_introsort(B)");
                     if (budget.count != 0) {
                         unsorted += budget.count;
                     } else {
@@ -1159,9 +1173,11 @@ pub fn trsort(ISA: SAPtr, SA: &mut SuffixArray, n: Idx, depth: Idx) {
         }
 
         if (skip != 0) {
+            crosscheck!("skip != 0, trsort-end");
             SA[first + skip] = skip;
         }
         if (unsorted == 0) {
+            crosscheck!("unsorted == 0, trsort-end");
             break;
         }
 

@@ -690,23 +690,48 @@ trsort(saidx_t *ISA, saidx_t *SA, saidx_t n, saidx_t depth) {
     first = SA;
     skip = 0;
     unsorted = 0;
+    // PETER
     do {
-      if((t = *first) < 0) { first -= t; skip += t; }
+      if ((t = *first) < 0) {
+        crosscheck("t < 0");
+        first -= t;
+        skip += t;
+        crosscheck("first=%d skip=%d", first-SA, skip);
+      }
       else {
-        if(skip != 0) { *(first + skip) = skip; skip = 0; }
+        crosscheck("t >= 0");
+        if (skip != 0) {
+          crosscheck("SA[first=%d + skip=%d] = skip=%d", first-SA, skip, skip);
+          *(first + skip) = skip;
+          skip = 0;
+        }
         last = SA + ISA[t] + 1;
+        crosscheck("last=%d", last-SA);
         if(1 < (last - first)) {
+          crosscheck("1<(last-first)");
           budget.count = 0;
+          SA_dump(SA, "tr_introsort(A)")
+          crosscheck("call tr_introsort ISA=%d ISAd=%d first=%d last=%d", ISA-SA, ISAd-SA, first-SA, last-SA);
           tr_introsort(ISA, ISAd, SA, first, last, &budget);
-          if(budget.count != 0) { unsorted += budget.count; }
-          else { skip = first - last; }
+          SA_dump(SA, "tr_introsort(B)")
+          if (budget.count != 0) {
+            unsorted += budget.count;
+          } else {
+            skip = first - last;
+          }
         } else if((last - first) == 1) {
           skip = -1;
         }
         first = last;
       }
     } while(first < (SA + n));
-    if(skip != 0) { *(first + skip) = skip; }
-    if(unsorted == 0) { break; }
+    if(skip != 0) {
+      crosscheck("skip != 0, trsort-end");
+      *(first + skip) = skip;
+    }
+    if(unsorted == 0) {
+      crosscheck("unsorted == 0, trsort-end");
+      break;
+    }
   }
 }

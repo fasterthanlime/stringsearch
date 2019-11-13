@@ -275,6 +275,7 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
         BSTAR_dump(&mut B, "post-rank");
 
         // Construct the inverse suffix array of type B* suffixes using trsort.
+        SA_dump(SA, "pre-tr");
         trsort::trsort(ISAb, SA, m, 1);
 
         SA_dump(SA, "post-tr");
