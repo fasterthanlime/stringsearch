@@ -1,4 +1,5 @@
 use crate::{common::*, crosscheck, crosscheck::*};
+use std::mem;
 
 //--------------------
 // Private functions
@@ -244,8 +245,33 @@ pub fn ss_heapsort(Td: &Text, SA: &SuffixArray, PA: SAPtr, first: SAPtr, size: I
 
 /// Returns the median of three elements
 #[inline(always)]
-pub fn ss_median3(Td: &Text, SA: &SuffixArray, PA: SAPtr, v1: SAPtr, v2: SAPtr, v3: SAPtr) {
-    unimplemented!()
+pub fn ss_median3(
+    Td: &Text,
+    SA: &SuffixArray,
+    PA: SAPtr,
+    mut v1: SAPtr,
+    mut v2: SAPtr,
+    v3: SAPtr,
+) -> SAPtr {
+    let mut t: SAPtr;
+    macro_rules! get {
+        ($x: expr) => {
+            Td[SA[PA + SA[$x]]]
+        };
+    }
+
+    if get!(v1) > get!(v2) {
+        mem::swap(&mut v1, &mut v2);
+    }
+    if get!(v2) > get!(v3) {
+        if get!(v1) > get!(v3) {
+            v1
+        } else {
+            v3
+        }
+    } else {
+        v2
+    }
 }
 
 /// Returns the median of five elements
@@ -254,19 +280,67 @@ pub fn ss_median5(
     Td: &Text,
     SA: &SuffixArray,
     PA: SAPtr,
-    v1: SAPtr,
-    v2: SAPtr,
-    v3: SAPtr,
-    v4: SAPtr,
-    v5: SAPtr,
-) {
-    unimplemented!()
+    mut v1: SAPtr,
+    mut v2: SAPtr,
+    mut v3: SAPtr,
+    mut v4: SAPtr,
+    mut v5: SAPtr,
+) -> SAPtr {
+    let mut t: SAPtr;
+    macro_rules! get {
+        ($x: expr) => {
+            Td[SA[PA + SA[$x]]]
+        };
+    }
+    if get!(v2) > get!(v3) {
+        mem::swap(&mut v2, &mut v3);
+    }
+    if get!(v4) > get!(v5) {
+        mem::swap(&mut v4, &mut v5);
+    }
+    if get!(v2) > get!(v4) {
+        mem::swap(&mut v2, &mut v4);
+        mem::swap(&mut v3, &mut v5);
+    }
+    if get!(v1) > get!(v3) {
+        mem::swap(&mut v1, &mut v3);
+    }
+    if get!(v1) > get!(v4) {
+        mem::swap(&mut v1, &mut v4);
+        mem::swap(&mut v3, &mut v5);
+    }
+    if get!(v3) > get!(v4) {
+        v4
+    } else {
+        v3
+    }
 }
 
 /// Returns the pivot element
 #[inline(always)]
-pub fn ss_pivot(Td: &Text, SA: &SuffixArray, PA: SAPtr, first: SAPtr, last: SAPtr) -> SAPtr {
-    unimplemented!()
+pub fn ss_pivot(
+    Td: &Text,
+    SA: &SuffixArray,
+    PA: SAPtr,
+    mut first: SAPtr,
+    mut last: SAPtr,
+) -> SAPtr {
+    let mut t: Idx = (last - first).0;
+    let mut middle: SAPtr = first + (t / 2);
+
+    if t <= 512 {
+        if t <= 32 {
+            return ss_median3(Td, SA, PA, first, middle, last - 1);
+        } else {
+            t >>= 2;
+            return ss_median5(Td, SA, PA, first, first + t, middle, last - 1 - t, last - 1);
+        }
+    }
+    t >>= 3;
+    first = ss_median3(Td, SA, PA, first, first + t, first + (t << 1));
+    middle = ss_median3(Td, SA, PA, middle - t, middle, middle + t);
+    last = ss_median3(Td, SA, PA, last - 1 - (t << 1), last - 1 - t, last - 1);
+    ss_median3(Td, SA, PA, first, middle, last)
 }
 
 //------------------------------------------------------------------------------
@@ -575,6 +649,7 @@ impl Stack {
     }
 
     #[inline(always)]
+    #[must_use]
     fn pop(&mut self, a: &mut SAPtr, b: &mut SAPtr, c: &mut Idx, d: &mut Idx) -> Result<(), ()> {
         if (self.size == 0) {
             Err(())

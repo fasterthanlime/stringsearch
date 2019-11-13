@@ -1,6 +1,4 @@
 fn main() {
-    // TODO: Only compile+link C library in test
-
     let mut build = cc::Build::new();
 
     build.flag("-DHAVE_CONFIG_H=1").warnings(false);

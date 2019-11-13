@@ -100,4 +100,9 @@ mod tests {
             assert_eq!(ours, theirs, "for i = {}", i);
         }
     }
+
+    #[test]
+    fn test_divsufsort() {
+        let inputs = ["Fool", "Love fool", "You are a love fool"];
+    }
 }
