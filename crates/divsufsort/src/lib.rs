@@ -11,5 +11,5 @@ mod divsufsort;
 mod sssort;
 mod trsort;
 
+pub use crate::divsufsort::divsufsort;
 pub use common::Idx;
-pub use divsufsort::divsufsort;
