@@ -734,7 +734,7 @@ pub fn tr_introsort(
     let mut limit = tr_ilg(last - first);
     // PASCAL
     loop {
-        crosscheck!("limit={}", limit);
+        crosscheck!("pascal-start limit={}", limit);
         SA_dump(&SA.range_to(..last), "pascal-start");
 
         if (limit < 0) {
@@ -909,12 +909,14 @@ pub fn tr_introsort(
         crosscheck!("trp(A) first={} last={}", first, last);
         tr_partition(SA, ISAd, first, first + 1, last, &mut a, &mut b, v);
         crosscheck!("trp(B) first={} last={} a={} b={}", first, last, a, b);
-        if (last - first) != (b - 1) {
+        if (last - first) != (b - a) {
+            crosscheck!("last-first != b-a");
             next = if SA[ISA + SA[a]] != v {
                 tr_ilg(b - a)
             } else {
                 -1
             };
+            crosscheck!("chose next={}", next);
 
             // update ranks
             // NOLWENN
@@ -941,28 +943,38 @@ pub fn tr_introsort(
             }
 
             // push
+            crosscheck!("bef-push, b={} a={}", b, a);
             if (1 < (b - a)) && budget.check(b - a) {
+                crosscheck!("A");
                 if (a - first) <= (last - b) {
+                    crosscheck!("AA");
                     if (last - b) <= (b - a) {
+                        crosscheck!("AAA");
                         if 1 < (a - first) {
+                            crosscheck!("AAAA");
                             stack.push(ISAd + incr, a, b, next, trlink);
                             stack.push(ISAd, b, last, limit, trlink);
                             last = a;
                         } else if 1 < (last - b) {
+                            crosscheck!("AAAB");
                             stack.push(ISAd + incr, a, b, next, trlink);
                             first = b;
                         } else {
+                            crosscheck!("AAAC");
                             ISAd += incr;
                             first = a;
                             last = b;
                             limit = next;
                         }
                     } else if (a - first) <= (b - a) {
+                        crosscheck!("AAB");
                         if 1 < (a - first) {
+                            crosscheck!("AABA");
                             stack.push(ISAd, b, last, limit, trlink);
                             stack.push(ISAd + incr, a, b, next, trlink);
                             last = a;
                         } else {
+                            crosscheck!("AABB");
                             stack.push(ISAd, b, last, limit, trlink);
                             ISAd += incr;
                             first = a;
@@ -970,6 +982,7 @@ pub fn tr_introsort(
                             limit = next;
                         }
                     } else {
+                        crosscheck!("AAC");
                         stack.push(ISAd, b, last, limit, trlink);
                         stack.push(ISAd, first, a, limit, trlink);
                         ISAd += incr;
@@ -978,26 +991,34 @@ pub fn tr_introsort(
                         limit = next;
                     }
                 } else {
+                    crosscheck!("AB");
                     if (a - first) <= (b - a) {
+                        crosscheck!("ABA");
                         if 1 < (last - b) {
+                            crosscheck!("ABAA");
                             stack.push(ISAd + incr, a, b, next, trlink);
                             stack.push(ISAd, first, a, limit, trlink);
                             first = b;
                         } else if 1 < (a - first) {
+                            crosscheck!("ABAB");
                             stack.push(ISAd + incr, a, b, next, trlink);
                             last = a;
                         } else {
+                            crosscheck!("ABAC");
                             ISAd += incr;
                             first = a;
                             last = b;
                             limit = next;
                         }
                     } else if (last - b) <= (b - a) {
+                        crosscheck!("ABB");
                         if 1 < (last - b) {
+                            crosscheck!("ABBA");
                             stack.push(ISAd, first, a, limit, trlink);
                             stack.push(ISAd + incr, a, b, next, trlink);
                             first = b;
                         } else {
+                            crosscheck!("ABBB");
                             stack.push(ISAd, first, a, limit, trlink);
                             ISAd += incr;
                             first = a;
@@ -1005,21 +1026,28 @@ pub fn tr_introsort(
                             limit = next;
                         }
                     } else {
+                        crosscheck!("ABC");
                         stack.push(ISAd, first, a, limit, trlink);
                         stack.push(ISAd, b, last, limit, trlink);
                     }
                 }
             } else {
+                crosscheck!("B");
                 if (1 < (b - a)) && (0 <= trlink) {
+                    crosscheck!("BA");
                     stack.items[trlink as usize].d = -1;
                 }
                 if (a - first) <= (last - b) {
+                    crosscheck!("BB");
                     if 1 < (a - first) {
+                        crosscheck!("BBA");
                         stack.push(ISAd, b, last, limit, trlink);
                         last = a;
                     } else if 1 < (last - b) {
+                        crosscheck!("BBB");
                         first = b;
                     } else {
+                        crosscheck!("BBC");
                         if !stack
                             .pop(&mut ISAd, &mut first, &mut last, &mut limit, &mut trlink)
                             .is_ok()
@@ -1028,12 +1056,16 @@ pub fn tr_introsort(
                         }
                     }
                 } else {
+                    crosscheck!("BC");
                     if 1 < (last - b) {
+                        crosscheck!("BCA");
                         stack.push(ISAd, first, a, limit, trlink);
                         first = b;
                     } else if 1 < (a - first) {
+                        crosscheck!("BCB");
                         last = a;
                     } else {
+                        crosscheck!("BCC");
                         if !stack
                             .pop(&mut ISAd, &mut first, &mut last, &mut limit, &mut trlink)
                             .is_ok()

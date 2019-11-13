@@ -366,7 +366,7 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
 
   // PASCAL
   for(ssize = 0, limit = tr_ilg(last - first);;) {
-    crosscheck("limit=%d", limit);
+    crosscheck("pascal-start limit=%d", limit);
     {
       saidx_t n = last-SA;
       SA_dump(SA, "pascal-start");
@@ -532,7 +532,9 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
     tr_partition(ISAd, first, first + 1, last, &a, &b, v);
     crosscheck("trp(B) first=%d last=%d a=%d b=%d", first-SA,last-SA,a-SA,b-SA);
     if((last - first) != (b - a)) {
+      crosscheck("last-first != b-a");
       next = (ISA[*a] != v) ? tr_ilg(b - a) : -1;
+      crosscheck("chose next=%d",next);
 
       /* update ranks */
       // NOLWENN
@@ -543,78 +545,110 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
       }
 
       /* push */
+      crosscheck("bef-push, b=%d a=%d", b - SA, a - SA);
       if((1 < (b - a)) && (trbudget_check(budget, b - a))) {
+        crosscheck("A");
         if((a - first) <= (last - b)) {
+          crosscheck("AA");
           if((last - b) <= (b - a)) {
+            crosscheck("AAA");
             if(1 < (a - first)) {
+              crosscheck("AAAA");
               STACK_PUSH5(ISAd + incr, a, b, next, trlink);
               STACK_PUSH5(ISAd, b, last, limit, trlink);
               last = a;
             } else if(1 < (last - b)) {
+              crosscheck("AAAB");
               STACK_PUSH5(ISAd + incr, a, b, next, trlink);
               first = b;
             } else {
+              crosscheck("AAAC");
               ISAd += incr, first = a, last = b, limit = next;
             }
           } else if((a - first) <= (b - a)) {
+            crosscheck("AAB");
             if(1 < (a - first)) {
+              crosscheck("AABA");
               STACK_PUSH5(ISAd, b, last, limit, trlink);
               STACK_PUSH5(ISAd + incr, a, b, next, trlink);
               last = a;
             } else {
+              crosscheck("AABB");
               STACK_PUSH5(ISAd, b, last, limit, trlink);
               ISAd += incr, first = a, last = b, limit = next;
             }
           } else {
+            crosscheck("AAC");
             STACK_PUSH5(ISAd, b, last, limit, trlink);
             STACK_PUSH5(ISAd, first, a, limit, trlink);
             ISAd += incr, first = a, last = b, limit = next;
           }
         } else {
+          crosscheck("AB");
           if((a - first) <= (b - a)) {
+            crosscheck("ABA");
             if(1 < (last - b)) {
+              crosscheck("ABAA");
               STACK_PUSH5(ISAd + incr, a, b, next, trlink);
               STACK_PUSH5(ISAd, first, a, limit, trlink);
               first = b;
             } else if(1 < (a - first)) {
+              crosscheck("ABAB");
               STACK_PUSH5(ISAd + incr, a, b, next, trlink);
               last = a;
             } else {
+              crosscheck("ABAC");
               ISAd += incr, first = a, last = b, limit = next;
             }
           } else if((last - b) <= (b - a)) {
+            crosscheck("ABB");
             if(1 < (last - b)) {
+              crosscheck("ABBA");
               STACK_PUSH5(ISAd, first, a, limit, trlink);
               STACK_PUSH5(ISAd + incr, a, b, next, trlink);
               first = b;
             } else {
+              crosscheck("ABBB");
               STACK_PUSH5(ISAd, first, a, limit, trlink);
               ISAd += incr, first = a, last = b, limit = next;
             }
           } else {
+            crosscheck("ABC");
             STACK_PUSH5(ISAd, first, a, limit, trlink);
             STACK_PUSH5(ISAd, b, last, limit, trlink);
             ISAd += incr, first = a, last = b, limit = next;
           }
         }
       } else {
-        if((1 < (b - a)) && (0 <= trlink)) { stack[trlink].d = -1; }
+        crosscheck("B");
+        if((1 < (b - a)) && (0 <= trlink)) {
+          crosscheck("BA");
+          stack[trlink].d = -1;
+        }
         if((a - first) <= (last - b)) {
+          crosscheck("BB");
           if(1 < (a - first)) {
+            crosscheck("BBA");
             STACK_PUSH5(ISAd, b, last, limit, trlink);
             last = a;
           } else if(1 < (last - b)) {
+            crosscheck("BBB");
             first = b;
           } else {
+            crosscheck("BBC");
             STACK_POP5(ISAd, first, last, limit, trlink);
           }
         } else {
+          crosscheck("BC");
           if(1 < (last - b)) {
+            crosscheck("BCA");
             STACK_PUSH5(ISAd, first, a, limit, trlink);
             first = b;
           } else if(1 < (a - first)) {
+            crosscheck("BCB");
             last = a;
           } else {
+            crosscheck("BCC");
             STACK_POP5(ISAd, first, last, limit, trlink);
           }
         }
