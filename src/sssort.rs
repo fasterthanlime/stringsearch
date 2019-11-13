@@ -235,7 +235,7 @@ pub fn ss_fixdown(Td: &Text, PA: SAPtr, SA: &mut SuffixArray, mut i: Idx, size: 
 }
 
 /// Simple top-down heapsort.
-pub fn ss_heapsort(Td: &Text, SA: &SuffixArray, PA: SAPtr, first: SAPtr, size: Idx) {
+pub fn ss_heapsort(T: &Text, Td: Idx, SA: &SuffixArray, PA: SAPtr, first: SAPtr, size: Idx) {
     unimplemented!()
 }
 
@@ -244,7 +244,8 @@ pub fn ss_heapsort(Td: &Text, SA: &SuffixArray, PA: SAPtr, first: SAPtr, size: I
 /// Returns the median of three elements
 #[inline(always)]
 pub fn ss_median3(
-    Td: &Text,
+    T: &Text,
+    Td: Idx,
     SA: &SuffixArray,
     PA: SAPtr,
     mut v1: SAPtr,
@@ -254,7 +255,7 @@ pub fn ss_median3(
     let mut t: SAPtr;
     macro_rules! get {
         ($x: expr) => {
-            Td[SA[PA + SA[$x]]]
+            T[Td + SA[PA + SA[$x]]]
         };
     }
 
@@ -275,7 +276,8 @@ pub fn ss_median3(
 /// Returns the median of five elements
 #[inline(always)]
 pub fn ss_median5(
-    Td: &Text,
+    T: &Text,
+    Td: Idx,
     SA: &SuffixArray,
     PA: SAPtr,
     mut v1: SAPtr,
@@ -287,7 +289,7 @@ pub fn ss_median5(
     let mut t: SAPtr;
     macro_rules! get {
         ($x: expr) => {
-            Td[SA[PA + SA[$x]]]
+            T[Td + SA[PA + SA[$x]]]
         };
     }
     if get!(v2) > get!(v3) {
@@ -317,7 +319,8 @@ pub fn ss_median5(
 /// Returns the pivot element
 #[inline(always)]
 pub fn ss_pivot(
-    Td: &Text,
+    T: &Text,
+    Td: Idx,
     SA: &SuffixArray,
     PA: SAPtr,
     mut first: SAPtr,
@@ -328,17 +331,27 @@ pub fn ss_pivot(
 
     if t <= 512 {
         if t <= 32 {
-            return ss_median3(Td, SA, PA, first, middle, last - 1);
+            return ss_median3(T, Td, SA, PA, first, middle, last - 1);
         } else {
             t >>= 2;
-            return ss_median5(Td, SA, PA, first, first + t, middle, last - 1 - t, last - 1);
+            return ss_median5(
+                T,
+                Td,
+                SA,
+                PA,
+                first,
+                first + t,
+                middle,
+                last - 1 - t,
+                last - 1,
+            );
         }
     }
     t >>= 3;
-    first = ss_median3(Td, SA, PA, first, first + t, first + (t << 1));
-    middle = ss_median3(Td, SA, PA, middle - t, middle, middle + t);
-    last = ss_median3(Td, SA, PA, last - 1 - (t << 1), last - 1 - t, last - 1);
-    ss_median3(Td, SA, PA, first, middle, last)
+    first = ss_median3(T, Td, SA, PA, first, first + t, first + (t << 1));
+    middle = ss_median3(T, Td, SA, PA, middle - t, middle, middle + t);
+    last = ss_median3(T, Td, SA, PA, last - 1 - (t << 1), last - 1 - t, last - 1);
+    ss_median3(T, Td, SA, PA, first, middle, last)
 }
 
 //------------------------------------------------------------------------------
@@ -423,6 +436,12 @@ pub fn ss_mintrosort(
     mut last: SAPtr,
     mut depth: Idx,
 ) {
+    macro_rules! PA {
+        ($x: expr) => {
+            SA[PA + $x]
+        };
+    };
+
     let mut stack = Stack::new();
 
     let mut a: SAPtr;
@@ -455,25 +474,30 @@ pub fn ss_mintrosort(
             continue;
         }
 
-        let Td = Text(&T.0[(depth as usize)..]);
-        macro_rules! Td_get {
+        let Td = depth;
+        macro_rules! Td {
             ($x: expr) => {
-                Td.get(SA[PA + SA[$x]])
+                T.get(Td + $x)
+            };
+        }
+        macro_rules! TdPAStar {
+            ($x: expr) => {
+                Td!(PA!(SA[$x]))
             };
         }
 
         if (limit == 0) {
-            ss_heapsort(&Td, SA, PA, first, (last - first).into());
+            ss_heapsort(T, Td, SA, PA, first, (last - first).into());
         }
         limit -= 1;
 
         if (limit < 0) {
             a = first + 1;
-            v = Td_get!(first);
+            v = TdPAStar!(first);
 
             // DAVE
             while a < last {
-                x = Td_get!(a);
+                x = TdPAStar!(a);
                 if (x != v) {
                     if (1 < (a - first)) {
                         break;
@@ -486,7 +510,7 @@ pub fn ss_mintrosort(
                 a += 1;
             }
 
-            if Td_get!(first) < v {
+            if TdPAStar!(first) < v {
                 first = ss_partition(SA, PA, first, a, depth);
             }
 
@@ -515,8 +539,8 @@ pub fn ss_mintrosort(
         }
 
         // choose pivot
-        a = ss_pivot(&Td, SA, PA, first, last);
-        v = Td_get!(a);
+        a = ss_pivot(T, Td, SA, PA, first, last);
+        v = TdPAStar!(a);
         SA.swap(first, a);
 
         // partition
@@ -527,7 +551,7 @@ pub fn ss_mintrosort(
             if !(b < last) {
                 break;
             }
-            x = Td_get!(b);
+            x = TdPAStar!(b);
             if !(x == v) {
                 break;
             }
@@ -540,7 +564,7 @@ pub fn ss_mintrosort(
                 if !(b < last) {
                     break;
                 }
-                x = Td_get!(b);
+                x = TdPAStar!(b);
                 if !(x <= v) {
                     break;
                 }
@@ -558,7 +582,7 @@ pub fn ss_mintrosort(
             if !(b < c) {
                 break;
             }
-            x = Td_get!(c);
+            x = TdPAStar!(c);
             if !(x == v) {
                 break;
             }
@@ -571,7 +595,7 @@ pub fn ss_mintrosort(
                 if !(b < c) {
                     break;
                 }
-                x = Td_get!(c);
+                x = TdPAStar!(c);
                 if !(x >= v) {
                     break;
                 }
@@ -592,7 +616,7 @@ pub fn ss_mintrosort(
                 if !(b < c) {
                     break;
                 }
-                x = Td_get!(b);
+                x = TdPAStar!(b);
                 if !(x <= v) {
                     break;
                 }
@@ -607,7 +631,7 @@ pub fn ss_mintrosort(
                 if !(b < c) {
                     break;
                 }
-                x = Td_get!(c);
+                x = TdPAStar!(c);
                 if !(x >= v) {
                     break;
                 }
@@ -652,7 +676,7 @@ pub fn ss_mintrosort(
 
             a = first + (b - a);
             c = last - (d - c);
-            b = if v <= Td.get(SA[PA + SA[a]] - 1) {
+            b = if v <= Td!(PA!(SA[a]) - 1) {
                 a
             } else {
                 let res = ss_partition(SA, PA, a, c, depth);
@@ -696,7 +720,7 @@ pub fn ss_mintrosort(
             }
         } else {
             limit += 1;
-            if Td.get(SA[PA + SA[first]] - 1) < v {
+            if (TdPAStar!(first) - 1) < v {
                 first = ss_partition(SA, PA, first, last, depth);
                 limit = ss_ilg(last - first);
             }

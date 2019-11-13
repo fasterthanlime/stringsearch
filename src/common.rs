@@ -29,6 +29,7 @@ impl<'a> Index<Idx> for Text<'a> {
 impl<'a> Text<'a> {
     #[inline(always)]
     pub fn get(&self, i: Idx) -> Idx {
+        assert!(i >= 0, "assert violated: {} >= 0", i);
         self.0[i as usize] as Idx
     }
 
