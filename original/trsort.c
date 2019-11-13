@@ -405,6 +405,7 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
         }
         STACK_POP5(ISAd, first, last, limit, trlink);
       } else { // end if limit == -2
+
         /* sorted partition */
         if(0 <= *first) {
           a = first;
@@ -413,6 +414,8 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
           do { ISA[*a] = a - SA; } while((++a < last) && (0 <= *a));
           first = a;
         }
+        crosscheck("post-sp first=%d last=%d",first-SA,last-SA);
+
         if(first < last) {
           a = first;
           crosscheck("MONSTRO");

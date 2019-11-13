@@ -746,12 +746,13 @@ pub fn tr_introsort(
 
                         // cond (GEMINI)
                         a += 1;
-                        if !(a < last) && (0 <= SA[a]) {
+                        if !((a < last) && (0 <= SA[a])) {
                             break;
                         }
                     }
                     first = a;
                 }
+                crosscheck!("post-sp first={} last={}", first, last);
 
                 if first < last {
                     a = first;
