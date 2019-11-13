@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 if [[ -z $1 ]]; then
     echo "Usage: ./fuzz.sh N"
@@ -6,8 +6,13 @@ if [[ -z $1 ]]; then
 fi
 N=$1
 
-echo "Fuzzing with ${N}K inputs. (Press Enter to start)"
-read
+cargo build --release 
+echo "Using inputs of size ${N}K. (Ctrl-C to cancel)"
+echo "2..."
+sleep 1
+echo "1..."
+sleep 1
+echo "Let's go!"
 
 while true; do
     dd if=/dev/urandom of=./testdata/input.txt bs=1024 count=$N 2> /dev/null

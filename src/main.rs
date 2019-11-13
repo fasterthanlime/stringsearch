@@ -47,6 +47,13 @@ fn main() {
         dss_flush();
     }
 
+    for i in 0..(SA_c.len() - 1) {
+        assert!(
+            &input[SA_c[i] as usize..] < &input[SA_c[i + 1] as usize..],
+            "suffixes should be ordered"
+        );
+    }
+
     #[cfg(debug_assertions)]
     println!("{:>20} {}", "Rust", "Running...");
 
@@ -62,11 +69,27 @@ fn main() {
 
             divsufsort::divsufsort(&input[..], &mut SA_rust[..]);
             let rust_duration = before_rust.elapsed();
-            assert!(SA_c == SA_rust, "suffix arrays should be equal");
-            println!(
-                "{:>20} c {:?} rust {:?}",
-                "Durations", c_duration, rust_duration
-            );
+            assert!(SA_c == SA_rust, "c & rust divsufsort SAs should be equal");
+
+            #[cfg(debug_assertions)]
+            println!("{:>20} {}", "huc", "Running...");
+
+            let huc_duration = {
+                let before_huc = Instant::now();
+                let sa = suffix_array::SuffixArray::new(&input[..]);
+                let (_, sa) = sa.into_parts();
+                let sa = &sa[1..];
+
+                for i in 0..SA_c.len() {
+                    assert_eq!(SA_c[i], sa[i] as i32);
+                }
+                before_huc.elapsed()
+            };
+
+            let s1 = format!("c {:?}", c_duration);
+            let s2 = format!("rust {:?}", rust_duration);
+            let s3 = format!("rust-ref {:?}", huc_duration);
+            println!("{:30} {:30} {:30}", s1, s2, s3);
         });
         crosscheck::flush();
         res.unwrap()
