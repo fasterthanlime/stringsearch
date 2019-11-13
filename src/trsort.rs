@@ -188,7 +188,6 @@ pub fn tr_insertionsort(SA: &mut SuffixArray, ISAd: SAPtr, first: SAPtr, last: S
             SA[ISAd + $x]
         };
     }
-    crosscheck!("tr_inssort first={} last={}", first - ISAd, last - ISAd);
 
     a = first + 1;
     // KAREN
@@ -590,7 +589,6 @@ pub fn tr_partition(
     }
     pa.0 = first.0;
     pb.0 = last.0;
-    crosscheck!("tr_part-end a={} b={}", (*pa) - ISAd, (*pb) - ISAd);
 }
 
 /// Tandem repeat copy
@@ -728,15 +726,10 @@ pub fn tr_introsort(
     let mut trlink: Idx = -1;
 
     let mut stack = Stack::new();
-    crosscheck!("tr_introsort start");
-    SA_dump(&SA.range_to(..last), "tr_introsort start");
 
     let mut limit = tr_ilg(last - first);
     // PASCAL
     loop {
-        crosscheck!("pascal-start limit={}", limit);
-        SA_dump(&SA.range_to(..last), "pascal-start");
-
         if (limit < 0) {
             if (limit == -1) {
                 unimplemented!()
@@ -745,13 +738,11 @@ pub fn tr_introsort(
                 unimplemented!()
             } else {
                 // end if limit == -2
-                crosscheck!("limit<-2");
 
                 // sorted partition
                 if 0 <= SA[first] {
                     a = first;
                     // GEMINI
-                    crosscheck!("GEMINI");
                     loop {
                         {
                             let SA_a = SA[a];
@@ -766,12 +757,10 @@ pub fn tr_introsort(
                     }
                     first = a;
                 }
-                crosscheck!("post-sp first={} last={}", first, last);
 
                 if first < last {
                     a = first;
                     // MONSTRO
-                    crosscheck!("MONSTRO");
                     loop {
                         SA[a] = !SA[a];
 
@@ -788,7 +777,6 @@ pub fn tr_introsort(
                     };
                     a += 1;
                     if a < last {
-                        crosscheck!("CLEMENTINE");
                         // CLEMENTINE
                         b = first;
                         v = (a - 1).0;
@@ -803,16 +791,13 @@ pub fn tr_introsort(
 
                     // push
                     if (budget.check((last - first).0)) {
-                        crosscheck!("pass budget check");
                         if (a - first) <= (last - a) {
-                            crosscheck!("A push");
                             stack.push(ISAd, a, last, -3, trlink);
                             ISAd += incr;
                             last = a;
                             limit = next;
                         } else {
                             if 1 < (last - a) {
-                                crosscheck!("B push");
                                 stack.push(ISAd + incr, first, a, next, trlink);
                                 first = a;
                                 limit = -3;
@@ -823,49 +808,35 @@ pub fn tr_introsort(
                             }
                         }
                     } else {
-                        crosscheck!("fail budget check");
                         if 0 <= trlink {
-                            crosscheck!("trlink > 0");
                             stack.items[trlink as usize].d = -1;
                         }
                         if 1 < (last - a) {
-                            crosscheck!("1<(last-a)");
                             first = a;
                             limit = -3;
                         } else {
-                            crosscheck!("pop");
                             if !stack
                                 .pop(&mut ISAd, &mut first, &mut last, &mut limit, &mut trlink)
                                 .is_ok()
                             {
                                 return;
                             }
-                            crosscheck!("post-pop");
                         }
                     }
                 } else {
-                    crosscheck!("failed first<last");
                     if !stack
                         .pop(&mut ISAd, &mut first, &mut last, &mut limit, &mut trlink)
                         .is_ok()
                     {
                         return;
                     }
-                    crosscheck!("failed first<last post-pop");
                 } // end if first < last
-                crosscheck!("end first<last");
             } // end if limit == -1, -2, or something else
-            crosscheck!("continue limit-loop");
             continue;
         } // end if limit < 0
 
-        crosscheck!("limit>0");
-
         if (last - first) <= TR_INSERTIONSORT_THRESHOLD {
-            crosscheck!("insertionsort!");
-            SA_dump(&SA.range_to(..last), "inssort(A)");
             tr_insertionsort(SA, ISAd, first, last);
-            SA_dump(&SA.range_to(..last), "inssort(B)");
             limit = -3;
             continue;
         }
@@ -873,7 +844,6 @@ pub fn tr_introsort(
         let old_limit = limit;
         limit -= 1;
         if (old_limit == 0) {
-            crosscheck!("heapsort");
             let mut SAfirst = SA.range_from(first..);
             tr_heapsort(ISAd, &mut SAfirst, (last - first).0);
 
@@ -898,25 +868,18 @@ pub fn tr_introsort(
         }
 
         // choose pivot
-        crosscheck!("choose pivot");
         a = tr_pivot(SA, ISAd, first, last);
-        crosscheck!("a={}", a);
         SA.swap(first, a);
         v = SA[ISAd + SA[first]];
-        crosscheck!("v={}", v);
 
         // partition
-        crosscheck!("trp(A) first={} last={}", first, last);
         tr_partition(SA, ISAd, first, first + 1, last, &mut a, &mut b, v);
-        crosscheck!("trp(B) first={} last={} a={} b={}", first, last, a, b);
         if (last - first) != (b - a) {
-            crosscheck!("last-first != b-a");
             next = if SA[ISA + SA[a]] != v {
                 tr_ilg(b - a)
             } else {
                 -1
             };
-            crosscheck!("chose next={}", next);
 
             // update ranks
             // NOLWENN
@@ -943,38 +906,28 @@ pub fn tr_introsort(
             }
 
             // push
-            crosscheck!("bef-push, b={} a={}", b, a);
             if (1 < (b - a)) && budget.check(b - a) {
-                crosscheck!("A");
                 if (a - first) <= (last - b) {
-                    crosscheck!("AA");
                     if (last - b) <= (b - a) {
-                        crosscheck!("AAA");
                         if 1 < (a - first) {
-                            crosscheck!("AAAA");
                             stack.push(ISAd + incr, a, b, next, trlink);
                             stack.push(ISAd, b, last, limit, trlink);
                             last = a;
                         } else if 1 < (last - b) {
-                            crosscheck!("AAAB");
                             stack.push(ISAd + incr, a, b, next, trlink);
                             first = b;
                         } else {
-                            crosscheck!("AAAC");
                             ISAd += incr;
                             first = a;
                             last = b;
                             limit = next;
                         }
                     } else if (a - first) <= (b - a) {
-                        crosscheck!("AAB");
                         if 1 < (a - first) {
-                            crosscheck!("AABA");
                             stack.push(ISAd, b, last, limit, trlink);
                             stack.push(ISAd + incr, a, b, next, trlink);
                             last = a;
                         } else {
-                            crosscheck!("AABB");
                             stack.push(ISAd, b, last, limit, trlink);
                             ISAd += incr;
                             first = a;
@@ -982,7 +935,6 @@ pub fn tr_introsort(
                             limit = next;
                         }
                     } else {
-                        crosscheck!("AAC");
                         stack.push(ISAd, b, last, limit, trlink);
                         stack.push(ISAd, first, a, limit, trlink);
                         ISAd += incr;
@@ -991,34 +943,26 @@ pub fn tr_introsort(
                         limit = next;
                     }
                 } else {
-                    crosscheck!("AB");
                     if (a - first) <= (b - a) {
-                        crosscheck!("ABA");
                         if 1 < (last - b) {
-                            crosscheck!("ABAA");
                             stack.push(ISAd + incr, a, b, next, trlink);
                             stack.push(ISAd, first, a, limit, trlink);
                             first = b;
                         } else if 1 < (a - first) {
-                            crosscheck!("ABAB");
                             stack.push(ISAd + incr, a, b, next, trlink);
                             last = a;
                         } else {
-                            crosscheck!("ABAC");
                             ISAd += incr;
                             first = a;
                             last = b;
                             limit = next;
                         }
                     } else if (last - b) <= (b - a) {
-                        crosscheck!("ABB");
                         if 1 < (last - b) {
-                            crosscheck!("ABBA");
                             stack.push(ISAd, first, a, limit, trlink);
                             stack.push(ISAd + incr, a, b, next, trlink);
                             first = b;
                         } else {
-                            crosscheck!("ABBB");
                             stack.push(ISAd, first, a, limit, trlink);
                             ISAd += incr;
                             first = a;
@@ -1026,7 +970,6 @@ pub fn tr_introsort(
                             limit = next;
                         }
                     } else {
-                        crosscheck!("ABC");
                         stack.push(ISAd, first, a, limit, trlink);
                         stack.push(ISAd, b, last, limit, trlink);
                         ISAd += incr;
@@ -1036,22 +979,16 @@ pub fn tr_introsort(
                     }
                 }
             } else {
-                crosscheck!("B");
                 if (1 < (b - a)) && (0 <= trlink) {
-                    crosscheck!("BA");
                     stack.items[trlink as usize].d = -1;
                 }
                 if (a - first) <= (last - b) {
-                    crosscheck!("BB");
                     if 1 < (a - first) {
-                        crosscheck!("BBA");
                         stack.push(ISAd, b, last, limit, trlink);
                         last = a;
                     } else if 1 < (last - b) {
-                        crosscheck!("BBB");
                         first = b;
                     } else {
-                        crosscheck!("BBC");
                         if !stack
                             .pop(&mut ISAd, &mut first, &mut last, &mut limit, &mut trlink)
                             .is_ok()
@@ -1060,16 +997,12 @@ pub fn tr_introsort(
                         }
                     }
                 } else {
-                    crosscheck!("BC");
                     if 1 < (last - b) {
-                        crosscheck!("BCA");
                         stack.push(ISAd, first, a, limit, trlink);
                         first = b;
                     } else if 1 < (a - first) {
-                        crosscheck!("BCB");
                         last = a;
                     } else {
-                        crosscheck!("BCC");
                         if !stack
                             .pop(&mut ISAd, &mut first, &mut last, &mut limit, &mut trlink)
                             .is_ok()
@@ -1106,9 +1039,6 @@ pub fn tr_introsort(
 
 /// Tandem repeat sort
 pub fn trsort(ISA: SAPtr, SA: &mut SuffixArray, n: Idx, depth: Idx) {
-    SA_dump(&SA.range_to(..n), "start of trsort");
-    crosscheck!("ISA = {}, n = {}, depth = {}", ISA, n, depth);
-
     let mut ISAd: SAPtr;
     let mut first: SAPtr;
     let mut last: SAPtr;
@@ -1118,9 +1048,7 @@ pub fn trsort(ISA: SAPtr, SA: &mut SuffixArray, n: Idx, depth: Idx) {
     let mut budget = Budget::new(tr_ilg(n) * 2 / 3, n);
 
     ISAd = ISA + depth;
-    crosscheck!("(*) -n={} SA[0]={}", -n, SA[0]);
     while (-n < SA[0]) {
-        crosscheck!("-n={} SA[0]={}", -n, SA[0]);
         first = SAPtr(0);
         skip = 0;
         unsorted = 0;
@@ -1129,32 +1057,17 @@ pub fn trsort(ISA: SAPtr, SA: &mut SuffixArray, n: Idx, depth: Idx) {
         loop {
             t = SA[first];
             if (t < 0) {
-                crosscheck!("t < 0");
                 first -= t;
                 skip += t;
-                crosscheck!("first={} skip={}", first, skip);
             } else {
-                crosscheck!("t >= 0");
                 if (skip != 0) {
-                    crosscheck!("SA[first={} + skip={}] = skip={}", first, skip, skip);
                     SA[first + skip] = skip;
                     skip = 0;
                 }
                 last = SAPtr(SA[ISA + t] + 1);
-                crosscheck!("last={}", last);
                 if (1 < (last - first)) {
-                    crosscheck!("1<(last-first)");
                     budget.count = 0;
-                    SA_dump(&SA.range_to(..n), "tr_introsort(A)");
-                    crosscheck!(
-                        "call tr_introsort ISA={} ISAd={} first={} last={}",
-                        ISA,
-                        ISAd,
-                        first,
-                        last
-                    );
                     tr_introsort(ISA, ISAd, SA, first, last, &mut budget);
-                    SA_dump(&SA.range_to(..n), "tr_introsort(B)");
                     if (budget.count != 0) {
                         unsorted += budget.count;
                     } else {
@@ -1173,11 +1086,9 @@ pub fn trsort(ISA: SAPtr, SA: &mut SuffixArray, n: Idx, depth: Idx) {
         }
 
         if (skip != 0) {
-            crosscheck!("skip != 0, trsort-end");
             SA[first + skip] = skip;
         }
         if (unsorted == 0) {
-            crosscheck!("unsorted == 0, trsort-end");
             break;
         }
 

@@ -80,7 +80,6 @@ tr_insertionsort(const saidx_t *ISAd, saidx_t *first, saidx_t *last) {
   saidx_t *a, *b;
   saidx_t t, r;
 
-  crosscheck("tr_inssort first=%d last=%d", first - ISAd, last - ISAd);
 
   // KAREN
   for(a = first + 1; a < last; ++a) {
@@ -273,7 +272,6 @@ tr_partition(const saidx_t *ISAd,
     first += (b - a), last -= (d - c);
   }
   *pa = first, *pb = last;
-  crosscheck("tr_part-end a=%d b=%d", (*pa)-ISAd, (*pb)-ISAd);
 }
 
 static
@@ -358,18 +356,14 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
   saint_t limit, next;
   saint_t ssize, trlink = -1;
 
-  crosscheck("tr_introsort start");
   {
     saidx_t n = last-SA;
-    SA_dump(SA, "tr_introsort start");
   }
 
   // PASCAL
   for(ssize = 0, limit = tr_ilg(last - first);;) {
-    crosscheck("pascal-start limit=%d", limit);
     {
       saidx_t n = last-SA;
-      SA_dump(SA, "pascal-start");
     }
 
     if(limit < 0) {
@@ -421,40 +415,32 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
         }
         STACK_POP5(ISAd, first, last, limit, trlink);
       } else { // end if limit == -2
-        crosscheck("limit<-2");
 
         /* sorted partition */
         if(0 <= *first) {
           a = first;
-          crosscheck("GEMINI");
           // GEMINI
           do { ISA[*a] = a - SA; } while((++a < last) && (0 <= *a));
           first = a;
         }
-        crosscheck("post-sp first=%d last=%d",first-SA,last-SA);
 
         if(first < last) {
           a = first;
-          crosscheck("MONSTRO");
           // MONSTRO
           do { *a = ~*a; } while(*++a < 0);
           next = (ISA[*a] != ISAd[*a]) ? tr_ilg(a - first + 1) : -1;
           if(++a < last) {
-            crosscheck("CLEMENTINE");
             // CLEMENTINE
             for(b = first, v = a - SA - 1; b < a; ++b) { ISA[*b] = v; }
           }
 
           /* push */
           if(trbudget_check(budget, a - first)) {
-            crosscheck("pass budget check");
             if((a - first) <= (last - a)) {
-              crosscheck("A push");
               STACK_PUSH5(ISAd, a, last, -3, trlink);
               ISAd += incr, last = a, limit = next;
             } else {
               if(1 < (last - a)) {
-                crosscheck("B push");
                 STACK_PUSH5(ISAd + incr, first, a, next, trlink);
                 first = a, limit = -3;
               } else {
@@ -462,50 +448,36 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
               }
             }
           } else {
-            crosscheck("fail budget check");
             if(0 <= trlink) {
-              crosscheck("trlink > 0");
               stack[trlink].d = -1;
             }
             if(1 < (last - a)) {
-              crosscheck("1<(last-a)");
               first = a, limit = -3;
             } else {
-              crosscheck("pop");
               STACK_POP5(ISAd, first, last, limit, trlink);
-              crosscheck("post-pop");
             }
           }
         } else {
-          crosscheck("failed first<last");
           STACK_POP5(ISAd, first, last, limit, trlink);
-          crosscheck("failed first<last post-pop");
         } // end if first < last 
-        crosscheck("end first<last");
       } // end if limit == -1, -2, or something else
-      crosscheck("continue limit-loop");
       continue;
     } // end if limit < 0
 
-    crosscheck("limit>0");
 
     if((last - first) <= TR_INSERTIONSORT_THRESHOLD) {
-      crosscheck("insertionsort!");
       {
         saidx_t n = last-SA;
-        SA_dump(SA, "inssort(A)");
       }
       tr_insertionsort(ISAd, first, last);
       {
         saidx_t n = last-SA;
-        SA_dump(SA, "inssort(B)");
       }
       limit = -3;
       continue;
     }
 
     if(limit-- == 0) {
-      crosscheck("heapsort!");
       tr_heapsort(ISAd, first, last - first);
 
       // YOHAN
@@ -520,21 +492,14 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
     }
 
     /* choose pivot */
-    crosscheck("choose pivot");
     a = tr_pivot(ISAd, first, last);
-    crosscheck("a=%d", a-SA);
     SWAP(*first, *a);
     v = ISAd[*first];
-    crosscheck("v=%d",v);
 
     /* partition */
-    crosscheck("trp(A) first=%d last=%d", first-SA,last-SA);
     tr_partition(ISAd, first, first + 1, last, &a, &b, v);
-    crosscheck("trp(B) first=%d last=%d a=%d b=%d", first-SA,last-SA,a-SA,b-SA);
     if((last - first) != (b - a)) {
-      crosscheck("last-first != b-a");
       next = (ISA[*a] != v) ? tr_ilg(b - a) : -1;
-      crosscheck("chose next=%d",next);
 
       /* update ranks */
       // NOLWENN
@@ -545,110 +510,80 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
       }
 
       /* push */
-      crosscheck("bef-push, b=%d a=%d", b - SA, a - SA);
       if((1 < (b - a)) && (trbudget_check(budget, b - a))) {
-        crosscheck("A");
         if((a - first) <= (last - b)) {
-          crosscheck("AA");
           if((last - b) <= (b - a)) {
-            crosscheck("AAA");
             if(1 < (a - first)) {
-              crosscheck("AAAA");
               STACK_PUSH5(ISAd + incr, a, b, next, trlink);
               STACK_PUSH5(ISAd, b, last, limit, trlink);
               last = a;
             } else if(1 < (last - b)) {
-              crosscheck("AAAB");
               STACK_PUSH5(ISAd + incr, a, b, next, trlink);
               first = b;
             } else {
-              crosscheck("AAAC");
               ISAd += incr, first = a, last = b, limit = next;
             }
           } else if((a - first) <= (b - a)) {
-            crosscheck("AAB");
             if(1 < (a - first)) {
-              crosscheck("AABA");
               STACK_PUSH5(ISAd, b, last, limit, trlink);
               STACK_PUSH5(ISAd + incr, a, b, next, trlink);
               last = a;
             } else {
-              crosscheck("AABB");
               STACK_PUSH5(ISAd, b, last, limit, trlink);
               ISAd += incr, first = a, last = b, limit = next;
             }
           } else {
-            crosscheck("AAC");
             STACK_PUSH5(ISAd, b, last, limit, trlink);
             STACK_PUSH5(ISAd, first, a, limit, trlink);
             ISAd += incr, first = a, last = b, limit = next;
           }
         } else {
-          crosscheck("AB");
           if((a - first) <= (b - a)) {
-            crosscheck("ABA");
             if(1 < (last - b)) {
-              crosscheck("ABAA");
               STACK_PUSH5(ISAd + incr, a, b, next, trlink);
               STACK_PUSH5(ISAd, first, a, limit, trlink);
               first = b;
             } else if(1 < (a - first)) {
-              crosscheck("ABAB");
               STACK_PUSH5(ISAd + incr, a, b, next, trlink);
               last = a;
             } else {
-              crosscheck("ABAC");
               ISAd += incr, first = a, last = b, limit = next;
             }
           } else if((last - b) <= (b - a)) {
-            crosscheck("ABB");
             if(1 < (last - b)) {
-              crosscheck("ABBA");
               STACK_PUSH5(ISAd, first, a, limit, trlink);
               STACK_PUSH5(ISAd + incr, a, b, next, trlink);
               first = b;
             } else {
-              crosscheck("ABBB");
               STACK_PUSH5(ISAd, first, a, limit, trlink);
               ISAd += incr, first = a, last = b, limit = next;
             }
           } else {
-            crosscheck("ABC");
             STACK_PUSH5(ISAd, first, a, limit, trlink);
             STACK_PUSH5(ISAd, b, last, limit, trlink);
             ISAd += incr, first = a, last = b, limit = next;
           }
         }
       } else {
-        crosscheck("B");
         if((1 < (b - a)) && (0 <= trlink)) {
-          crosscheck("BA");
           stack[trlink].d = -1;
         }
         if((a - first) <= (last - b)) {
-          crosscheck("BB");
           if(1 < (a - first)) {
-            crosscheck("BBA");
             STACK_PUSH5(ISAd, b, last, limit, trlink);
             last = a;
           } else if(1 < (last - b)) {
-            crosscheck("BBB");
             first = b;
           } else {
-            crosscheck("BBC");
             STACK_POP5(ISAd, first, last, limit, trlink);
           }
         } else {
-          crosscheck("BC");
           if(1 < (last - b)) {
-            crosscheck("BCA");
             STACK_PUSH5(ISAd, first, a, limit, trlink);
             first = b;
           } else if(1 < (a - first)) {
-            crosscheck("BCB");
             last = a;
           } else {
-            crosscheck("BCC");
             STACK_POP5(ISAd, first, last, limit, trlink);
           }
         }
@@ -679,41 +614,28 @@ trsort(saidx_t *ISA, saidx_t *SA, saidx_t n, saidx_t depth) {
   trbudget_t budget;
   saidx_t t, skip, unsorted;
 
-  SA_dump(SA, "start of trsort");
-  crosscheck("ISA = %d, n = %d, depth = %d", ISA-SA, n, depth);
 
   trbudget_init(&budget, tr_ilg(n) * 2 / 3, n);
 /*  trbudget_init(&budget, tr_ilg(n) * 3 / 4, n); */
-  crosscheck("(*) -n=%d SA[0]=%d", -n, SA[0]);
   for(ISAd = ISA + depth; -n < *SA; ISAd += ISAd - ISA) {
-    crosscheck("-n=%d SA[0]=%d", -n, SA[0]);
     first = SA;
     skip = 0;
     unsorted = 0;
     // PETER
     do {
       if ((t = *first) < 0) {
-        crosscheck("t < 0");
         first -= t;
         skip += t;
-        crosscheck("first=%d skip=%d", first-SA, skip);
       }
       else {
-        crosscheck("t >= 0");
         if (skip != 0) {
-          crosscheck("SA[first=%d + skip=%d] = skip=%d", first-SA, skip, skip);
           *(first + skip) = skip;
           skip = 0;
         }
         last = SA + ISA[t] + 1;
-        crosscheck("last=%d", last-SA);
         if(1 < (last - first)) {
-          crosscheck("1<(last-first)");
           budget.count = 0;
-          SA_dump(SA, "tr_introsort(A)")
-          crosscheck("call tr_introsort ISA=%d ISAd=%d first=%d last=%d", ISA-SA, ISAd-SA, first-SA, last-SA);
           tr_introsort(ISA, ISAd, SA, first, last, &budget);
-          SA_dump(SA, "tr_introsort(B)")
           if (budget.count != 0) {
             unsorted += budget.count;
           } else {
@@ -726,11 +648,9 @@ trsort(saidx_t *ISA, saidx_t *SA, saidx_t n, saidx_t depth) {
       }
     } while(first < (SA + n));
     if(skip != 0) {
-      crosscheck("skip != 0, trsort-end");
       *(first + skip) = skip;
     }
     if(unsorted == 0) {
-      crosscheck("unsorted == 0, trsort-end");
       break;
     }
   }

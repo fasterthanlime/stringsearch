@@ -130,7 +130,6 @@ pub fn ss_compare(
             0
         }
     };
-    crosscheck!("cmp {}", res);
     res
 }
 
@@ -153,7 +152,6 @@ pub fn ss_insertionsort(
     i = last - 2;
     // for 1
     while first <= i {
-        crosscheck!("first={} leq i={}", first - PA, i - PA);
         t = SA[i];
         j = i + 1;
 
@@ -425,13 +423,6 @@ pub fn ss_mintrosort(
     mut last: SAPtr,
     mut depth: Idx,
 ) {
-    crosscheck!(
-        "mintrosort first={} last={} depth={}",
-        first - PA,
-        last - PA,
-        depth
-    );
-
     let mut stack = Stack::new();
 
     let mut a: SAPtr;
@@ -451,21 +442,8 @@ pub fn ss_mintrosort(
     limit = ss_ilg(last - first);
 
     loop {
-        crosscheck!(
-            "ssize={} limit={} last-first={} thresh={}",
-            stack.size,
-            limit,
-            last - first,
-            SS_INSERTIONSORT_THRESHOLD
-        );
         if ((last - first) <= SS_INSERTIONSORT_THRESHOLD) {
             if (1 < (last - first)) {
-                crosscheck!(
-                    "ss_insertionsort first={} last={} depth={}",
-                    first - PA,
-                    last - PA,
-                    depth
-                );
                 ss_insertionsort(T, SA, PA, first, last, depth);
             }
             if !stack
@@ -474,14 +452,6 @@ pub fn ss_mintrosort(
             {
                 return;
             }
-            crosscheck!(
-                "popped first={} last={} depth={} limit={}",
-                first - PA,
-                last - PA,
-                depth,
-                limit
-            );
-            crosscheck!("post-is continue");
             continue;
         }
 
@@ -493,13 +463,11 @@ pub fn ss_mintrosort(
         }
 
         if (limit == 0) {
-            crosscheck!("limit is 0");
             ss_heapsort(&Td, SA, PA, first, (last - first).into());
         }
         limit -= 1;
 
         if (limit < 0) {
-            crosscheck!("limit is neg");
             a = first + 1;
             v = Td_get!(first);
 
@@ -524,7 +492,6 @@ pub fn ss_mintrosort(
 
             if (a - first) <= (last - a) {
                 if 1 < (a - first) {
-                    crosscheck!("push {} {} {} {}", a - PA, last - PA, depth, -1);
                     stack.push(a, last, depth, -1);
                     last.0 = 1;
                     depth += 1;
@@ -535,13 +502,6 @@ pub fn ss_mintrosort(
                 }
             } else {
                 if 1 < (last - a) {
-                    crosscheck!(
-                        "push {} {} {} {}",
-                        first - PA,
-                        a - PA,
-                        depth + 1,
-                        ss_ilg(a - first)
-                    );
                     stack.push(first, a, depth + 1, ss_ilg(a - first));
                     first = a;
                     limit = -1;
@@ -555,10 +515,8 @@ pub fn ss_mintrosort(
         }
 
         // choose pivot
-        crosscheck!("choose pivot");
         a = ss_pivot(&Td, SA, PA, first, last);
         v = Td_get!(a);
-        crosscheck!("pivot a={}, v={}", a - PA, v);
         SA.swap(first, a);
 
         // partition
@@ -574,7 +532,6 @@ pub fn ss_mintrosort(
                 break;
             }
         }
-        crosscheck!("post-NORA b={}", b - PA);
         a = b;
         if (a < last) && (x < v) {
             // STAN
@@ -592,7 +549,6 @@ pub fn ss_mintrosort(
                     a += 1;
                 }
             }
-            crosscheck!("post-STAN a={} b={}", a - PA, b - PA);
         }
 
         // NATHAN
@@ -607,7 +563,6 @@ pub fn ss_mintrosort(
                 break;
             }
         }
-        crosscheck!("post-NATHAN c={}", c - PA);
         d = c;
         if (b < d) && (x > v) {
             // JACOB
@@ -626,7 +581,6 @@ pub fn ss_mintrosort(
                     d -= 1;
                 }
             }
-            crosscheck!("post-JACOB c={} d={}", c - PA, d - PA);
         }
 
         // RITA
@@ -647,7 +601,6 @@ pub fn ss_mintrosort(
                     a += 1;
                 }
             }
-            crosscheck!("post-ROMEO b={} c={}", b - PA, c - PA);
             // JULIET
             loop {
                 c -= 1;
@@ -663,9 +616,7 @@ pub fn ss_mintrosort(
                     d -= 1;
                 }
             }
-            crosscheck!("post-JULIET b={} c={}", b - PA, c - PA);
         }
-        crosscheck!("post-RITA b={} c={}", b - PA, c - PA);
 
         if a <= d {
             c = b - 1;
@@ -674,15 +625,6 @@ pub fn ss_mintrosort(
             if s > t {
                 s = t;
             }
-            crosscheck!(
-                "pre-JOSHUA, a={} b={} c={} d={} s={} t={}",
-                a - PA,
-                b - PA,
-                c - PA,
-                d - PA,
-                s,
-                t
-            );
 
             // JOSHUA
             e = first;
@@ -693,7 +635,6 @@ pub fn ss_mintrosort(
                 e += 1;
                 f += 1;
             }
-            crosscheck!("post-JOSHUA e={} f={} s={}", e - PA, f - PA, s);
             s = (d - c).0;
             t = (last - d - 1).0;
             if s > t {
@@ -708,57 +649,27 @@ pub fn ss_mintrosort(
                 e += 1;
                 f += 1;
             }
-            crosscheck!("post-BERENICE e={} f={} s={}", e - PA, f - PA, s);
 
-            crosscheck!("pre-a-ass first={} b={} a={}", first - PA, b - PA, a - PA);
             a = first + (b - a);
             c = last - (d - c);
             b = if v <= Td.get(SA[PA + SA[a]] - 1) {
-                crosscheck!("b=a {}", a - PA);
                 a
             } else {
                 let res = ss_partition(SA, PA, a, c, depth);
-                crosscheck!("b=partition {}", res - PA);
-                crosscheck!("was a={} c={} depth={}", a - PA, c - PA, depth);
                 res
             };
 
-            crosscheck!(
-                "bif a={} first={} last={} c={}",
-                a - PA,
-                first - PA,
-                last - PA,
-                c - PA
-            );
             if (a - first) <= (last - c) {
                 if (last - c) <= (c - b) {
-                    crosscheck!(
-                        "A push {} {} {} {}",
-                        b - PA,
-                        c - PA,
-                        depth + 1,
-                        ss_ilg(c - b)
-                    );
                     stack.push(b, c, depth + 1, ss_ilg(c - b));
-                    crosscheck!("B push {} {} {} {}", c - PA, last - PA, depth, limit);
                     stack.push(c, last, depth, limit);
                     last = a;
                 } else if (a - first) <= (c - b) {
-                    crosscheck!("C push {} {} {} {}", c - PA, last - PA, depth, limit);
                     stack.push(c, last, depth, limit);
-                    crosscheck!(
-                        "D push {} {} {} {}",
-                        b - PA,
-                        c - PA,
-                        depth + 1,
-                        ss_ilg(c - b)
-                    );
                     stack.push(b, c, depth + 1, ss_ilg(c - b));
                     last = a;
                 } else {
-                    crosscheck!("E push {} {} {} {}", c - PA, last - PA, depth, limit);
                     stack.push(c, last, depth, limit);
-                    crosscheck!("F push {} {} {} {}", first - PA, a - PA, depth, limit);
                     stack.push(first, a, depth, limit);
                     first = b;
                     last = c;
@@ -767,58 +678,20 @@ pub fn ss_mintrosort(
                 }
             } else {
                 if (a - first) <= (c - b) {
-                    crosscheck!(
-                        "G push {} {} {} {}",
-                        b - PA,
-                        c - PA,
-                        depth + 1,
-                        ss_ilg(c - b)
-                    );
                     stack.push(b, c, depth + 1, ss_ilg(c - b));
-                    crosscheck!("H push {} {} {} {}", first - PA, a - PA, depth, limit);
                     stack.push(first, a, depth, limit);
                     first = c;
                 } else if (last - c) <= (c - b) {
-                    crosscheck!("I push {} {} {} {}", first - PA, a - PA, depth, limit);
                     stack.push(first, a, depth, limit);
-                    crosscheck!(
-                        "J push {} {} {} {}",
-                        b - PA,
-                        c - PA,
-                        depth + 1,
-                        ss_ilg(c - b)
-                    );
                     stack.push(b, c, depth + 1, ss_ilg(c - b));
                     first = c;
                 } else {
-                    crosscheck!("K push {} {} {} {}", first - PA, a - PA, depth, limit);
                     stack.push(first, a, depth, limit);
-                    crosscheck!("L push {} {} {} {}", c - PA, last - PA, depth, limit);
                     stack.push(c, last, depth, limit);
-                    crosscheck!(
-                        "post-L(a) first={} last={} depth={} limit={} b={} c={} d={}",
-                        first - PA,
-                        last - PA,
-                        depth,
-                        limit,
-                        b - PA,
-                        c - PA,
-                        d - PA
-                    );
                     first = b;
                     last = c;
                     depth += 1;
                     limit = ss_ilg(c - b);
-                    crosscheck!(
-                        "post-L(b) first={} last={} depth={} limit={} b={} c={} d={}",
-                        first - PA,
-                        last - PA,
-                        depth,
-                        limit,
-                        b - PA,
-                        c - PA,
-                        d - PA
-                    );
                 }
             }
         } else {
@@ -998,7 +871,6 @@ pub fn sssort(
     let mut limit: Idx;
     let mut i: Idx;
 
-    crosscheck!("start of sssort");
     if lastsuffix {
         first += 1;
     }
@@ -1007,7 +879,6 @@ pub fn sssort(
 
     limit = ss_isqrt(last - first);
     if ((bufsize < SS_BLOCKSIZE) && (bufsize < (last - first)) && (bufsize < limit)) {
-        crosscheck!("pumpkin if");
         if (SS_BLOCKSIZE < limit) {
             limit = SS_BLOCKSIZE;
         }
@@ -1015,10 +886,8 @@ pub fn sssort(
         buf = middle;
         bufsize = limit;
     } else {
-        crosscheck!("pumpkin else");
         middle = last;
         limit = 0;
-        crosscheck!("middle={} limit={}", middle - PA, limit);
     }
 
     // ☕
@@ -1026,14 +895,6 @@ pub fn sssort(
     a = first;
     i = 0;
     while SS_BLOCKSIZE < (middle - a) {
-        crosscheck!(
-            "SS_BLOCKSIZE={} middle={} a={} middle-a={}",
-            SS_BLOCKSIZE,
-            middle - PA,
-            a - PA,
-            middle - a
-        );
-        crosscheck!("call mintrosort, depth={}", depth);
         ss_mintrosort(T, SA, PA, a, a + SS_BLOCKSIZE, depth);
 
         curbufsize = (last - (a + SS_BLOCKSIZE)).into();
@@ -1083,10 +944,7 @@ pub fn sssort(
 
     if lastsuffix {
         // Insert last type B* suffix
-        crosscheck!("last type B*");
         let mut PAi: [Idx; 2] = [SA[PA + SA[first - 1]], n - 2];
-        crosscheck!("PAi[0]={}", PAi[0]);
-        crosscheck!("PAi[1]={}", PAi[1]);
         let SAI = SuffixArray(&mut PAi);
 
         a = first;

@@ -72,9 +72,7 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
         // type A suffix (originally do..while)
         loop {
             c1 = c0;
-            crosscheck!("increment A[{}]", c1);
             A[c1] += 1;
-            crosscheck!("now {}", A[c1]);
 
             // original loop condition
             i -= 1;
@@ -90,9 +88,7 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
 
         if 0 <= i {
             // type B* suffix
-            crosscheck!("increment BSTAR[{}, {}]", c0, c1);
             B.bstar()[(c0, c1)] += 1;
-            crosscheck!("now {}", B.bstar()[(c0, c1)]);
 
             m -= 1;
             SA[m] = i;
@@ -114,9 +110,7 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
                 }
 
                 // body
-                crosscheck!("increment B[{}, {}]", c0, c1);
                 B.b()[(c0, c1)] += 1;
-                crosscheck!("now {}", B.b()[(c0, c1)]);
 
                 // iter
                 i -= 1;
@@ -125,9 +119,6 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
         }
     }
     m = n - m;
-
-    SA_dump(SA, "post-count");
-    BSTAR_dump(&mut B, "post-count");
 
     // Note: A type B* suffix is lexicographically smaller than a type B suffix
     // that beings with the same first two characters.
@@ -140,28 +131,17 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
             // body
             t = i + A[c0];
             A[c0] = i + j; // start point
-            crosscheck!("sp={}", A[c0]);
             i = t + B.b()[(c0, c0)];
 
             for c1 in (c0 + 1)..(ALPHABET_SIZE as Idx) {
                 j += B.bstar()[(c0, c1)];
-                crosscheck!("j+={}", B.bstar()[(c0, c1)]);
                 B.bstar()[(c0, c1)] = j; // end point
-                crosscheck!("ep={}", B.bstar()[(c0, c1)]);
                 i += B.b()[(c0, c1)];
-                crosscheck!("i+={}", B.b()[(c0, c1)]);
             }
         }
     }
 
-    BSTAR_dump(&mut B, "post-sten");
-
-    crosscheck!("before-0<m, m = {}", m);
-
-    crosscheck!("before B* suffix sort, m = {}", m);
     if (0 < m) {
-        SA_dump(SA, "before B* suffix sort");
-
         // Sort the type B* suffixes by their first two characters
         let PAb = SAPtr(n - m);
         let ISAb = SAPtr(m);
@@ -170,20 +150,14 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
             t = SA[PAb + i];
             c0 = T.get(t);
             c1 = T.get(t + 1);
-            crosscheck!("t={} c0={} c1={}", t, c0, c1);
             B.bstar()[(c0, c1)] -= 1;
             SA[B.bstar()[(c0, c1)]] = i;
-            crosscheck!("bstar(c0, c1)={}", B.bstar()[(c0, c1)]);
         }
         t = SA[PAb + m - 1];
         c0 = T.get(t);
         c1 = T.get(t + 1);
-        crosscheck!("(*) t={} c0={} c1={}", t, c0, c1);
         B.bstar()[(c0, c1)] -= 1;
         SA[B.bstar()[(c0, c1)]] = m - 1;
-        crosscheck!("(*) bstar(c0, c1)={}", B.bstar()[(c0, c1)]);
-
-        SA_dump(SA, "before all ssort");
 
         // Sort the type B* substrings using sssort.
         let buf = SAPtr(m);
@@ -200,7 +174,6 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
                 i = B.bstar()[(c0, c1)];
 
                 if (1 < (j - i)) {
-                    crosscheck!("sssort() i={} j={}", i, j);
                     sssort::sssort(
                         T,
                         SA,
@@ -213,7 +186,6 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
                         n,
                         SA[i] == (m - 1),
                     );
-                    SA_dump(SA, "sss-double-loop");
                 }
 
                 // iter (inner)
@@ -224,9 +196,6 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
             // iter (outer)
             c0 -= 1;
         }
-
-        SA_dump(SA, "after all sssort()");
-        BSTAR_dump(&mut B, "post-sss");
 
         // Compute ranks of type B* substrings
         i = m - 1;
@@ -271,15 +240,8 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
             i -= 1;
         }
 
-        SA_dump(SA, "post-rank");
-        BSTAR_dump(&mut B, "post-rank");
-
         // Construct the inverse suffix array of type B* suffixes using trsort.
-        SA_dump(SA, "pre-tr");
         trsort::trsort(ISAb, SA, m, 1);
-
-        SA_dump(SA, "post-tr");
-        BSTAR_dump(&mut B, "post-tr");
 
         // Set the sorted order of type B* suffixes
         {
@@ -288,8 +250,6 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
             j = m;
             c0 = T.get(n - 1);
             while 0 <= i {
-                crosscheck!("so l1 i={} j={} c0={}", i, j, c0);
-
                 // init
                 i -= 1;
                 c1 = c0;
@@ -305,7 +265,6 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
                     }
 
                     // body (empty)
-                    crosscheck!("so l2 i={} j={} c0={} c1={}", i, j, c0, c1);
 
                     // iter
                     i -= 1;
@@ -313,7 +272,6 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
                 }
 
                 if 0 <= i {
-                    crosscheck!("0 leq i");
                     t = i;
 
                     // init
@@ -331,7 +289,6 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
                         }
 
                         // body (empty)
-                        crosscheck!("so l2b i={} j={} c0={} c1={}", i, j, c0, c1);
 
                         // iter
                         i -= 1;
@@ -346,9 +303,6 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
                 }
             }
         } // End: Set the sorted order of type B* suffixes
-
-        SA_dump(SA, "post-so");
-        BSTAR_dump(&mut B, "post-so");
 
         // Calculate the index of start/end point of each bucket
         {
@@ -392,8 +346,6 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
                 c0 -= 1;
             }
         } // End: Calculate the index of start/end point of each bucket
-
-        BSTAR_dump(&mut B, "post-sten2");
     }
 
     SortTypeBstarResult { A, B, m }
@@ -409,22 +361,11 @@ fn construct_SA(T: &Text, SA: &mut SuffixArray, mut A: ABucket, mut B: BMixBucke
     let mut c1: Idx;
     let mut c2: Idx;
 
-    crosscheck!("construct_SA start");
-    crosscheck!("m = {}", m);
-    SA_dump(SA, "construct-begin");
-
-    BSTAR_dump(&mut B, "csa-s");
-
     if 0 < m {
-        A_dump(&A, "in if(0 < m)");
-
         // Construct the sorted order of type B suffixes by using the
         // sorted order of type B* suffixes
         c1 = ALPHABET_SIZE as Idx - 2;
         while 0 <= c1 {
-            crosscheck!("(for) c1 = {}", c1);
-            crosscheck!("BSTAR(c, c1 + 1) = {}", B.bstar()[(c1, c1 + 1)]);
-
             // Scan the suffix array from right to left
             i = SAPtr(B.bstar()[(c1, c1 + 1)]);
             j = SAPtr(A[c1 + 1] - 1);
@@ -432,11 +373,8 @@ fn construct_SA(T: &Text, SA: &mut SuffixArray, mut A: ABucket, mut B: BMixBucke
             c2 = -1;
 
             while i <= j {
-                SA_dump(SA, "rtl-scan");
-                crosscheck!("c1={} i={} j={} SA[j]={}", c1, i, j, SA[j]);
                 s = SA[j];
                 if (0 < s) {
-                    crosscheck!("s={} T[s]={} c1={}", s, T.get(s), c1);
                     assert_eq!(T.get(s), c1);
                     assert!((s + 1) < n);
                     assert!(T[s] <= T[s + 1]);
@@ -508,6 +446,4 @@ fn construct_SA(T: &Text, SA: &mut SuffixArray, mut A: ABucket, mut B: BMixBucke
             i += 1;
         }
     }
-
-    SA_dump(SA, "after construct");
 }

@@ -157,18 +157,14 @@ ss_compare(const sauchar_t *T,
 
   if (U1 < U1n) {
     if (U2 < U2n) {
-      crosscheck("cmp %d", *U1 - *U2);
       return *U1 - *U2;
     } else {
-      crosscheck("cmp 1");
       return 1;
     }
   } else {
     if (U2 < U2n) {
-      crosscheck("cmp -1");
       return -1;
     } else {
-      crosscheck("cmp 0");
       return 0;
     }
   }
@@ -189,7 +185,6 @@ ss_insertionsort(const sauchar_t *T, const saidx_t *PA,
   saint_t r;
 
   for(i = last - 2; first <= i; --i) {
-    crosscheck("first=%d leq i=%d", first-PA, i-PA);
     for(t = *i, j = i + 1; 0 < (r = ss_compare(T, PA + t, PA + *j, depth));) {
       do { *(j - 1) = *j; } while((++j < last) && (*j < 0));
       if(last <= j) { break; }
@@ -332,7 +327,6 @@ void
 ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
               saidx_t *first, saidx_t *last,
               saidx_t depth) {
-  crosscheck("mintrosort first=%d last=%d depth=%d", first-PA, last-PA, depth);
 
 #define STACK_SIZE SS_MISORT_STACKSIZE
   struct { saidx_t *a, *b, c; saint_t d; } stack[STACK_SIZE];
@@ -344,29 +338,22 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
   saint_t v, x = 0;
 
   for(ssize = 0, limit = ss_ilg(last - first);;) {
-    crosscheck("ssize=%d limit=%d last-first=%d thresh=%d", ssize, limit, last-first, SS_INSERTIONSORT_THRESHOLD);
 
     if((last - first) <= SS_INSERTIONSORT_THRESHOLD) {
 #if 1 < SS_INSERTIONSORT_THRESHOLD
       if(1 < (last - first)) {
-        crosscheck("ss_insertionsort first=%d last=%d depth=%d",
-          first - PA, last - PA, depth);
         ss_insertionsort(T, PA, first, last, depth);
       }
 #endif
       STACK_POP(first, last, depth, limit);
-      crosscheck("popped first=%d last=%d depth=%d limit=%d", first-PA, last-PA, depth, limit);
-      crosscheck("post-is continue");
       continue;
     }
 
     Td = T + depth;
     if(limit-- == 0) {
-      crosscheck("limit is 0");
       ss_heapsort(Td, PA, first, last - first);
     }
     if(limit < 0) {
-      crosscheck("limit is neg");
       // DAVE
       for(a = first + 1, v = Td[PA[*first]]; a < last; ++a) {
         if((x = Td[PA[*a]]) != v) {
@@ -380,7 +367,6 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
       }
       if((a - first) <= (last - a)) {
         if(1 < (a - first)) {
-          crosscheck("push %d %d %d %d", a-PA, last-PA, depth, -1);
           STACK_PUSH(a, last, depth, -1);
           last = a, depth += 1, limit = ss_ilg(a - first);
         } else {
@@ -388,7 +374,6 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
         }
       } else {
         if(1 < (last - a)) {
-          crosscheck("push %d %d %d %d", first-PA, a-PA, depth+1, ss_ilg(a-first));
           STACK_PUSH(first, a, depth + 1, ss_ilg(a - first));
           first = a, limit = -1;
         } else {
@@ -399,32 +384,26 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
     }
 
     /* choose pivot */
-    crosscheck("choose pivot");
     a = ss_pivot(Td, PA, first, last);
     v = Td[PA[*a]];
-    crosscheck("pivot a=%d, v=%d", a-PA, v);
     SWAP(*first, *a);
 
     /* partition */
     // NORA
     for(b = first; (++b < last) && ((x = Td[PA[*b]]) == v);) { }
-    crosscheck("post-NORA b=%d",b-PA);
     if(((a = b) < last) && (x < v)) {
       // STAN
       for(; (++b < last) && ((x = Td[PA[*b]]) <= v);) {
         if(x == v) { SWAP(*b, *a); ++a; }
       }
-      crosscheck("post-STAN a=%d b=%d",a-PA,b-PA);
     }
     // NATHAN
     for(c = last; (b < --c) && ((x = Td[PA[*c]]) == v);) { }
-    crosscheck("post-NATHAN c=%d",c-PA);
     if((b < (d = c)) && (x > v)) {
       // JACOB
       for(; (b < --c) && ((x = Td[PA[*c]]) >= v);) {
         if(x == v) { SWAP(*c, *d); --d; }
       }
-      crosscheck("post-JACOB c=%d d=%d",c-PA,d-PA);
     }
     // RITA
     for(; b < c;) {
@@ -433,88 +412,59 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
       for(; (++b < c) && ((x = Td[PA[*b]]) <= v);) {
         if(x == v) { SWAP(*b, *a); ++a; }
       }
-      crosscheck("post-ROMEO b=%d c=%d", b - PA, c - PA);
       // JULIET
       for(; (b < --c) && ((x = Td[PA[*c]]) >= v);) {
         if(x == v) { SWAP(*c, *d); --d; }
       }
-      crosscheck("post-JULIET b=%d c=%d", b - PA, c - PA);
     }
-    crosscheck("post-RITA b=%d c=%d", b - PA, c - PA);
 
     if(a <= d) {
       c = b - 1;
 
       if((s = a - first) > (t = b - a)) { s = t; }
-
-      crosscheck("pre-JOSHUA, a=%d b=%d c=%d d=%d s=%d t=%d",
-        a-PA,b-PA,c-PA,d-PA,s,t);
         
       // JOSHUA
       for(e = first, f = b - s; 0 < s; --s, ++e, ++f) { SWAP(*e, *f); }
-      crosscheck("post-JOSHUA e=%d f=%d s=%d", e-PA, f-PA, s);
       if((s = d - c) > (t = last - d - 1)) { s = t; }
       // BERENICE
       for(e = b, f = last - s; 0 < s; --s, ++e, ++f) { SWAP(*e, *f); }
-      crosscheck("post-BERENICE e=%d f=%d s=%d", e-PA, f-PA, s);
 
-      crosscheck("pre-a-ass first=%d b=%d a=%d", first - PA, b - PA, a - PA);
       a = first + (b - a), c = last - (d - c);
 
       // b = (v <= Td[PA[*a] - 1]) ? a : ss_partition(PA, a, c, depth);
       if (v <= Td[PA[*a] - 1]) {
         b = a;
-        crosscheck("b=a %d", b-PA);
       } else {
         b = ss_partition(PA, a, c, depth);
-        crosscheck("b=partition %d", b-PA);
-        crosscheck("was a=%d c=%d depth=%d", a-PA,c-PA,depth);
       }
 
-      crosscheck("bif a=%d first=%d last=%d c=%d", a-PA, first-PA, last-PA, c-PA);
       if((a - first) <= (last - c)) {
         if((last - c) <= (c - b)) {
-          crosscheck("A push %d %d %d %d", b-PA, c-PA, depth+1, ss_ilg(c-b));
           STACK_PUSH(b, c, depth + 1, ss_ilg(c - b));
-          crosscheck("B push %d %d %d %d", c-PA, last-PA, depth, limit);
           STACK_PUSH(c, last, depth, limit);
           last = a;
         } else if((a - first) <= (c - b)) {
-          crosscheck("C push %d %d %d %d", c-PA, last-PA, depth, limit);
           STACK_PUSH(c, last, depth, limit);
-          crosscheck("D push %d %d %d %d", b-PA, c-PA, depth+1, ss_ilg(c-b));
           STACK_PUSH(b, c, depth + 1, ss_ilg(c - b));
           last = a;
         } else {
-          crosscheck("E push %d %d %d %d", c-PA, last-PA, depth, limit);
           STACK_PUSH(c, last, depth, limit);
-          crosscheck("F push %d %d %d %d", first-PA, a-PA, depth, limit);
           STACK_PUSH(first, a, depth, limit);
           first = b, last = c, depth += 1, limit = ss_ilg(c - b);
         }
       } else {
         if((a - first) <= (c - b)) {
-          crosscheck("G push %d %d %d %d", b-PA, c-PA, depth+1, ss_ilg(c-b));
           STACK_PUSH(b, c, depth + 1, ss_ilg(c - b));
-          crosscheck("H push %d %d %d %d", first-PA, a-PA, depth, limit);
           STACK_PUSH(first, a, depth, limit);
           first = c;
         } else if((last - c) <= (c - b)) {
-          crosscheck("I push %d %d %d %d", first-PA, a-PA, depth, limit);
           STACK_PUSH(first, a, depth, limit);
-          crosscheck("J push %d %d %d %d", b-PA, c-PA, depth+1, ss_ilg(c-b));
           STACK_PUSH(b, c, depth + 1, ss_ilg(c - b));
           first = c;
         } else {
-          crosscheck("K push %d %d %d %d", first-PA, a-PA, depth, limit);
           STACK_PUSH(first, a, depth, limit);
-          crosscheck("L push %d %d %d %d", c-PA, last-PA, depth, limit);
           STACK_PUSH(c, last, depth, limit);
-          crosscheck("post-L(a) first=%d last=%d depth=%d limit=%d b=%d c=%d d=%d",
-            first-PA,last-PA,depth,limit,b-PA,c-PA,d-PA);
           first = b, last = c, depth += 1, limit = ss_ilg(c - b);
-          crosscheck("post-L(b) first=%d last=%d depth=%d limit=%d b=%d c=%d d=%d",
-            first-PA,last-PA,depth,limit,b-PA,c-PA,d-PA);
         }
       }
     } else {
@@ -842,7 +792,6 @@ sssort(const sauchar_t *T, const saidx_t *PA,
   saidx_t j, k, curbufsize, limit;
   saidx_t i;
 
-  crosscheck("start of sssort");
   if(lastsuffix != 0) { ++first; }
 
   // 🎃
@@ -851,19 +800,14 @@ sssort(const sauchar_t *T, const saidx_t *PA,
       (bufsize < (last - first)) &&
       (bufsize < (limit = ss_isqrt(last - first)))) {
     if(SS_BLOCKSIZE < limit) { limit = SS_BLOCKSIZE; }
-    crosscheck("pumpkin if");
     buf = middle = last - limit, bufsize = limit;
   } else {
-    crosscheck("pumpkin else");
     middle = last, limit = 0;
-    crosscheck("middle=%d limit=%d", middle-PA, limit);
   }
 
   // ☕
 
   for(a = first, i = 0; SS_BLOCKSIZE < (middle - a); a += SS_BLOCKSIZE, ++i) {
-    crosscheck("SS_BLOCKSIZE=%d middle=%d a=%d middle-a=%d", SS_BLOCKSIZE, middle-PA, a-PA, middle-a);
-    crosscheck("call mintrosort, depth=%d", depth);
     ss_mintrosort(T, PA, a, a + SS_BLOCKSIZE, depth);
     curbufsize = last - (a + SS_BLOCKSIZE);
     curbuf = a + SS_BLOCKSIZE;
@@ -886,10 +830,7 @@ sssort(const sauchar_t *T, const saidx_t *PA,
 
   if(lastsuffix != 0) {
     /* Insert last type B* suffix. */
-    crosscheck("last type B*");
     saidx_t PAi[2]; PAi[0] = PA[*(first - 1)], PAi[1] = n - 2;
-    crosscheck("PAi[0]=%d", PAi[0]);
-    crosscheck("PAi[1]=%d", PAi[1]);
     // CELINE
     for(a = first, i = *(first - 1);
         (a < last) && ((*a < 0) || (0 < ss_compare(T, &(PAi[0]), PA + *a, depth)));

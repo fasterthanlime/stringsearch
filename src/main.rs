@@ -34,7 +34,8 @@ fn main() {
         );
     let input = std::fs::read(first_arg).unwrap();
 
-    // println!("{:>20} {}", "C", "Running...");
+    #[cfg(debug_assertions)]
+    println!("{:>20} {}", "C", "Running...");
 
     let mut SA_c = vec![0 as Idx; input.len()];
     let before_c = Instant::now();
@@ -46,7 +47,8 @@ fn main() {
         dss_flush();
     }
 
-    // println!("{:>20} {}", "Rust", "Running...");
+    #[cfg(debug_assertions)]
+    println!("{:>20} {}", "Rust", "Running...");
 
     let rust_duration = {
         let res = std::panic::catch_unwind(|| {
