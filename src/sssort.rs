@@ -427,15 +427,17 @@ pub fn ss_mintrosort(
 
     let mut a: SAPtr;
     let mut b: SAPtr;
-    let mut c: Idx;
-    let mut d: Idx;
-    let mut e: Idx;
-    let mut f: Idx;
+    let mut c: SAPtr;
+    let mut d: SAPtr;
+    let mut e: SAPtr;
+    let mut f: SAPtr;
+
     let mut s: Idx;
     let mut t: Idx;
+
     let mut limit: Idx;
     let mut v: Idx;
-    let mut x: Idx;
+    let mut x: Idx = 0;
 
     limit = ss_ilg(last - first);
 
@@ -468,6 +470,11 @@ pub fn ss_mintrosort(
         }
 
         let Td = Text(&T.0[(depth as usize)..]);
+        macro_rules! Td_get {
+            ($x: expr) => {
+                Td.get(SA[PA + SA[$x]])
+            };
+        }
 
         if (limit == 0) {
             crosscheck!("limit is 0");
@@ -478,11 +485,11 @@ pub fn ss_mintrosort(
         if (limit < 0) {
             crosscheck!("limit is neg");
             a = first + 1;
-            v = Td[SA[PA + SA[first]]] as Idx;
+            v = Td_get!(first);
 
-            // for(a = first + 1, v = Td[PA[*first]]; a < last; ++a) { .. }
+            // DAVE
             while a < last {
-                x = Td[SA[PA + SA[a]]] as Idx;
+                x = Td_get!(a);
                 if (x != v) {
                     if (1 < (a - first)) {
                         break;
@@ -495,7 +502,7 @@ pub fn ss_mintrosort(
                 a += 1;
             }
 
-            if (Td[SA[PA + SA[first]]] as Idx) < v {
+            if Td_get!(first) < v {
                 first = ss_partition(SA, PA, first, a, depth);
             }
 
@@ -526,8 +533,191 @@ pub fn ss_mintrosort(
         // choose pivot
         crosscheck!("choose pivot");
         a = ss_pivot(&Td, SA, PA, first, last);
+        v = Td_get!(a);
+        mem::swap(&mut first, &mut a);
 
-        unimplemented!();
+        // partition
+        // NORA
+        b = first;
+        loop {
+            b += 1;
+            if !(b < last) {
+                break;
+            }
+            x = Td_get!(b);
+            if !(x == v) {
+                break;
+            }
+        }
+        a = b;
+        if (a < last) && (x < v) {
+            // STAN
+            loop {
+                b += 1;
+                if !(b < last) {
+                    break;
+                }
+                x = Td_get!(b);
+                if !(x <= v) {
+                    break;
+                }
+                if x == v {
+                    mem::swap(&mut b, &mut a);
+                    a += 1;
+                }
+            }
+        }
+
+        // NATHAN
+        c = last;
+        loop {
+            c -= 1;
+            if !(b < c) {
+                break;
+            }
+            x = Td_get!(c);
+            if !(x == v) {
+                break;
+            }
+        }
+        d = c;
+        if (b < d) && (x > v) {
+            // JACOB
+            loop {
+                c -= 1;
+                if !(b < c) {
+                    break;
+                }
+                x = Td_get!(c);
+                if !(x >= v) {
+                    break;
+                }
+
+                if x == v {
+                    mem::swap(&mut c, &mut d);
+                    d -= 1;
+                }
+            }
+        }
+
+        // RITA
+        while b < c {
+            mem::swap(&mut b, &mut c);
+            // ROMEO
+            loop {
+                b += 1;
+                if !(b < c) {
+                    break;
+                }
+                x = Td_get!(b);
+                if !(x <= v) {
+                    break;
+                }
+                if x == v {
+                    mem::swap(&mut b, &mut a);
+                    a += 1;
+                }
+            }
+            // JULIET
+            loop {
+                c -= 1;
+                if !(b < c) {
+                    break;
+                }
+                x = Td_get!(c);
+                if !(x >= v) {
+                    break;
+                }
+                if x == v {
+                    mem::swap(&mut c, &mut d);
+                    d -= 1;
+                }
+            }
+        }
+
+        if a <= d {
+            c = b - 1;
+            s = (a - first).0;
+            t = (b - a).0;
+            if s > t {
+                s = t;
+            }
+
+            // JOSHUA
+            e = first;
+            f = b - s;
+            while 0 < s {
+                mem::swap(&mut e, &mut f);
+                s -= 1;
+                e += 1;
+                f += 1;
+            }
+            s = (d - c).0;
+            t = (last - d - 1).0;
+            if s > t {
+                s = t;
+            }
+            // BERENICE
+            e = b;
+            f = last - s;
+            while 0 < s {
+                mem::swap(&mut e, &mut f);
+                s -= 1;
+                e += 1;
+                f += 1;
+            }
+
+            a = first + (b - a);
+            c = last - (d - c);
+            b = if v <= Td.get(SA[PA + SA[a] - 1]) {
+                a
+            } else {
+                ss_partition(SA, PA, a, c, depth)
+            };
+
+            if (a - first) <= (last - c) {
+                if (last - c) <= (c - b) {
+                    stack.push(b, c, depth + 1, ss_ilg(c - b));
+                    stack.push(c, last, depth, limit);
+                    last = a;
+                } else if (a - first) <= (c - b) {
+                    stack.push(c, last, depth, limit);
+                    stack.push(b, c, depth + 1, ss_ilg(c - b));
+                    last = a;
+                } else {
+                    stack.push(c, last, depth, limit);
+                    stack.push(first, a, depth, limit);
+                    first = b;
+                    last = c;
+                    depth += 1;
+                    limit = ss_ilg(c - b);
+                }
+            } else {
+                if (a - first) <= (c - b) {
+                    stack.push(b, c, depth + 1, ss_ilg(c - b));
+                    stack.push(first, a, depth, limit);
+                    first = c;
+                } else if (last - c) <= (c - b) {
+                    stack.push(first, a, depth, limit);
+                    stack.push(b, c, depth + 1, ss_ilg(c - b));
+                    first = c;
+                } else {
+                    stack.push(first, a, depth, limit);
+                    stack.push(c, last, depth, limit);
+                    first = b;
+                    last = c;
+                    depth += 1;
+                    limit = ss_ilg(c - b);
+                }
+            }
+        } else {
+            limit += 1;
+            if Td.get(SA[PA + SA[first] - 1]) < v {
+                first = ss_partition(SA, PA, first, last, depth);
+                limit = ss_ilg(last - first);
+            }
+            depth += 1;
+        }
     }
 }
 

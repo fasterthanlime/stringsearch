@@ -366,6 +366,7 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
     }
     if(limit < 0) {
       crosscheck("limit is neg");
+      // DAVE
       for(a = first + 1, v = Td[PA[*first]]; a < last; ++a) {
         if((x = Td[PA[*a]]) != v) {
           if(1 < (a - first)) { break; }
@@ -401,23 +402,30 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
     SWAP(*first, *a);
 
     /* partition */
+    // NORA
     for(b = first; (++b < last) && ((x = Td[PA[*b]]) == v);) { }
     if(((a = b) < last) && (x < v)) {
+      // STAN
       for(; (++b < last) && ((x = Td[PA[*b]]) <= v);) {
         if(x == v) { SWAP(*b, *a); ++a; }
       }
     }
+    // NATHAN
     for(c = last; (b < --c) && ((x = Td[PA[*c]]) == v);) { }
     if((b < (d = c)) && (x > v)) {
+      // JACOB
       for(; (b < --c) && ((x = Td[PA[*c]]) >= v);) {
         if(x == v) { SWAP(*c, *d); --d; }
       }
     }
+    // RITA
     for(; b < c;) {
       SWAP(*b, *c);
+      // ROMEO
       for(; (++b < c) && ((x = Td[PA[*b]]) <= v);) {
         if(x == v) { SWAP(*b, *a); ++a; }
       }
+      // JULIET
       for(; (b < --c) && ((x = Td[PA[*c]]) >= v);) {
         if(x == v) { SWAP(*c, *d); --d; }
       }
@@ -427,8 +435,10 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
       c = b - 1;
 
       if((s = a - first) > (t = b - a)) { s = t; }
+      // JOSHUA
       for(e = first, f = b - s; 0 < s; --s, ++e, ++f) { SWAP(*e, *f); }
       if((s = d - c) > (t = last - d - 1)) { s = t; }
+      // BERENICE
       for(e = b, f = last - s; 0 < s; --s, ++e, ++f) { SWAP(*e, *f); }
 
       a = first + (b - a), c = last - (d - c);
