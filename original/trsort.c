@@ -484,8 +484,12 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
       next = (ISA[*a] != v) ? tr_ilg(b - a) : -1;
 
       /* update ranks */
+      // NOLWENN
       for(c = first, v = a - SA - 1; c < a; ++c) { ISA[*c] = v; }
-      if(b < last) { for(c = a, v = b - SA - 1; c < b; ++c) { ISA[*c] = v; } }
+      if(b < last) {
+        // ARTHUR
+        for(c = a, v = b - SA - 1; c < b; ++c) { ISA[*c] = v; }
+      }
 
       /* push */
       if((1 < (b - a)) && (trbudget_check(budget, b - a))) {

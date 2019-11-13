@@ -394,7 +394,8 @@ impl Budget {
         }
     }
 
-    pub fn check(&mut self, size: Idx) -> bool {
+    pub fn check<S: Into<Idx>>(&mut self, size: S) -> bool {
+        let size = size.into();
         if (size <= self.remain) {
             self.remain -= size;
             return true;
@@ -705,7 +706,7 @@ pub fn tr_introsort(
     budget: &mut Budget,
 ) {
     let mut a: SAPtr;
-    let mut b: SAPtr;
+    let mut b: SAPtr = SAPtr(0);
     let mut c: SAPtr;
     let mut t: Idx;
     let mut v: Idx;
@@ -862,12 +863,163 @@ pub fn tr_introsort(
             limit = -3;
         }
 
-        // chose pivot
+        // choose pivot
         a = tr_pivot(SA, ISAd, first, last);
         SA.swap(first, a);
         v = SA[ISAd + SA[first]];
 
-        unimplemented!();
+        // partition
+        tr_partition(SA, ISAd, first, first + 1, last, &mut a, &mut b, v);
+        if (last - first) != (b - 1) {
+            next = if SA[ISA + SA[a]] != v {
+                tr_ilg(b - a)
+            } else {
+                -1
+            };
+
+            // update ranks
+            // NOLWENN
+            c = first;
+            v = (a - 1).0;
+            while c < a {
+                {
+                    let SAc = SA[c];
+                    SA[ISA + SAc] = v;
+                }
+                c += 1;
+            }
+            if b < last {
+                // ARTHUR
+                c = a;
+                v = (b - 1).0;
+                while c < b {
+                    {
+                        let SAc = SA[c];
+                        SA[ISA + SAc] = v;
+                    }
+                    c += 1;
+                }
+            }
+
+            // push
+            if (1 < (b - a)) && budget.check(b - a) {
+                if (a - first) <= (last - b) {
+                    if (last - b) <= (b - a) {
+                        if 1 < (a - first) {
+                            stack.push(ISAd + incr, a, b, next, trlink);
+                            stack.push(ISAd, b, last, limit, trlink);
+                            last = a;
+                        } else if 1 < (last - b) {
+                            stack.push(ISAd + incr, a, b, next, trlink);
+                            first = b;
+                        } else {
+                            ISAd += incr;
+                            first = a;
+                            last = b;
+                            limit = next;
+                        }
+                    } else if (a - first) <= (b - a) {
+                        if 1 < (a - first) {
+                            stack.push(ISAd, b, last, limit, trlink);
+                            stack.push(ISAd + incr, a, b, next, trlink);
+                            last = a;
+                        } else {
+                            stack.push(ISAd, b, last, limit, trlink);
+                            ISAd += incr;
+                            first = a;
+                            last = b;
+                            limit = next;
+                        }
+                    } else {
+                        stack.push(ISAd, b, last, limit, trlink);
+                        stack.push(ISAd, first, a, limit, trlink);
+                        ISAd += incr;
+                        first = a;
+                        last = b;
+                        limit = next;
+                    }
+                } else {
+                    if (a - first) <= (b - a) {
+                        if 1 < (last - b) {
+                            stack.push(ISAd + incr, a, b, next, trlink);
+                            stack.push(ISAd, first, a, limit, trlink);
+                            first = b;
+                        } else if 1 < (a - first) {
+                            stack.push(ISAd + incr, a, b, next, trlink);
+                            last = a;
+                        } else {
+                            ISAd += incr;
+                            first = a;
+                            last = b;
+                            limit = next;
+                        }
+                    } else if (last - b) <= (b - a) {
+                        if 1 < (last - b) {
+                            stack.push(ISAd, first, a, limit, trlink);
+                            stack.push(ISAd + incr, a, b, next, trlink);
+                            first = b;
+                        } else {
+                            stack.push(ISAd, first, a, limit, trlink);
+                            ISAd += incr;
+                            first = a;
+                            last = b;
+                            limit = next;
+                        }
+                    } else {
+                        stack.push(ISAd, first, a, limit, trlink);
+                        stack.push(ISAd, b, last, limit, trlink);
+                    }
+                }
+            } else {
+                if (1 < (b - a)) && (0 <= trlink) {
+                    stack.items[trlink as usize].d = -1;
+                }
+                if (a - first) <= (last - b) {
+                    if 1 < (a - first) {
+                        stack.push(ISAd, b, last, limit, trlink);
+                        last = a;
+                    } else if 1 < (last - b) {
+                        first = b;
+                    } else {
+                        if !stack
+                            .pop(&mut ISAd, &mut first, &mut last, &mut limit, &mut trlink)
+                            .is_ok()
+                        {
+                            return;
+                        }
+                    }
+                } else {
+                    if 1 < (last - b) {
+                        stack.push(ISAd, first, a, limit, trlink);
+                        first = b;
+                    } else if 1 < (a - first) {
+                        last = a;
+                    } else {
+                        if !stack
+                            .pop(&mut ISAd, &mut first, &mut last, &mut limit, &mut trlink)
+                            .is_ok()
+                        {
+                            return;
+                        }
+                    }
+                }
+            }
+        } else {
+            if budget.check(last - first) {
+                limit = tr_ilg(last - first);
+                ISAd += incr;
+            } else {
+                if 0 <= trlink {
+                    stack.items[trlink as usize].d = -1;
+                }
+                if !stack
+                    .pop(&mut ISAd, &mut first, &mut last, &mut limit, &mut trlink)
+                    .is_ok()
+                {
+                    return;
+                }
+            }
+        }
     } // end PASCAL
 }
 
