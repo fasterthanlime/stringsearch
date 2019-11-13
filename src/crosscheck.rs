@@ -38,7 +38,7 @@ pub fn SA_dump(SA: &SuffixArray, label: &str) {
         writeln!(f, ":: {}", label).unwrap();
         // crosscheck!("SA = {:?}", SA.0);
         for i in 0..SA.0.len() {
-            write!(f, "{}={} ", i, SA.0[i]).unwrap();
+            write!(f, "{} ", SA.0[i]).unwrap();
             if (i + 1) % 25 == 0 {
                 writeln!(f, "").unwrap();
             }

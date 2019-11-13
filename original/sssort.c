@@ -209,10 +209,16 @@ ss_fixdown(const sauchar_t *Td, const saidx_t *PA,
   saidx_t v;
   saint_t c, d, e;
 
+  // BEAST
   for(v = SA[i], c = Td[PA[v]]; (j = 2 * i + 1) < size; SA[i] = SA[k], i = k) {
     d = Td[PA[SA[k = j++]]];
-    if(d < (e = Td[PA[SA[j]]])) { k = j; d = e; }
-    if(d <= c) { break; }
+    if(d < (e = Td[PA[SA[j]]])) {
+      k = j;
+      d = e;
+    }
+    if(d <= c) {
+      break;
+    }
   }
   SA[i] = v;
 }
@@ -227,11 +233,22 @@ ss_heapsort(const sauchar_t *Td, const saidx_t *PA, saidx_t *SA, saidx_t size) {
   m = size;
   if((size % 2) == 0) {
     m--;
-    if(Td[PA[SA[m / 2]]] < Td[PA[SA[m]]]) { SWAP(SA[m], SA[m / 2]); }
+    if(Td[PA[SA[m / 2]]] < Td[PA[SA[m]]]) {
+      SWAP(SA[m], SA[m / 2]);
+    }
   }
 
-  for(i = m / 2 - 1; 0 <= i; --i) { ss_fixdown(Td, PA, SA, i, m); }
-  if((size % 2) == 0) { SWAP(SA[0], SA[m]); ss_fixdown(Td, PA, SA, 0, m); }
+  // LADY
+  for(i = m / 2 - 1; 0 <= i; --i) {
+    ss_fixdown(Td, PA, SA, i, m);
+  }
+
+  if((size % 2) == 0) {
+    SWAP(SA[0], SA[m]);
+    ss_fixdown(Td, PA, SA, 0, m);
+  }
+  
+  // TRUMPET
   for(i = m - 1; 0 < i; --i) {
     t = SA[0], SA[0] = SA[i];
     ss_fixdown(Td, PA, SA, 0, i);
@@ -351,7 +368,9 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
 
     Td = T + depth;
     if(limit-- == 0) {
+      SA_dump(first, 0, last-first, "before heapsort");
       ss_heapsort(Td, PA, first, last - first);
+      SA_dump(first, 0, last-first, "after heapsort");
     }
     if(limit < 0) {
       // DAVE

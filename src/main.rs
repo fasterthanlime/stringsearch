@@ -62,7 +62,7 @@ fn main() {
 
             divsufsort::divsufsort(&input[..], &mut SA_rust[..]);
             let rust_duration = before_rust.elapsed();
-            assert_eq!(SA_c, SA_rust);
+            assert!(SA_c == SA_rust, "suffix arrays should be equal");
             println!(
                 "{:>20} c {:?} rust {:?}",
                 "Durations", c_duration, rust_duration

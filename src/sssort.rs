@@ -195,7 +195,15 @@ pub fn ss_insertionsort(
 //------------------------------------------------------------------------------
 
 // TODO: document?
-pub fn ss_fixdown(Td: &Text, PA: SAPtr, SA: &mut SuffixArray, mut i: Idx, size: Idx) {
+pub fn ss_fixdown(
+    T: &Text,
+    Td: Idx,
+    PA: SAPtr,
+    SA_top: &mut SuffixArray,
+    first: SAPtr,
+    mut i: Idx,
+    size: Idx,
+) {
     let mut j: Idx;
     let mut v: Idx;
     let mut c: Idx;
@@ -203,9 +211,26 @@ pub fn ss_fixdown(Td: &Text, PA: SAPtr, SA: &mut SuffixArray, mut i: Idx, size: 
     let mut e: Idx;
     let mut k: Idx;
 
-    v = SA[i];
-    c = Td[SA[PA + v]] as Idx;
+    macro_rules! Td {
+        ($x: expr) => {
+            T.get(Td + $x)
+        };
+    }
+    macro_rules! PA {
+        ($x: expr) => {
+            SA_top[PA + $x]
+        };
+    }
+    macro_rules! SA {
+        ($x: expr) => {
+            SA_top[first + $x]
+        };
+    }
 
+    v = SA!(i);
+    c = Td!(PA!(v));
+
+    // BEAST
     loop {
         // cond
         j = 2 * i + 1;
@@ -217,8 +242,8 @@ pub fn ss_fixdown(Td: &Text, PA: SAPtr, SA: &mut SuffixArray, mut i: Idx, size: 
         k = j;
         j += 1;
 
-        d = Td[SA[PA + SA[k]]] as Idx;
-        e = Td[SA[PA + SA[j]]] as Idx;
+        d = Td!(PA!(SA!(k)));
+        e = Td!(PA!(SA!(j)));
         if (d < e) {
             k = j;
             d = e;
@@ -228,15 +253,70 @@ pub fn ss_fixdown(Td: &Text, PA: SAPtr, SA: &mut SuffixArray, mut i: Idx, size: 
         }
 
         // iter
-        SA[i] = SA[k];
+        SA!(i) = SA!(k);
         i = k;
     }
-    SA[i] = v;
+    SA!(i) = v;
 }
 
 /// Simple top-down heapsort.
-pub fn ss_heapsort(T: &Text, Td: Idx, SA: &SuffixArray, PA: SAPtr, first: SAPtr, size: Idx) {
-    unimplemented!()
+pub fn ss_heapsort(
+    T: &Text,
+    Td: Idx,
+    SA_top: &mut SuffixArray,
+    PA: SAPtr,
+    first: SAPtr,
+    size: Idx,
+) {
+    let mut i: Idx;
+    let mut m = size;
+    let mut t: Idx;
+
+    macro_rules! Td {
+        ($x: expr) => {
+            T[Td + $x]
+        };
+    };
+    macro_rules! PA {
+        ($x: expr) => {
+            SA_top[PA + $x]
+        };
+    };
+    macro_rules! SA {
+        ($x: expr) => {
+            SA_top[first + $x]
+        };
+    }
+    macro_rules! SA_swap {
+        ($x: expr, $y: expr) => {
+            SA_top.swap($x + first, $y + first)
+        };
+    }
+
+    if (size % 2) == 0 {
+        m -= 1;
+        if Td!(PA!(SA!(m / 2))) < Td!(PA!(SA!(m))) {
+            SA_swap!(SAPtr(m), SAPtr(m / 2));
+        }
+    }
+
+    // LADY
+    for i in (0..(m / 2)).rev() {
+        ss_fixdown(T, Td, PA, SA_top, first, i, m);
+    }
+
+    if (size % 2) == 0 {
+        SA_swap!(SAPtr(0), SAPtr(m));
+        ss_fixdown(T, Td, PA, SA_top, first, 0, m);
+    }
+
+    // TRUMPET
+    for i in (1..m).rev() {
+        t = SA!(0);
+        SA!(0) = SA!(i);
+        ss_fixdown(T, Td, PA, SA_top, first, 0, i);
+        SA!(i) = t;
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -487,7 +567,9 @@ pub fn ss_mintrosort(
         }
 
         if (limit == 0) {
+            SA_dump(&SA.range(first..last), "before heapsort");
             ss_heapsort(T, Td, SA, PA, first, (last - first).into());
+            SA_dump(&SA.range(first..last), "after heapsort");
         }
         limit -= 1;
 
