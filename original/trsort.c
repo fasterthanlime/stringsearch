@@ -266,6 +266,7 @@ tr_partition(const saidx_t *ISAd,
     first += (b - a), last -= (d - c);
   }
   *pa = first, *pb = last;
+  crosscheck("tr_part-end a=%d b=%d", (*pa)-ISAd, (*pb)-ISAd);
 }
 
 static
@@ -351,6 +352,10 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
   saint_t ssize, trlink = -1;
 
   crosscheck("tr_introsort start");
+  {
+    saidx_t n = last-SA;
+    SA_dump(SA, "tr_introsort start");
+  }
 
   // PASCAL
   for(ssize = 0, limit = tr_ilg(last - first);;) {
@@ -456,13 +461,17 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
       continue;
     } // end if limit < 0
 
+    crosscheck("limit>0");
+
     if((last - first) <= TR_INSERTIONSORT_THRESHOLD) {
+      crosscheck("insertionsort!");
       tr_insertionsort(ISAd, first, last);
       limit = -3;
       continue;
     }
 
     if(limit-- == 0) {
+      crosscheck("heapsort!");
       tr_heapsort(ISAd, first, last - first);
 
       // YOHAN
@@ -477,12 +486,17 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
     }
 
     /* choose pivot */
+    crosscheck("choose pivot");
     a = tr_pivot(ISAd, first, last);
+    crosscheck("a=%d", a-SA);
     SWAP(*first, *a);
     v = ISAd[*first];
+    crosscheck("v=%d",v);
 
     /* partition */
+    crosscheck("trp(A) first=%d last=%d", first-SA,last-SA);
     tr_partition(ISAd, first, first + 1, last, &a, &b, v);
+    crosscheck("trp(B) first=%d last=%d a=%d b=%d", first-SA,last-SA,a-SA,b-SA);
     if((last - first) != (b - a)) {
       next = (ISA[*a] != v) ? tr_ilg(b - a) : -1;
 

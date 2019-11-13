@@ -436,6 +436,12 @@ pub fn tr_partition(
     let mut s: Idx;
     let mut x: Idx = 0;
 
+    macro_rules! get {
+        ($x: expr) => {
+            SA[ISAd + SA[$x]]
+        };
+    }
+
     // JOSEPH
     b = middle - 1;
     loop {
@@ -444,13 +450,10 @@ pub fn tr_partition(
         if !(b < last) {
             break;
         }
-        x = SA[ISAd + SA[b]];
+        x = get!(b);
         if !(x == v) {
             break;
         }
-
-        // body: empty
-        // iter: empty
     }
     a = b;
     if (a < last) && (x < v) {
@@ -460,7 +463,7 @@ pub fn tr_partition(
             if !(b < last) {
                 break;
             }
-            x = SA[ISAd + SA[b]];
+            x = get!(b);
             if !(x <= v) {
                 break;
             }
@@ -470,8 +473,6 @@ pub fn tr_partition(
                 SA.swap(b, a);
                 a += 1;
             }
-
-            // iter: empty
         }
     }
 
@@ -482,7 +483,7 @@ pub fn tr_partition(
         if !(b < c) {
             break;
         }
-        x = SA[ISAd + SA[c]];
+        x = get!(c);
         if !(x == v) {
             break;
         }
@@ -495,8 +496,8 @@ pub fn tr_partition(
             if !(b < c) {
                 break;
             }
-            x = SA[ISAd + SA[c]];
-            if !(c >= v) {
+            x = get!(c);
+            if !(x >= v) {
                 break;
             }
             if x == v {
@@ -515,7 +516,7 @@ pub fn tr_partition(
             if !(b < c) {
                 break;
             }
-            x = SA[ISAd + SA[b]];
+            x = get!(b);
             if !(x <= v) {
                 break;
             }
@@ -531,7 +532,7 @@ pub fn tr_partition(
             if !(b < c) {
                 break;
             }
-            x = SA[ISAd + SA[c]];
+            x = get!(c);
             if !(x >= v) {
                 break;
             }
@@ -580,6 +581,7 @@ pub fn tr_partition(
     }
     pa.0 = first.0;
     pb.0 = last.0;
+    crosscheck!("tr_part-end a={} b={}", (*pa) - ISAd, (*pb) - ISAd);
 }
 
 /// Tandem repeat copy
@@ -718,6 +720,7 @@ pub fn tr_introsort(
 
     let mut stack = Stack::new();
     crosscheck!("tr_introsort start");
+    SA_dump(&SA.range_to(..last), "tr_introsort start");
 
     let mut limit = tr_ilg(last - first);
     // PASCAL
@@ -833,7 +836,10 @@ pub fn tr_introsort(
             continue;
         } // end if limit < 0
 
+        crosscheck!("limit>0");
+
         if (last - first) <= TR_INSERTIONSORT_THRESHOLD {
+            crosscheck!("insertionsort!");
             tr_insertionsort(SA, ISAd, first, last);
             limit = -3;
             continue;
@@ -842,6 +848,7 @@ pub fn tr_introsort(
         let old_limit = limit;
         limit -= 1;
         if (old_limit == 0) {
+            crosscheck!("heapsort");
             let mut SAfirst = SA.range_from(first..);
             tr_heapsort(ISAd, &mut SAfirst, (last - first).0);
 
@@ -851,7 +858,7 @@ pub fn tr_introsort(
                 // VINCENT
                 x = SA[ISAd + SA[a]];
                 b = a - 1;
-                while (first <= b) && SA[ISAd + SA[b]] == x {
+                while (first <= b) && (SA[ISAd + SA[b]]) == x {
                     SA[b] = !SA[b];
 
                     // iter (VINCENT)
@@ -862,15 +869,21 @@ pub fn tr_introsort(
                 a = b;
             }
             limit = -3;
+            continue;
         }
 
         // choose pivot
+        crosscheck!("choose pivot");
         a = tr_pivot(SA, ISAd, first, last);
+        crosscheck!("a={}", a);
         SA.swap(first, a);
         v = SA[ISAd + SA[first]];
+        crosscheck!("v={}", v);
 
         // partition
+        crosscheck!("trp(A) first={} last={}", first, last);
         tr_partition(SA, ISAd, first, first + 1, last, &mut a, &mut b, v);
+        crosscheck!("trp(B) first={} last={} a={} b={}", first, last, a, b);
         if (last - first) != (b - 1) {
             next = if SA[ISA + SA[a]] != v {
                 tr_ilg(b - a)
