@@ -17,10 +17,10 @@ fn main() {
     };
 
     build
-        .file("original/divsufsort.c")
-        .file("original/sssort.c")
-        .file("original/trsort.c")
-        .file("original/utils.c");
+        .file("c-sources/divsufsort.c")
+        .file("c-sources/sssort.c")
+        .file("c-sources/trsort.c")
+        .file("c-sources/utils.c");
 
     build.compile("libdivsufsort.a");
 }

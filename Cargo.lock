@@ -72,6 +72,13 @@ version = "1.0.47"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "cdivsufsort"
+version = "0.1.0"
+dependencies = [
+ "cc 1.0.47 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "cfg-if"
 version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -159,9 +166,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "divsufsort"
 version = "0.1.0"
 dependencies = [
- "better-panic 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "cc 1.0.47 (registry+https://github.com/rust-lang/crates.io-index)",
  "once_cell 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "divsuftest"
+version = "0.1.0"
+dependencies = [
+ "better-panic 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cdivsufsort 0.1.0",
+ "divsufsort 0.1.0",
  "suffix_array 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 

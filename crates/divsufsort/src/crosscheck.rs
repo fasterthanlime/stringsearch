@@ -1,18 +1,23 @@
-use crate::common::{ABucket, BMixBucket, Idx, SuffixArray, ALPHABET_SIZE};
+#[cfg(feature = "crosscheck")]
 use once_cell::sync::Lazy;
+
+use crate::common::{ABucket, BMixBucket, Idx, SuffixArray, ALPHABET_SIZE};
 use std::{
     fs::File,
     io::{BufWriter, Write},
     sync::Mutex,
 };
 
-pub static CROSSCHECK_FILE: Lazy<Mutex<BufWriter<File>>> =
-    Lazy::new(|| Mutex::new(BufWriter::new(File::create("crosscheck/rust").unwrap())));
+#[cfg(feature = "crosscheck")]
+pub static CROSSCHECK_FILE: Lazy<Mutex<BufWriter<File>>> = Lazy::new(|| {
+    std::fs::create_dir_all("crosscheck").unwrap();
+    Mutex::new(BufWriter::new(File::create("crosscheck/rust").unwrap()))
+});
 
 #[macro_export]
 macro_rules! crosscheck {
     ($($arg: expr),*) => {
-        #[cfg(debug_assertions)]
+        #[cfg(feature = "crosscheck")]
         {
             use std::io::Write;
             let mut f = crate::crosscheck::CROSSCHECK_FILE.lock().unwrap();
@@ -22,7 +27,7 @@ macro_rules! crosscheck {
 }
 
 pub fn flush() {
-    #[cfg(debug_assertions)]
+    #[cfg(feature = "crosscheck")]
     {
         let mut f = crate::crosscheck::CROSSCHECK_FILE.lock().unwrap();
         f.flush().unwrap();
@@ -30,25 +35,24 @@ pub fn flush() {
 }
 
 pub fn SA_dump(SA: &SuffixArray, label: &str) {
-    #[cfg(debug_assertions)]
+    #[cfg(feature = "crosscheck")]
     {
         use std::io::Write;
         let mut f = crate::crosscheck::CROSSCHECK_FILE.lock().unwrap();
 
         writeln!(f, ":: {}", label).unwrap();
-        // crosscheck!("SA = {:?}", SA.0);
         for i in 0..SA.0.len() {
             write!(f, "{} ", SA.0[i]).unwrap();
             if (i + 1) % 25 == 0 {
-                writeln!(f, "").unwrap();
+                writeln!(f).unwrap();
             }
         }
-        writeln!(f, "").unwrap();
+        writeln!(f).unwrap();
     }
 }
 
 pub fn A_dump(A: &ABucket, label: &str) {
-    #[cfg(debug_assertions)]
+    #[cfg(feature = "crosscheck")]
     {
         crosscheck!(":: {}", label);
         crosscheck!("A = {:?}", A.0);
@@ -56,7 +60,7 @@ pub fn A_dump(A: &ABucket, label: &str) {
 }
 
 pub fn BSTAR_dump(B: &mut BMixBucket, label: &str) {
-    #[cfg(debug_assertions)]
+    #[cfg(feature = "crosscheck")]
     {
         use std::io::Write;
         let mut f = crate::crosscheck::CROSSCHECK_FILE.lock().unwrap();

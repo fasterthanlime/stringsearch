@@ -1,15 +1,7 @@
-[package]
-name = "divsufsort"
-version = "0.1.0"
-authors = ["Amos Wenger <amoswenger@gmail.com>"]
-edition = "2018"
+[workspace]
+members = [
+    "crates/divsufsort",
+    "crates/cdivsufsort",
+    "crates/divsuftest",
+]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-better-panic = "0.2.0"
-once_cell = "1.2.0"
-suffix_array = "0.4.0"
-
-[build-dependencies]
-cc = "1.0"
