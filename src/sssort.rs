@@ -534,7 +534,8 @@ pub fn ss_mintrosort(
         crosscheck!("choose pivot");
         a = ss_pivot(&Td, SA, PA, first, last);
         v = Td_get!(a);
-        mem::swap(&mut first, &mut a);
+        crosscheck!("pivot a={}, v={}", a - PA, v);
+        SA.swap(first, a);
 
         // partition
         // NORA
@@ -562,7 +563,7 @@ pub fn ss_mintrosort(
                     break;
                 }
                 if x == v {
-                    mem::swap(&mut b, &mut a);
+                    SA.swap(b, a);
                     a += 1;
                 }
             }
@@ -594,7 +595,7 @@ pub fn ss_mintrosort(
                 }
 
                 if x == v {
-                    mem::swap(&mut c, &mut d);
+                    SA.swap(c, d);
                     d -= 1;
                 }
             }
@@ -614,7 +615,7 @@ pub fn ss_mintrosort(
                     break;
                 }
                 if x == v {
-                    mem::swap(&mut b, &mut a);
+                    SA.swap(b, a);
                     a += 1;
                 }
             }
@@ -629,7 +630,7 @@ pub fn ss_mintrosort(
                     break;
                 }
                 if x == v {
-                    mem::swap(&mut c, &mut d);
+                    SA.swap(c, d);
                     d -= 1;
                 }
             }
@@ -647,7 +648,7 @@ pub fn ss_mintrosort(
             e = first;
             f = b - s;
             while 0 < s {
-                mem::swap(&mut e, &mut f);
+                SA.swap(e, f);
                 s -= 1;
                 e += 1;
                 f += 1;
@@ -661,7 +662,7 @@ pub fn ss_mintrosort(
             e = b;
             f = last - s;
             while 0 < s {
-                mem::swap(&mut e, &mut f);
+                SA.swap(e, f);
                 s -= 1;
                 e += 1;
                 f += 1;

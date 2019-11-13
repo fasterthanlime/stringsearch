@@ -399,6 +399,7 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
     crosscheck("choose pivot");
     a = ss_pivot(Td, PA, first, last);
     v = Td[PA[*a]];
+    crosscheck("pivot a=%d, v=%d", a-PA, v);
     SWAP(*first, *a);
 
     /* partition */
