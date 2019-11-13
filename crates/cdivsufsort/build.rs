@@ -6,7 +6,7 @@ fn main() {
     let profile = std::env::var("PROFILE").unwrap();
     match profile.as_str() {
         "debug" => {
-            build.flag("-DENABLE_CROSSCHECK=1");
+            // muffin
         }
         "release" => {
             if build.get_compiler().is_like_msvc() {
@@ -15,6 +15,9 @@ fn main() {
         }
         _ => {}
     };
+    if std::env::var("CARGO_FEATURE_CROSSCHECK").is_ok() {
+        build.flag("-DENABLE_CROSSCHECK=1");
+    }
 
     build
         .file("c-sources/divsufsort.c")
