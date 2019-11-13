@@ -485,15 +485,15 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
         } else {
           crosscheck("E push %d %d %d %d", c-PA, last-PA, depth, limit);
           STACK_PUSH(c, last, depth, limit);
-          crosscheck("F push %d %d %d %d", first-PA, first-PA, depth, limit);
+          crosscheck("F push %d %d %d %d", first-PA, a-PA, depth, limit);
           STACK_PUSH(first, a, depth, limit);
           first = b, last = c, depth += 1, limit = ss_ilg(c - b);
         }
       } else {
         if((a - first) <= (c - b)) {
-          crosscheck("G push %d %d %d %d", first-PA, first-PA, depth, limit);
+          crosscheck("G push %d %d %d %d", b-PA, c-PA, depth+1, ss_ilg(c-b));
           STACK_PUSH(b, c, depth + 1, ss_ilg(c - b));
-          crosscheck("H push %d %d %d %d", first-PA, first-PA, depth, limit);
+          crosscheck("H push %d %d %d %d", first-PA, a-PA, depth, limit);
           STACK_PUSH(first, a, depth, limit);
           first = c;
         } else if((last - c) <= (c - b)) {
