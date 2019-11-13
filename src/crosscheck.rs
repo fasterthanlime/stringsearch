@@ -32,8 +32,18 @@ pub fn flush() {
 pub fn SA_dump(SA: &SuffixArray, label: &str) {
     #[cfg(debug_assertions)]
     {
-        crosscheck!(":: {}", label);
-        crosscheck!("SA = {:?}", SA.0);
+        use std::io::Write;
+        let mut f = crate::crosscheck::CROSSCHECK_FILE.lock().unwrap();
+
+        writeln!(f, ":: {}", label).unwrap();
+        // crosscheck!("SA = {:?}", SA.0);
+        for i in 0..SA.0.len() {
+            write!(f, "{}={} ", i, SA.0[i]).unwrap();
+            if (i + 1) % 25 == 0 {
+                writeln!(f, "").unwrap();
+            }
+        }
+        writeln!(f, "").unwrap();
     }
 }
 
@@ -48,10 +58,13 @@ pub fn A_dump(A: &ABucket, label: &str) {
 pub fn BSTAR_dump(B: &mut BMixBucket, label: &str) {
     #[cfg(debug_assertions)]
     {
-        crosscheck!("{} B* dump:", label);
+        use std::io::Write;
+        let mut f = crate::crosscheck::CROSSCHECK_FILE.lock().unwrap();
+
+        writeln!(f, "{} B* dump:", label).unwrap();
         for ii in 0..(ALPHABET_SIZE as Idx) {
             for jj in 0..(ALPHABET_SIZE as Idx) {
-                crosscheck!("{} B*[{},{}]={}", label, ii, jj, B.bstar()[(ii, jj)]);
+                writeln!(f, "{} B*[{},{}]={}", label, ii, jj, B.bstar()[(ii, jj)]).unwrap();
             }
         }
     }

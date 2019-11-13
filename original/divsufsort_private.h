@@ -156,16 +156,28 @@ extern FILE *CROSSCHECK_FILE;
 #define SA_dump(SA, label) \
   do { \
     fprintf(CROSSCHECK_FILE, ":: %s\n", label); \
-    fprintf(CROSSCHECK_FILE, "SA = ["); \
     for (int z = 0; z < n; z++) { \
-      if (z == n - 1) { \
-        fprintf(CROSSCHECK_FILE, "%d", SA[z]); \
-      } else { \
-        fprintf(CROSSCHECK_FILE, "%d, ", SA[z]); \
+      fprintf(CROSSCHECK_FILE, "%d=%d ", z, SA[z]); \
+      if ((z+1)%25==0) { \
+        fprintf(CROSSCHECK_FILE, "\n"); \
       } \
     } \
-    fprintf(CROSSCHECK_FILE, "]\n"); \
+    fprintf(CROSSCHECK_FILE, "\n"); \
   } while (0);
+
+// #define SA_dump(SA, label) \
+//   do { \
+//     fprintf(CROSSCHECK_FILE, ":: %s\n", label); \
+//     fprintf(CROSSCHECK_FILE, "SA = ["); \
+//     for (int z = 0; z < n; z++) { \
+//       if (z == n - 1) { \
+//         fprintf(CROSSCHECK_FILE, "%d", SA[z]); \
+//       } else { \
+//         fprintf(CROSSCHECK_FILE, "%d, ", SA[z]); \
+//       } \
+//     } \
+//     fprintf(CROSSCHECK_FILE, "]\n"); \
+//   } while (0);
 
 #define A_dump(A, label) \
   do { \

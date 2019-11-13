@@ -474,7 +474,7 @@ fn construct_SA(T: &Text, SA: &mut SuffixArray, mut A: ABucket, mut B: BMixBucke
     // Construct the suffix array by using the sorted order of type B suffixes
     c2 = T.get(n - 1);
     k = A[c2];
-    SA[k] = if T.get(n - 1) < c2 { !(n - 1) } else { n - 1 };
+    SA[k] = if T.get(n - 2) < c2 { !(n - 1) } else { n - 1 };
     k += 1;
     // Scan the suffix array from left to right
     {
