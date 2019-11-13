@@ -325,7 +325,22 @@ pub fn tr_median5(
 /// Returns the pivot element
 #[inline(always)]
 pub fn tr_pivot(SA: &SuffixArray, ISAd: SAPtr, first: SAPtr, last: SAPtr) -> SAPtr {
-    unimplemented!()
+    let mut t: Idx = (last - first).0;
+    let mut middle: SAPtr = first + t / 2;
+
+    if t <= 512 {
+        if t <= 32 {
+            return tr_median3(SA, ISAd, first, middle, last - 1);
+        } else {
+            t >>= 2;
+            return tr_median5(SA, ISAd, first, first + t, middle, last - 1 - t, last - 1);
+        }
+    }
+    t >>= 3;
+    first = tr_median3(SA, ISAd, first, first + t, first + (t << 1));
+    middle = tr_median3(SA, ISAd, middle - t, middle, middle + t);
+    last = tr_median3(SA, ISAd, last - 1 - (t << 1), last - 1 - t, last - 1);
+    tr_median3(SA, ISAd, first, middle, last)
 }
 
 //------------------------------------------------------------------------------
@@ -780,8 +795,6 @@ pub fn tr_introsort(
                         return;
                     }
                 } // end if first < last
-
-                unimplemented!()
             } // end if limit == -1, -2, or something else
             continue;
         } // end if limit < 0

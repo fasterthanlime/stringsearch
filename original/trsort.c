@@ -449,7 +449,7 @@ tr_introsort(saidx_t *ISA, const saidx_t *ISAd,
         } else {
           STACK_POP5(ISAd, first, last, limit, trlink);
         } // end if first < last 
-      }
+      } // end if limit == -1, -2, or something else
       continue;
     } // end if limit < 0
 
