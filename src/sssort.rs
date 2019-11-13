@@ -700,7 +700,7 @@ pub fn ss_mintrosort(
 
             a = first + (b - a);
             c = last - (d - c);
-            b = if v <= Td.get(SA[PA + SA[a] - 1]) {
+            b = if v <= Td.get(SA[PA + SA[a]] - 1) {
                 a
             } else {
                 ss_partition(SA, PA, a, c, depth)
@@ -778,10 +778,30 @@ pub fn ss_mintrosort(
                     stack.push(first, a, depth, limit);
                     crosscheck!("L push {} {} {} {}", c - PA, last - PA, depth, limit);
                     stack.push(c, last, depth, limit);
+                    crosscheck!(
+                        "post-L(a) first={} last={} depth={} limit={} b={} c={} d={}",
+                        first - PA,
+                        last - PA,
+                        depth,
+                        limit,
+                        b - PA,
+                        c - PA,
+                        d - PA
+                    );
                     first = b;
                     last = c;
                     depth += 1;
                     limit = ss_ilg(c - b);
+                    crosscheck!(
+                        "post-L(a) first={} last={} depth={} limit={} b={} c={} d={}",
+                        first - PA,
+                        last - PA,
+                        depth,
+                        limit,
+                        b - PA,
+                        c - PA,
+                        d - PA
+                    );
                 }
             }
         } else {

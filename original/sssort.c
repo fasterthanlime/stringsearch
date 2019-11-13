@@ -497,7 +497,11 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
           STACK_PUSH(first, a, depth, limit);
           crosscheck("L push %d %d %d %d", c-PA, last-PA, depth, limit);
           STACK_PUSH(c, last, depth, limit);
+          crosscheck("post-L(a) first=%d last=%d depth=%d limit=%d b=%d c=%d d=%d",
+            first-PA,last-PA,depth,limit,b-PA,c-PA,d-PA);
           first = b, last = c, depth += 1, limit = ss_ilg(c - b);
+          crosscheck("post-L(b) first=%d last=%d depth=%d limit=%d b=%d c=%d d=%d",
+            first-PA,last-PA,depth,limit,b-PA,c-PA,d-PA);
         }
       }
     } else {
