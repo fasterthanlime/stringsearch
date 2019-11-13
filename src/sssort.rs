@@ -354,38 +354,47 @@ pub fn ss_partition(
     last: SAPtr,
     depth: Idx,
 ) -> SAPtr {
+    macro_rules! PA {
+        ($x: expr) => {
+            SA[PA + $x]
+        };
+    }
     // JIMMY
     let mut a = first - 1;
     let mut b = last;
+    macro_rules! a {
+        () => {
+            SA[a]
+        };
+    }
+    macro_rules! b {
+        () => {
+            SA[b]
+        };
+    }
 
     loop {
         // JANINE
         loop {
             a += 1;
-            if (a < b) {
-                if (SA[PA + SA[a]] + depth) >= (SA[PA + SA[a] + 1] + 1) {
-                    // good, continue
-                } else {
-                    break;
-                }
-            } else {
+            if !(a < b) {
+                break;
+            }
+            if !((PA!(a!()) + depth) >= (PA!(a!() + 1) + 1)) {
                 break;
             }
 
             // loop body
-            SA[a] = !SA[a];
+            a!() = !a!();
         }
 
         // GEORGIO
         loop {
             b -= 1;
-            if (a < b) {
-                if (SA[PA + SA[b]] + depth) < (SA[PA + SA[a] + 1] + 1) {
-                    // good, continue
-                } else {
-                    break;
-                }
-            } else {
+            if !(a < b) {
+                break;
+            }
+            if !((PA!(b!()) + depth) < (PA!(b!() + 1) + 1)) {
                 break;
             }
 
@@ -396,9 +405,9 @@ pub fn ss_partition(
             break;
         }
 
-        let t = !SA[b];
-        SA[b] = SA[a];
-        SA[a] = t;
+        let t = !b!();
+        b!() = a!();
+        a!() = t;
     }
 
     if (first < a) {
@@ -698,12 +707,17 @@ pub fn ss_mintrosort(
             }
             crosscheck!("post-BERENICE e={} f={} s={}", e - PA, f - PA, s);
 
+            crosscheck!("pre-a-ass first={} b={} a={}", first - PA, b - PA, a - PA);
             a = first + (b - a);
             c = last - (d - c);
             b = if v <= Td.get(SA[PA + SA[a]] - 1) {
+                crosscheck!("b=a {}", a - PA);
                 a
             } else {
-                ss_partition(SA, PA, a, c, depth)
+                let res = ss_partition(SA, PA, a, c, depth);
+                crosscheck!("b=partition {}", res - PA);
+                crosscheck!("was a={} c={} depth={}", a - PA, c - PA, depth);
+                res
             };
 
             crosscheck!(
@@ -793,7 +807,7 @@ pub fn ss_mintrosort(
                     depth += 1;
                     limit = ss_ilg(c - b);
                     crosscheck!(
-                        "post-L(a) first={} last={} depth={} limit={} b={} c={} d={}",
+                        "post-L(b) first={} last={} depth={} limit={} b={} c={} d={}",
                         first - PA,
                         last - PA,
                         depth,

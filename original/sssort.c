@@ -455,8 +455,18 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
       for(e = b, f = last - s; 0 < s; --s, ++e, ++f) { SWAP(*e, *f); }
       crosscheck("post-BERENICE e=%d f=%d s=%d", e-PA, f-PA, s);
 
+      crosscheck("pre-a-ass first=%d b=%d a=%d", first - PA, b - PA, a - PA);
       a = first + (b - a), c = last - (d - c);
-      b = (v <= Td[PA[*a] - 1]) ? a : ss_partition(PA, a, c, depth);
+
+      // b = (v <= Td[PA[*a] - 1]) ? a : ss_partition(PA, a, c, depth);
+      if (v <= Td[PA[*a] - 1]) {
+        b = a;
+        crosscheck("b=a %d", b-PA);
+      } else {
+        b = ss_partition(PA, a, c, depth);
+        crosscheck("b=partition %d", b-PA);
+        crosscheck("was a=%d c=%d depth=%d", a-PA,c-PA,depth);
+      }
 
       crosscheck("bif a=%d first=%d last=%d c=%d", a-PA, first-PA, last-PA, c-PA);
       if((a - first) <= (last - c)) {
