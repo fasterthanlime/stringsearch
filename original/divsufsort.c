@@ -126,13 +126,14 @@ note:
     /* Sort the type B* substrings using sssort. */
     buf = SA + m, bufsize = n - (2 * m);
     for(c0 = ALPHABET_SIZE - 2, j = m; 0 < j; --c0) {
+      crosscheck("c0=%d", c0);
       for(c1 = ALPHABET_SIZE - 1; c0 < c1; j = i, --c1) {
         i = BUCKET_BSTAR(c0, c1);
         if(1 < (j - i)) {
-
+          SA_dump(SA, i, j-i, "sssort(A)");
           sssort(T, PAb, SA + i, SA + j,
                  buf, bufsize, 2, n, *(SA + i) == (m - 1));
-
+          SA_dump(SA, i, j-i, "sssort(B)");
         }
       }
     }

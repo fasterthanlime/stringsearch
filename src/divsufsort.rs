@@ -167,6 +167,7 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
         c0 = ALPHABET_SIZE as Idx - 2;
         j = m;
         while 0 < j {
+            crosscheck!("c0={}", c0);
             // init (inner)
             c1 = ALPHABET_SIZE as Idx - 1;
             while c0 < c1 {
@@ -174,6 +175,7 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
                 i = B.bstar()[(c0, c1)];
 
                 if (1 < (j - i)) {
+                    SA_dump(&SA.range(i..j), "sssort(A)");
                     sssort::sssort(
                         T,
                         SA,
@@ -186,6 +188,7 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
                         n,
                         SA[i] == (m - 1),
                     );
+                    SA_dump(&SA.range(i..j), "sssort(B)");
                 }
 
                 // iter (inner)

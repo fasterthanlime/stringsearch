@@ -211,12 +211,15 @@ ss_fixdown(const sauchar_t *Td, const saidx_t *PA,
 
   // BEAST
   for(v = SA[i], c = Td[PA[v]]; (j = 2 * i + 1) < size; SA[i] = SA[k], i = k) {
+    crosscheck("BEAST");
     d = Td[PA[SA[k = j++]]];
     if(d < (e = Td[PA[SA[j]]])) {
+      crosscheck("d<e");
       k = j;
       d = e;
     }
     if(d <= c) {
+      crosscheck("d<=c");
       break;
     }
   }
@@ -234,12 +237,14 @@ ss_heapsort(const sauchar_t *Td, const saidx_t *PA, saidx_t *SA, saidx_t size) {
   if((size % 2) == 0) {
     m--;
     if(Td[PA[SA[m / 2]]] < Td[PA[SA[m]]]) {
+      crosscheck("SWAP %d %d", m, m/2);
       SWAP(SA[m], SA[m / 2]);
     }
   }
 
   // LADY
   for(i = m / 2 - 1; 0 <= i; --i) {
+    crosscheck("LADY %d", i);
     ss_fixdown(Td, PA, SA, i, m);
   }
 
@@ -250,6 +255,7 @@ ss_heapsort(const sauchar_t *Td, const saidx_t *PA, saidx_t *SA, saidx_t size) {
   
   // TRUMPET
   for(i = m - 1; 0 < i; --i) {
+    crosscheck("TRUMPET %d", i);
     t = SA[0], SA[0] = SA[i];
     ss_fixdown(Td, PA, SA, 0, i);
     SA[i] = t;
@@ -373,30 +379,43 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
       SA_dump(first, 0, last-first, "after heapsort");
     }
     if(limit < 0) {
+      crosscheck("limit < 0");
       // DAVE
       for(a = first + 1, v = Td[PA[*first]]; a < last; ++a) {
+        crosscheck("DAVE");
         if((x = Td[PA[*a]]) != v) {
-          if(1 < (a - first)) { break; }
+          if(1 < (a - first)) {
+            break;
+          }
           v = x;
           first = a;
         }
       }
       if(Td[PA[*first] - 1] < v) {
+        crosscheck("call ss_partition");
+        crosscheck("first(A)=%d",first-PA);
         first = ss_partition(PA, first, a, depth);
+        crosscheck("first(B)=%d",first-PA);
       }
       if((a - first) <= (last - a)) {
         if(1 < (a - first)) {
           STACK_PUSH(a, last, depth, -1);
-          last = a, depth += 1, limit = ss_ilg(a - first);
+          last = a;
+          depth += 1;
+          limit = ss_ilg(a - first);
         } else {
-          first = a, limit = -1;
+          first = a;
+          limit = -1;
         }
       } else {
         if(1 < (last - a)) {
           STACK_PUSH(first, a, depth + 1, ss_ilg(a - first));
-          first = a, limit = -1;
+          first = a;
+          limit = -1;
         } else {
-          last = a, depth += 1, limit = ss_ilg(a - first);
+          last = a;
+          depth += 1;
+          limit = ss_ilg(a - first);
         }
       }
       continue;
@@ -409,31 +428,51 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
 
     /* partition */
     // NORA
-    for(b = first; (++b < last) && ((x = Td[PA[*b]]) == v);) { }
+    for(b = first; (++b < last) && ((x = Td[PA[*b]]) == v);) {
+      crosscheck("NORA");
+    }
     if(((a = b) < last) && (x < v)) {
       // STAN
       for(; (++b < last) && ((x = Td[PA[*b]]) <= v);) {
-        if(x == v) { SWAP(*b, *a); ++a; }
+        crosscheck("STAN");
+        if(x == v) {
+          SWAP(*b, *a);
+          ++a;
+        }
       }
     }
     // NATHAN
-    for(c = last; (b < --c) && ((x = Td[PA[*c]]) == v);) { }
+    for(c = last; (b < --c) && ((x = Td[PA[*c]]) == v);) {
+      crosscheck("NATHAN");
+    }
     if((b < (d = c)) && (x > v)) {
       // JACOB
       for(; (b < --c) && ((x = Td[PA[*c]]) >= v);) {
-        if(x == v) { SWAP(*c, *d); --d; }
+        crosscheck("JACOB");
+        if(x == v) {
+          SWAP(*c, *d);
+          --d;
+        } 
       }
     }
     // RITA
     for(; b < c;) {
+      crosscheck("RITA");
       SWAP(*b, *c);
       // ROMEO
       for(; (++b < c) && ((x = Td[PA[*b]]) <= v);) {
-        if(x == v) { SWAP(*b, *a); ++a; }
+        crosscheck("ROMEO");
+        if(x == v) {
+          SWAP(*b, *a); ++a;
+        }
       }
       // JULIET
       for(; (b < --c) && ((x = Td[PA[*c]]) >= v);) {
-        if(x == v) { SWAP(*c, *d); --d; }
+        crosscheck("JULIET");
+        if(x == v) {
+          SWAP(*c, *d);
+          --d;
+        }
       }
     }
 
@@ -443,10 +482,18 @@ ss_mintrosort(const sauchar_t *T, const saidx_t *PA,
       if((s = a - first) > (t = b - a)) { s = t; }
         
       // JOSHUA
-      for(e = first, f = b - s; 0 < s; --s, ++e, ++f) { SWAP(*e, *f); }
-      if((s = d - c) > (t = last - d - 1)) { s = t; }
+      for(e = first, f = b - s; 0 < s; --s, ++e, ++f) {
+        crosscheck("JOSHUA");
+        SWAP(*e, *f);
+      }
+      if((s = d - c) > (t = last - d - 1)) {
+        s = t;
+      }
       // BERENICE
-      for(e = b, f = last - s; 0 < s; --s, ++e, ++f) { SWAP(*e, *f); }
+      for(e = b, f = last - s; 0 < s; --s, ++e, ++f) {
+        crosscheck("BERENICE");
+        SWAP(*e, *f);
+      }
 
       a = first + (b - a), c = last - (d - c);
 

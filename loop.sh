@@ -3,7 +3,8 @@
 while true; do
     cargo build && (
         ./target/debug/divsufsort
-        vimdiff ./crosscheck/{rust,c}
+        # vimdiff ./crosscheck/{rust,c}
+        echo "Crosscheck ready."
     )
     echo "Press Enter to cycle..."
     read
