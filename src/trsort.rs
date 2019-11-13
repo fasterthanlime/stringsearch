@@ -1029,6 +1029,10 @@ pub fn tr_introsort(
                         crosscheck!("ABC");
                         stack.push(ISAd, first, a, limit, trlink);
                         stack.push(ISAd, b, last, limit, trlink);
+                        ISAd += incr;
+                        first = a;
+                        last = b;
+                        limit = next;
                     }
                 }
             } else {
