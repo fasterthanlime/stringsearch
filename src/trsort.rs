@@ -1,5 +1,5 @@
 use crate::{common::*, crosscheck, crosscheck::*};
-use std::mem::swap;
+use std::mem;
 
 //--------------------
 // Private functions
@@ -294,11 +294,17 @@ pub fn tr_heapsort(ISAd: SAPtr, SA: &mut SuffixArray, size: Idx) {
 /// Returns the median of three elements
 #[inline(always)]
 pub fn tr_median3(SA: &SuffixArray, ISAd: SAPtr, mut v1: SAPtr, mut v2: SAPtr, v3: SAPtr) -> SAPtr {
-    if SA[ISAd + SA[v1]] > SA[ISAd + SA[v2]] {
-        swap(&mut v1, &mut v2);
+    macro_rules! get {
+        ($x: expr) => {
+            SA[ISAd + SA[$x]]
+        };
     }
-    if SA[ISAd + SA[v2]] > SA[ISAd + SA[v3]] {
-        if SA[ISAd + SA[v1]] > SA[ISAd + SA[v3]] {
+
+    if get!(v1) > get!(v2) {
+        mem::swap(&mut v1, &mut v2);
+    }
+    if get!(v2) > get!(v3) {
+        if get!(v1) > get!(v3) {
             v1
         } else {
             v3
@@ -315,16 +321,42 @@ pub fn tr_median5(
     ISAd: SAPtr,
     mut v1: SAPtr,
     mut v2: SAPtr,
-    v3: SAPtr,
-    v4: SAPtr,
-    v5: SAPtr,
+    mut v3: SAPtr,
+    mut v4: SAPtr,
+    mut v5: SAPtr,
 ) -> SAPtr {
-    unimplemented!()
+    macro_rules! get {
+        ($x: expr) => {
+            SA[ISAd + SA[$x]]
+        };
+    }
+    if get!(v2) > get!(v3) {
+        mem::swap(&mut v2, &mut v3);
+    }
+    if get!(v4) > get!(v5) {
+        mem::swap(&mut v4, &mut v5);
+    }
+    if get!(v2) > get!(v4) {
+        mem::swap(&mut v2, &mut v4);
+        mem::swap(&mut v3, &mut v5);
+    }
+    if get!(v1) > get!(v3) {
+        mem::swap(&mut v1, &mut v3);
+    }
+    if get!(v1) > get!(v4) {
+        mem::swap(&mut v1, &mut v4);
+        mem::swap(&mut v3, &mut v5);
+    }
+    if get!(v3) > get!(v4) {
+        v4
+    } else {
+        v3
+    }
 }
 
 /// Returns the pivot element
 #[inline(always)]
-pub fn tr_pivot(SA: &SuffixArray, ISAd: SAPtr, first: SAPtr, last: SAPtr) -> SAPtr {
+pub fn tr_pivot(SA: &SuffixArray, ISAd: SAPtr, mut first: SAPtr, mut last: SAPtr) -> SAPtr {
     let mut t: Idx = (last - first).0;
     let mut middle: SAPtr = first + t / 2;
 
