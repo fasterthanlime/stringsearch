@@ -558,6 +558,7 @@ pub fn ss_mintrosort(
             {
                 return;
             }
+            crosscheck!("renee1 continue");
             continue;
         }
 
@@ -580,6 +581,7 @@ pub fn ss_mintrosort(
             ss_heapsort(T, Td, SA, PA, first, (last - first).into());
             SA_dump(&SA.range(first..last), "after heapsort");
         }
+        crosscheck!("heapsort-adjacent limit={}", limit);
 
         if (limit < 0) {
             a = first + 1;
@@ -600,31 +602,37 @@ pub fn ss_mintrosort(
                 a += 1;
             }
 
-            if TdPAStar!(first) < v {
+            if Td!(PA!(SA[first]) - 1) < v {
                 first = ss_partition(SA, PA, first, a, depth);
             }
-
             if (a - first) <= (last - a) {
+                crosscheck!("star");
                 if 1 < (a - first) {
+                    crosscheck!("give");
                     stack.push(a, last, depth, -1);
                     last = a;
                     depth += 1;
                     limit = ss_ilg(a - first);
                 } else {
+                    crosscheck!("take");
                     first = a;
-                    limit -= 1;
+                    limit = -1;
                 }
             } else {
+                crosscheck!("bard");
                 if 1 < (last - a) {
+                    crosscheck!("mage");
                     stack.push(first, a, depth + 1, ss_ilg(a - first));
                     first = a;
                     limit = -1;
                 } else {
+                    crosscheck!("rend");
                     last = a;
                     depth += 1;
                     limit = ss_ilg(a - first);
                 }
             }
+            crosscheck!("renee neg-limit continue");
             continue;
         }
 
@@ -738,6 +746,7 @@ pub fn ss_mintrosort(
         }
 
         if a <= d {
+            crosscheck!("post-juliet a <= d");
             c = b - 1;
             s = (a - first).0;
             t = (b - a).0;
@@ -777,6 +786,7 @@ pub fn ss_mintrosort(
                 let res = ss_partition(SA, PA, a, c, depth);
                 res
             };
+            crosscheck!("chose b={}", b - PA);
 
             if (a - first) <= (last - c) {
                 if (last - c) <= (c - b) {
@@ -814,8 +824,10 @@ pub fn ss_mintrosort(
                 }
             }
         } else {
+            crosscheck!("a > d");
             limit += 1;
             if Td!(PA!(SA[first]) - 1) < v {
+                crosscheck!("a > d :: partition/ilg");
                 first = ss_partition(SA, PA, first, last, depth);
                 limit = ss_ilg(last - first);
             }
