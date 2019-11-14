@@ -202,15 +202,12 @@ static INLINE void ss_fixdown(const sauchar_t *Td, const saidx_t *PA,
 
   // BEAST
   for (v = SA[i], c = Td[PA[v]]; (j = 2 * i + 1) < size; SA[i] = SA[k], i = k) {
-    crosscheck("BEAST");
     d = Td[PA[SA[k = j++]]];
     if (d < (e = Td[PA[SA[j]]])) {
-      crosscheck("d<e");
       k = j;
       d = e;
     }
     if (d <= c) {
-      crosscheck("d<=c");
       break;
     }
   }
@@ -227,14 +224,12 @@ static void ss_heapsort(const sauchar_t *Td, const saidx_t *PA, saidx_t *SA,
   if ((size % 2) == 0) {
     m--;
     if (Td[PA[SA[m / 2]]] < Td[PA[SA[m]]]) {
-      crosscheck("SWAP %d %d", m, m / 2);
       SWAP(SA[m], SA[m / 2]);
     }
   }
 
   // LADY
   for (i = m / 2 - 1; 0 <= i; --i) {
-    crosscheck("LADY %d", i);
     ss_fixdown(Td, PA, SA, i, m);
   }
 
@@ -245,7 +240,6 @@ static void ss_heapsort(const sauchar_t *Td, const saidx_t *PA, saidx_t *SA,
 
   // TRUMPET
   for (i = m - 1; 0 < i; --i) {
-    crosscheck("TRUMPET %d", i);
     t = SA[0], SA[0] = SA[i];
     ss_fixdown(Td, PA, SA, 0, i);
     SA[i] = t;
@@ -369,8 +363,12 @@ static void ss_mintrosort(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
   saint_t limit;
   saint_t v, x = 0;
 
-  for (ssize = 0, limit = ss_ilg(last - first);;) {
+  crosscheck("mintrosort first=%d last=%d depth=%d", first - PA, last - PA,
+             depth);
 
+  // RENEE
+  for (ssize = 0, limit = ss_ilg(last - first);;) {
+    crosscheck("renee limit=%d", limit);
     if ((last - first) <= SS_INSERTIONSORT_THRESHOLD) {
 #if 1 < SS_INSERTIONSORT_THRESHOLD
       if (1 < (last - first)) {
@@ -388,10 +386,8 @@ static void ss_mintrosort(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
       SA_dump(first, 0, last - first, "after heapsort");
     }
     if (limit < 0) {
-      crosscheck("limit < 0");
       // DAVE
       for (a = first + 1, v = Td[PA[*first]]; a < last; ++a) {
-        crosscheck("DAVE");
         if ((x = Td[PA[*a]]) != v) {
           if (1 < (a - first)) {
             break;
@@ -401,10 +397,7 @@ static void ss_mintrosort(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
         }
       }
       if (Td[PA[*first] - 1] < v) {
-        crosscheck("call ss_partition");
-        crosscheck("first(A)=%d", first - PA);
         first = ss_partition(PA, first, a, depth);
-        crosscheck("first(B)=%d", first - PA);
       }
       if ((a - first) <= (last - a)) {
         if (1 < (a - first)) {
@@ -438,12 +431,10 @@ static void ss_mintrosort(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
     /* partition */
     // NORA
     for (b = first; (++b < last) && ((x = Td[PA[*b]]) == v);) {
-      crosscheck("NORA");
     }
     if (((a = b) < last) && (x < v)) {
       // STAN
       for (; (++b < last) && ((x = Td[PA[*b]]) <= v);) {
-        crosscheck("STAN");
         if (x == v) {
           SWAP(*b, *a);
           ++a;
@@ -452,12 +443,10 @@ static void ss_mintrosort(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
     }
     // NATHAN
     for (c = last; (b < --c) && ((x = Td[PA[*c]]) == v);) {
-      crosscheck("NATHAN");
     }
     if ((b < (d = c)) && (x > v)) {
       // JACOB
       for (; (b < --c) && ((x = Td[PA[*c]]) >= v);) {
-        crosscheck("JACOB");
         if (x == v) {
           SWAP(*c, *d);
           --d;
@@ -466,11 +455,9 @@ static void ss_mintrosort(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
     }
     // RITA
     for (; b < c;) {
-      crosscheck("RITA");
       SWAP(*b, *c);
       // ROMEO
       for (; (++b < c) && ((x = Td[PA[*b]]) <= v);) {
-        crosscheck("ROMEO");
         if (x == v) {
           SWAP(*b, *a);
           ++a;
@@ -478,7 +465,6 @@ static void ss_mintrosort(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
       }
       // JULIET
       for (; (b < --c) && ((x = Td[PA[*c]]) >= v);) {
-        crosscheck("JULIET");
         if (x == v) {
           SWAP(*c, *d);
           --d;
@@ -495,7 +481,6 @@ static void ss_mintrosort(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
 
       // JOSHUA
       for (e = first, f = b - s; 0 < s; --s, ++e, ++f) {
-        crosscheck("JOSHUA");
         SWAP(*e, *f);
       }
       if ((s = d - c) > (t = last - d - 1)) {
@@ -503,7 +488,6 @@ static void ss_mintrosort(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
       }
       // BERENICE
       for (e = b, f = last - s; 0 < s; --s, ++e, ++f) {
-        crosscheck("BERENICE");
         SWAP(*e, *f);
       }
 

@@ -237,7 +237,6 @@ pub fn ss_fixdown(
         if !(j < size) {
             break;
         }
-        crosscheck!("BEAST");
 
         // body
         k = j;
@@ -246,12 +245,10 @@ pub fn ss_fixdown(
         d = Td!(PA!(SA!(k)));
         e = Td!(PA!(SA!(j)));
         if (d < e) {
-            crosscheck!("d<e");
             k = j;
             d = e;
         }
         if (d <= c) {
-            crosscheck!("d<=c");
             break;
         }
 
@@ -299,14 +296,12 @@ pub fn ss_heapsort(
     if (size % 2) == 0 {
         m -= 1;
         if Td!(PA!(SA!(m / 2))) < Td!(PA!(SA!(m))) {
-            crosscheck!("SWAP {} {}", m, m / 2);
             SA_swap!(SAPtr(m), SAPtr(m / 2));
         }
     }
 
     // LADY
     for i in (0..(m / 2)).rev() {
-        crosscheck!("LADY {}", i);
         ss_fixdown(T, Td, PA, SA_top, first, i, m);
     }
 
@@ -317,7 +312,6 @@ pub fn ss_heapsort(
 
     // TRUMPET
     for i in (1..m).rev() {
-        crosscheck!("TRUMPET {}", i);
         t = SA!(0);
         SA!(0) = SA!(i);
         ss_fixdown(T, Td, PA, SA_top, first, 0, i);
@@ -544,9 +538,16 @@ pub fn ss_mintrosort(
     let mut v: Idx;
     let mut x: Idx = 0;
 
+    crosscheck!(
+        "mintrosort first={} last={} depth={}",
+        first - PA,
+        last - PA,
+        depth
+    );
+    // RENEE
     limit = ss_ilg(last - first);
-
     loop {
+        crosscheck!("renee limit={}", limit);
         if ((last - first) <= SS_INSERTIONSORT_THRESHOLD) {
             if (1 < (last - first)) {
                 ss_insertionsort(T, SA, PA, first, last, depth);
@@ -572,21 +573,20 @@ pub fn ss_mintrosort(
             };
         }
 
-        if (limit == 0) {
+        let old_limit = limit;
+        limit -= 1;
+        if (old_limit == 0) {
             SA_dump(&SA.range(first..last), "before heapsort");
             ss_heapsort(T, Td, SA, PA, first, (last - first).into());
             SA_dump(&SA.range(first..last), "after heapsort");
         }
-        limit -= 1;
 
         if (limit < 0) {
-            crosscheck!("limit < 0");
             a = first + 1;
             v = TdPAStar!(first);
 
             // DAVE
             while a < last {
-                crosscheck!("DAVE");
                 x = TdPAStar!(a);
                 if (x != v) {
                     if (1 < (a - first)) {
@@ -601,10 +601,7 @@ pub fn ss_mintrosort(
             }
 
             if TdPAStar!(first) < v {
-                crosscheck!("call ss_partition");
-                crosscheck!("first(A)={}", first - PA);
                 first = ss_partition(SA, PA, first, a, depth);
-                crosscheck!("first(B)={}", first - PA);
             }
 
             if (a - first) <= (last - a) {
@@ -649,7 +646,6 @@ pub fn ss_mintrosort(
                 break;
             }
             // body
-            crosscheck!("NORA");
         }
         a = b;
         if (a < last) && (x < v) {
@@ -664,7 +660,6 @@ pub fn ss_mintrosort(
                     break;
                 }
                 // body
-                crosscheck!("STAN");
                 if x == v {
                     SA.swap(b, a);
                     a += 1;
@@ -684,7 +679,6 @@ pub fn ss_mintrosort(
                 break;
             }
             // body
-            crosscheck!("NATHAN");
         }
         d = c;
         if (b < d) && (x > v) {
@@ -699,7 +693,6 @@ pub fn ss_mintrosort(
                     break;
                 }
                 // body
-                crosscheck!("JACOB");
                 if x == v {
                     SA.swap(c, d);
                     d -= 1;
@@ -709,7 +702,6 @@ pub fn ss_mintrosort(
 
         // RITA
         while b < c {
-            crosscheck!("RITA");
             SA.swap(b, c);
             // ROMEO
             loop {
@@ -722,7 +714,6 @@ pub fn ss_mintrosort(
                     break;
                 }
                 // body
-                crosscheck!("ROMEO");
                 if x == v {
                     SA.swap(b, a);
                     a += 1;
@@ -739,7 +730,6 @@ pub fn ss_mintrosort(
                     break;
                 }
                 // body
-                crosscheck!("JULIET");
                 if x == v {
                     SA.swap(c, d);
                     d -= 1;
@@ -759,7 +749,6 @@ pub fn ss_mintrosort(
             e = first;
             f = b - s;
             while 0 < s {
-                crosscheck!("JOSHUA");
                 SA.swap(e, f);
                 s -= 1;
                 e += 1;
@@ -774,7 +763,6 @@ pub fn ss_mintrosort(
             e = b;
             f = last - s;
             while 0 < s {
-                crosscheck!("BERENICE");
                 SA.swap(e, f);
                 s -= 1;
                 e += 1;
@@ -827,7 +815,7 @@ pub fn ss_mintrosort(
             }
         } else {
             limit += 1;
-            if (TdPAStar!(first) - 1) < v {
+            if Td!(PA!(SA[first]) - 1) < v {
                 first = ss_partition(SA, PA, first, last, depth);
                 limit = ss_ilg(last - first);
             }

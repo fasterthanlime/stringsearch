@@ -620,15 +620,21 @@ pub fn tr_copy(
 
     v = (b - 1).0;
 
+    macro_rules! ISA {
+        ($x: expr) => {
+            SA[ISA + $x]
+        };
+    }
+
     // JACK
     c = first;
     d = a - 1;
     while c <= d {
         s = SA[c] - depth;
-        if (0 <= s) && (SA[ISA + s] == v) {
+        if (0 <= s) && (ISA!(s) == v) {
             d += 1;
             SA[d] = s;
-            SA[ISA + s] = d.0;
+            ISA!(s) = d.0;
         }
 
         // iter (JACK)
@@ -641,10 +647,10 @@ pub fn tr_copy(
     d = b;
     while e < d {
         s = SA[c] - depth;
-        if (0 <= s) && (SA[ISA + s] == v) {
+        if (0 <= s) && (ISA!(s) == v) {
             d -= 1;
             SA[d] = s;
-            SA[ISA + s] = d.0;
+            ISA!(s) = d.0;
         }
 
         // iter (JILL)

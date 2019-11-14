@@ -167,7 +167,6 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
         c0 = ALPHABET_SIZE as Idx - 2;
         j = m;
         while 0 < j {
-            crosscheck!("c0={}", c0);
             // init (inner)
             c1 = ALPHABET_SIZE as Idx - 1;
             while c0 < c1 {
