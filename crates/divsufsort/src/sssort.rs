@@ -1,5 +1,5 @@
 use crate::{common::*, crosscheck, crosscheck::*};
-use std::mem;
+use std::{cmp, default::Default, mem};
 
 //--------------------
 // Private functions
@@ -892,24 +892,233 @@ pub fn ss_mergebackward(
     unimplemented!()
 }
 
+const MERGE_STACK_SIZE: usize = 32;
+
+struct MergeStackItem {
+    a: SAPtr,
+    b: SAPtr,
+    c: SAPtr,
+    d: Idx,
+}
+
+impl Default for MergeStackItem {
+    fn default() -> Self {
+        Self {
+            a: SAPtr(0),
+            b: SAPtr(0),
+            c: SAPtr(0),
+            d: 0,
+        }
+    }
+}
+
+struct MergeStack {
+    items: [MergeStackItem; MERGE_STACK_SIZE],
+    size: usize,
+}
+
+impl MergeStack {
+    fn new() -> Self {
+        Self {
+            items: Default::default(),
+            size: 0,
+        }
+    }
+
+    #[inline(always)]
+    fn push(&mut self, a: SAPtr, b: SAPtr, c: SAPtr, d: Idx) {
+        assert!(self.size < STACK_SIZE);
+        self.items[self.size].a = a;
+        self.items[self.size].b = b;
+        self.items[self.size].c = c;
+        self.items[self.size].d = d;
+        self.size += 1;
+    }
+
+    #[inline(always)]
+    #[must_use]
+    fn pop(&mut self, a: &mut SAPtr, b: &mut SAPtr, c: &mut SAPtr, d: &mut Idx) -> Result<(), ()> {
+        if (self.size == 0) {
+            Err(())
+        } else {
+            self.size -= 1;
+            *a = self.items[self.size].a;
+            *b = self.items[self.size].b;
+            *c = self.items[self.size].c;
+            *d = self.items[self.size].d;
+            Ok(())
+        }
+    }
+}
+
 /// D&C based merge
 pub fn ss_swapmerge(
     T: &Text,
-    SA: &SuffixArray,
+    SA: &mut SuffixArray,
     PA: SAPtr,
-    first: SAPtr,
-    middle: SAPtr,
-    last: SAPtr,
+    mut first: SAPtr,
+    mut middle: SAPtr,
+    mut last: SAPtr,
     buf: SAPtr,
     bufsize: Idx,
     depth: Idx,
 ) {
-    unimplemented!()
+    macro_rules! get_idx {
+        ($a: expr) => {
+            if 0 <= $a {
+                $a
+            } else {
+                !$a
+            }
+        };
+    }
+    macro_rules! merge_check {
+        ($a: expr, $b: expr, $c: expr) => {
+            if ($c & 1 > 0)
+                || (($c & 2 > 0)
+                    && (ss_compare(T, SA, PA + get_idx!(SA[$a - 1]), SA, PA + SA[$a], depth) == 0))
+            {
+                SA[$a] = !SA[$a];
+            }
+            if ($c & 4 > 0)
+                && (ss_compare(T, SA, PA + get_idx!(SA[$b - 1]), SA, PA + SA[$b], depth) == 0)
+            {
+                SA[$b] = !SA[$b];
+            }
+        };
+    }
+
+    let mut stack = MergeStack::new();
+    let mut l: SAPtr;
+    let mut r: SAPtr;
+    let mut lm: SAPtr;
+    let mut rm: SAPtr;
+    let mut m: Idx;
+    let mut len: Idx;
+    let mut half: Idx;
+    let mut check: Idx;
+    let mut next: Idx;
+
+    // BARBARIAN
+    check = 0;
+    loop {
+        if (last - middle) <= bufsize {
+            if (first < middle) && (middle < last) {
+                ss_mergebackward(T, SA, PA, first, middle, last, buf, depth);
+            }
+            merge_check!(first, last, check);
+            if !stack
+                .pop(&mut first, &mut middle, &mut last, &mut check)
+                .is_ok()
+            {
+                return;
+            }
+            continue;
+        }
+
+        if (middle - first) <= bufsize {
+            if first < middle {
+                ss_mergeforward(T, SA, PA, first, middle, last, buf, depth);
+            }
+            merge_check!(first, last, check);
+            if !stack
+                .pop(&mut first, &mut middle, &mut last, &mut check)
+                .is_ok()
+            {
+                return;
+            }
+            continue;
+        }
+
+        // OLANNA
+        m = 0;
+        len = cmp::min((middle - first).0, (last - middle).0);
+        half = len >> 1;
+        while 0 < len {
+            if ss_compare(
+                T,
+                SA,
+                PA + get_idx!(SA[middle + m + half]),
+                SA,
+                PA + get_idx!(SA[middle - m - half - 1]),
+                depth,
+            ) < 0
+            {
+                m += half + 1;
+                half -= (len & 1) ^ 1;
+            }
+
+            // iter
+            half >>= 1;
+            len = half;
+        }
+
+        if 0 < m {
+            lm = middle - m;
+            rm = middle + m;
+            ss_blockswap(SA, lm, middle, m);
+            r = middle;
+            l = middle;
+            next = 0;
+            if rm < last {
+                if SA[rm] < 0 {
+                    SA[rm] = !SA[rm];
+                    if first < lm {
+                        // KOOPA
+                        l -= 1;
+                        while SA[l] < 0 {
+                            l -= 1;
+                        }
+                        next |= 4;
+                    }
+                } else if first < lm {
+                    // MUNCHER
+                    while SA[r] < 0 {
+                        r += 1;
+                    }
+                    next |= 2;
+                }
+            }
+
+            if (l - first) <= (last - r) {
+                stack.push(r, rm, last, (next & 3) | (check & 4));
+                middle = lm;
+                last = l;
+                check = (check & 3) | (next & 4);
+            } else {
+                if (next & 2 > 0) && (r == middle) {
+                    next ^= 6
+                }
+                stack.push(first, lm, l, (check & 3) | (next & 4));
+                first = r;
+                middle = rm;
+                check = (next & 3) | (check & 4);
+            }
+        } else {
+            if ss_compare(
+                T,
+                SA,
+                PA + get_idx!(SA[middle - 1]),
+                SA,
+                PA + SA[middle],
+                depth,
+            ) == 0
+            {
+                SA[middle] = !SA[middle];
+            }
+            merge_check!(first, last, check);
+            if !stack
+                .pop(&mut first, &mut middle, &mut last, &mut check)
+                .is_ok()
+            {
+                return;
+            }
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
 
-use std::default::Default;
 const STACK_SIZE: usize = 16;
 
 struct StackItem {

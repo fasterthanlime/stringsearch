@@ -777,6 +777,7 @@ ss_swapmerge(const sauchar_t *T, const saidx_t *PA,
   saint_t ssize;
   saint_t check, next;
 
+  // BARBARIAN
   for(check = 0, ssize = 0;;) {
     if((last - middle) <= bufsize) {
       if((first < middle) && (middle < last)) {
@@ -796,6 +797,7 @@ ss_swapmerge(const sauchar_t *T, const saidx_t *PA,
       continue;
     }
 
+    // OLANNA
     for(m = 0, len = MIN(middle - first, last - middle), half = len >> 1;
         0 < len;
         len = half, half >>= 1) {
@@ -813,9 +815,14 @@ ss_swapmerge(const sauchar_t *T, const saidx_t *PA,
       if(rm < last) {
         if(*rm < 0) {
           *rm = ~*rm;
-          if(first < lm) { for(; *--l < 0;) { } next |= 4; }
+          if(first < lm) {
+            // KOOPA
+            for(; *--l < 0;) { }
+            next |= 4;
+          }
           next |= 1;
         } else if(first < lm) {
+          // MUNCHER
           for(; *r < 0; ++r) { }
           next |= 2;
         }

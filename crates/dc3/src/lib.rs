@@ -11,6 +11,7 @@ fn leq3(a1: usize, a2: usize, b1: usize, b2: usize, a3: usize, b3: usize) -> boo
 }
 
 /// Stably sort a[0..n-1] to b[0..n-1] with keys in 0..K from r
+#[allow(non_snake_case)]
 fn radix_pass(a: &[usize], b: &mut [usize], r: &[usize], n: usize, K: usize) {
     // counter array
     let mut c = vec![0_usize; K + 1];
