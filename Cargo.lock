@@ -163,6 +163,10 @@ version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "dc3"
+version = "0.1.0"
+
+[[package]]
 name = "divsufsort"
 version = "0.1.0"
 dependencies = [

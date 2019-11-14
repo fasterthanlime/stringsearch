@@ -3,5 +3,6 @@ members = [
     "crates/divsufsort",
     "crates/cdivsufsort",
     "crates/divsuftest",
+    "crates/dc3",
 ]
 
