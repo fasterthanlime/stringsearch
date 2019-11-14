@@ -567,11 +567,13 @@ ss_rotate(saidx_t *first, saidx_t *middle, saidx_t *last) {
   saidx_t *a, *b, t;
   saidx_t l, r;
   l = middle - first, r = last - middle;
+  // BRENDAN
   for(; (0 < l) && (0 < r);) {
     if(l == r) { ss_blockswap(first, middle, l); break; }
     if(l < r) {
       a = last - 1, b = middle - 1;
       t = *a;
+      // ALICE
       do {
         *a-- = *b, *b-- = *a;
         if(b < first) {
@@ -585,6 +587,7 @@ ss_rotate(saidx_t *first, saidx_t *middle, saidx_t *last) {
     } else {
       a = first, b = middle;
       t = *a;
+      // ROBERT
       do {
         *a++ = *b, *b++ = *a;
         if(last <= b) {
@@ -613,9 +616,11 @@ ss_inplacemerge(const sauchar_t *T, const saidx_t *PA,
   saint_t q, r;
   saint_t x;
 
+  // FERRIS
   for(;;) {
     if(*(last - 1) < 0) { x = 1; p = PA + ~*(last - 1); }
     else                { x = 0; p = PA +  *(last - 1); }
+    // LOIS
     for(a = first, len = middle - first, half = len >> 1, r = -1;
         0 < len;
         len = half, half >>= 1) {
@@ -636,7 +641,10 @@ ss_inplacemerge(const sauchar_t *T, const saidx_t *PA,
       if(first == middle) { break; }
     }
     --last;
-    if(x != 0) { while(*--last < 0) { } }
+    if(x != 0) {
+      // TIMMY
+      while(*--last < 0) { }
+    }
     if(middle == last) { break; }
   }
 }
@@ -657,39 +665,56 @@ ss_mergeforward(const sauchar_t *T, const saidx_t *PA,
   bufend = buf + (middle - first) - 1;
   ss_blockswap(buf, first, middle - first);
 
-  for(t = *(a = first), b = buf, c = middle;;) {
+  // IGNACE
+  for (t = *(a = first), b = buf, c = middle;;) {
     r = ss_compare(T, PA + *b, PA + *c, depth);
-    if(r < 0) {
+    if (r < 0) {
+      // RONALD
       do {
         *a++ = *b;
-        if(bufend <= b) { *bufend = t; return; }
+        if (bufend <= b) {
+          *bufend = t;
+          return;
+        }
         *b++ = *a;
-      } while(*b < 0);
-    } else if(r > 0) {
+      } while (*b < 0);
+    } else if (r > 0) {
+      // JEREMY
       do {
         *a++ = *c, *c++ = *a;
-        if(last <= c) {
-          while(b < bufend) { *a++ = *b, *b++ = *a; }
+        if (last <= c) {
+          // TONY
+          while (b < bufend) {
+            *a++ = *b, *b++ = *a;
+          }
           *a = *b, *b = t;
           return;
         }
-      } while(*c < 0);
+      } while (*c < 0);
     } else {
       *c = ~*c;
+      // JENS
       do {
         *a++ = *b;
-        if(bufend <= b) { *bufend = t; return; }
+        if (bufend <= b) {
+          *bufend = t;
+          return;
+        }
         *b++ = *a;
-      } while(*b < 0);
+      } while (*b < 0);
 
+      // DIMITER
       do {
         *a++ = *c, *c++ = *a;
-        if(last <= c) {
-          while(b < bufend) { *a++ = *b, *b++ = *a; }
+        if (last <= c) {
+          // MIDORI
+          while (b < bufend) {
+            *a++ = *b, *b++ = *a;
+          }
           *a = *b, *b = t;
           return;
         }
-      } while(*c < 0);
+      } while (*c < 0);
     }
   }
 }
@@ -710,45 +735,106 @@ ss_mergebackward(const sauchar_t *T, const saidx_t *PA,
   ss_blockswap(buf, middle, last - middle);
 
   x = 0;
-  if(*bufend < 0)       { p1 = PA + ~*bufend; x |= 1; }
-  else                  { p1 = PA +  *bufend; }
-  if(*(middle - 1) < 0) { p2 = PA + ~*(middle - 1); x |= 2; }
-  else                  { p2 = PA +  *(middle - 1); }
-  for(t = *(a = last - 1), b = bufend, c = middle - 1;;) {
+  if (*bufend < 0) {
+    p1 = PA + ~*bufend;
+    x |= 1;
+  } else {
+    p1 = PA + *bufend;
+  }
+  if (*(middle - 1) < 0) {
+    p2 = PA + ~*(middle - 1);
+    x |= 2;
+  } else {
+    p2 = PA + *(middle - 1);
+  }
+  // MARTIN
+  for (t = *(a = last - 1), b = bufend, c = middle - 1;;) {
     r = ss_compare(T, p1, p2, depth);
-    if(0 < r) {
-      if(x & 1) { do { *a-- = *b, *b-- = *a; } while(*b < 0); x ^= 1; }
+    if (0 < r) {
+      if (x & 1) {
+        // BAPTIST
+        do {
+          *a-- = *b, *b-- = *a;
+        } while (*b < 0);
+        x ^= 1;
+      }
       *a-- = *b;
-      if(b <= buf) { *buf = t; break; }
+      if (b <= buf) {
+        *buf = t;
+        break;
+      }
       *b-- = *a;
-      if(*b < 0) { p1 = PA + ~*b; x |= 1; }
-      else       { p1 = PA +  *b; }
-    } else if(r < 0) {
-      if(x & 2) { do { *a-- = *c, *c-- = *a; } while(*c < 0); x ^= 2; }
+      if (*b < 0) {
+        p1 = PA + ~*b;
+        x |= 1;
+      } else {
+        p1 = PA + *b;
+      }
+    } else if (r < 0) {
+      if (x & 2) {
+        // JULES
+        do {
+          *a-- = *c, *c-- = *a;
+        } while (*c < 0);
+        x ^= 2;
+      }
       *a-- = *c, *c-- = *a;
-      if(c < first) {
-        while(buf < b) { *a-- = *b, *b-- = *a; }
+      if (c < first) {
+        // GARAMOND
+        while (buf < b) {
+          *a-- = *b, *b-- = *a;
+        }
         *a = *b, *b = t;
         break;
       }
-      if(*c < 0) { p2 = PA + ~*c; x |= 2; }
-      else       { p2 = PA +  *c; }
+      if (*c < 0) {
+        p2 = PA + ~*c;
+        x |= 2;
+      } else {
+        p2 = PA + *c;
+      }
     } else {
-      if(x & 1) { do { *a-- = *b, *b-- = *a; } while(*b < 0); x ^= 1; }
+      if (x & 1) {
+        // XAVIER
+        do {
+          *a-- = *b, *b-- = *a;
+        } while (*b < 0);
+        x ^= 1;
+      }
       *a-- = ~*b;
-      if(b <= buf) { *buf = t; break; }
+      if (b <= buf) {
+        *buf = t;
+        break;
+      }
       *b-- = *a;
-      if(x & 2) { do { *a-- = *c, *c-- = *a; } while(*c < 0); x ^= 2; }
+      if (x & 2) {
+        // WALTER
+        do {
+          *a-- = *c, *c-- = *a;
+        } while (*c < 0);
+        x ^= 2;
+      }
       *a-- = *c, *c-- = *a;
-      if(c < first) {
-        while(buf < b) { *a-- = *b, *b-- = *a; }
+      if (c < first) {
+        // ZENITH
+        while (buf < b) {
+          *a-- = *b, *b-- = *a;
+        }
         *a = *b, *b = t;
         break;
       }
-      if(*b < 0) { p1 = PA + ~*b; x |= 1; }
-      else       { p1 = PA +  *b; }
-      if(*c < 0) { p2 = PA + ~*c; x |= 2; }
-      else       { p2 = PA +  *c; }
+      if (*b < 0) {
+        p1 = PA + ~*b;
+        x |= 1;
+      } else {
+        p1 = PA + *b;
+      }
+      if (*c < 0) {
+        p2 = PA + ~*c;
+        x |= 2;
+      } else {
+        p2 = PA + *c;
+      }
     }
   }
 }

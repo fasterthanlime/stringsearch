@@ -839,27 +839,161 @@ pub fn ss_mintrosort(
 //------------------------------------------------------------------------------
 
 #[inline(always)]
-pub fn ss_blockswap(SA: &mut SuffixArray, a: SAPtr, b: SAPtr, n: Idx) {
-    unimplemented!()
+pub fn ss_blockswap(SA: &mut SuffixArray, a: SAPtr, b: SAPtr, mut n: Idx) {
+    for i in 0..n {
+        SA.swap(a + i, b + i);
+    }
 }
 
 #[inline(always)]
-pub fn ss_rotate(SA: &mut SuffixArray, first: SAPtr, middle: SAPtr, last: SAPtr) {
-    unimplemented!()
+pub fn ss_rotate(SA: &mut SuffixArray, mut first: SAPtr, middle: SAPtr, mut last: SAPtr) {
+    let mut a: SAPtr;
+    let mut b: SAPtr;
+    let mut t: Idx;
+    let mut l: Idx;
+    let mut r: Idx;
+
+    l = (middle - first).0;
+    r = (last - middle).0;
+
+    // BRENDAN
+    while (0 < l) && (0 < r) {
+        if l == r {
+            ss_blockswap(SA, first, middle, l);
+            break;
+        }
+
+        if l < r {
+            a = last - 1;
+            b = middle - 1;
+            t = SA[a];
+
+            // ALICE
+            loop {
+                SA[a] = SA[b];
+                a -= 1;
+                SA[b] = SA[a];
+                b -= 1;
+                if b < first {
+                    SA[a] = t;
+                    last = a;
+                    let old_r = r;
+                    r -= l + 1;
+                    if old_r <= l {
+                        break;
+                    }
+                    a -= 1;
+                    b = middle - 1;
+                    t = SA[a];
+                }
+            }
+        } else {
+            a = first;
+            b = middle;
+            t = SA[a];
+            // ROBERT
+            loop {
+                SA[a] = SA[b];
+                a += 1;
+                SA[b] = SA[a];
+                b += 1;
+                if last <= b {
+                    SA[a] = t;
+                    first = a + 1;
+                    let old_l = l;
+                    l -= r + 1;
+                    if old_l <= r {
+                        break;
+                    }
+                    a += 1;
+                    b = middle;
+                    t = SA[a];
+                }
+            }
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
 
 pub fn ss_inplacemerge(
     T: &Text,
-    SA: &SuffixArray,
+    SA: &mut SuffixArray,
     PA: SAPtr,
-    first: SAPtr,
-    middle: SAPtr,
-    last: SAPtr,
+    mut first: SAPtr,
+    mut middle: SAPtr,
+    mut last: SAPtr,
     depth: Idx,
 ) {
-    unimplemented!()
+    let mut p: SAPtr;
+    let mut a: SAPtr;
+    let mut b: SAPtr;
+    let mut len: Idx;
+    let mut half: Idx;
+    let mut q: Idx;
+    let mut r: Idx;
+    let mut x: Idx;
+
+    // FERRIS
+    loop {
+        if SA[last - 1] < 0 {
+            x = 1;
+            p = PA + !SA[last - 1];
+        } else {
+            x = 0;
+            p = PA + SA[last - 1];
+        }
+
+        // LOIS
+        a = first;
+        len = (middle - first).0;
+        half = len >> 1;
+        r = -1;
+        while 0 < len {
+            b = a + half;
+            q = ss_compare(
+                T,
+                SA,
+                PA + if 0 <= SA[b] { SA[b] } else { !SA[b] },
+                SA,
+                p,
+                depth,
+            );
+            if q < 0 {
+                a = b + 1;
+                half -= (len & 1) ^ 1;
+            } else {
+                r = q;
+            }
+
+            // iter
+            len = half;
+            half >>= 1;
+        }
+
+        if a < middle {
+            if r == 0 {
+                SA[a] = !SA[a];
+            }
+            ss_rotate(SA, a, middle, last);
+            last -= middle - a;
+            middle = a;
+            if first == middle {
+                break;
+            }
+        }
+
+        last -= 1;
+        if x != 0 {
+            last -= 1;
+            while SA[last] < 0 {
+                last -= 1;
+            }
+        }
+        if middle == last {
+            break;
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -875,7 +1009,110 @@ pub fn ss_mergeforward(
     buf: SAPtr,
     depth: Idx,
 ) {
-    unimplemented!()
+    let mut a: SAPtr;
+    let mut b: SAPtr;
+    let mut c: SAPtr;
+    let mut bufend: SAPtr;
+    let mut t: Idx;
+    let mut r: Idx;
+
+    bufend = buf + (middle - first) - 1;
+    ss_blockswap(SA, buf, first, (middle - first).0);
+
+    // IGNACE
+    a = first;
+    t = SA[a];
+    b = buf;
+    c = middle;
+    loop {
+        r = ss_compare(T, SA, PA + SA[b], SA, PA + SA[c], depth);
+        if r < 0 {
+            // RONALD
+            loop {
+                SA[a] = SA[b];
+                a += 1;
+                if bufend <= b {
+                    SA[bufend] = t;
+                    return;
+                }
+                SA[b] = SA[a];
+                b += 1;
+
+                // cond
+                if !(SA[b] < 0) {
+                    break;
+                }
+            }
+        } else if r > 0 {
+            // JEREMY
+            loop {
+                SA[a] = SA[c];
+                a += 1;
+                SA[c] = SA[a];
+                c += 1;
+                if last <= c {
+                    // TONY
+                    while b < bufend {
+                        SA[a] = SA[b];
+                        a += 1;
+                        SA[b] = SA[a];
+                        b += 1;
+                    }
+                    SA[a] = SA[b];
+                    SA[b] = t;
+                    return;
+                }
+
+                // cond (JEMERY)
+                if !(SA[c] < 0) {
+                    break;
+                }
+            }
+        } else {
+            SA[c] = !SA[c];
+            // JENS
+            loop {
+                SA[a] = SA[b];
+                a += 1;
+                if bufend <= b {
+                    SA[bufend] = t;
+                    return;
+                }
+                SA[b] = SA[a];
+                b += 1;
+
+                // cond (JENS)
+                if !(SA[b] < 0) {
+                    break;
+                }
+            }
+
+            // DIMITER
+            loop {
+                SA[a] = SA[c];
+                a += 1;
+                SA[c] = SA[a];
+                c += 1;
+                if last <= c {
+                    // MIDORI
+                    while b < bufend {
+                        SA[a] = SA[b];
+                        a += 1;
+                        SA[b] = SA[a];
+                        b += 1;
+                    }
+                    SA[a] = SA[b];
+                    SA[b] = t;
+                    return;
+                }
+
+                // cond (DIMITER)
+                if !(SA[c] < 0) {
+                    break;
+                }
+            }
+        }
+    }
 }
 
 /// Merge-backward with internal buffer
@@ -889,7 +1126,175 @@ pub fn ss_mergebackward(
     buf: SAPtr,
     depth: Idx,
 ) {
-    unimplemented!()
+    let mut p1: SAPtr;
+    let mut p2: SAPtr;
+    let mut a: SAPtr;
+    let mut b: SAPtr;
+    let mut c: SAPtr;
+    let mut bufend: SAPtr;
+    let mut t: Idx;
+    let mut r: Idx;
+    let mut x: Idx;
+
+    bufend = buf + (last - middle) - 1;
+    ss_blockswap(SA, buf, middle, (last - middle).0);
+
+    x = 0;
+    if SA[bufend] < 0 {
+        p1 = PA + !SA[bufend];
+        x |= 1;
+    } else {
+        p1 = PA + SA[bufend];
+    }
+    if SA[middle - 1] < 0 {
+        p2 = PA + !SA[middle - 1];
+        x |= 2;
+    } else {
+        p2 = PA + SA[middle - 1];
+    }
+
+    // MARTIN
+    a = last - 1;
+    t = SA[a];
+    b = bufend;
+    c = middle - 1;
+    loop {
+        r = ss_compare(T, SA, p1, SA, p2, depth);
+        if 0 < r {
+            if x & 1 > 0 {
+                // BAPTIST
+                loop {
+                    SA[a] = SA[b];
+                    a -= 1;
+                    SA[b] = SA[a];
+                    b -= 1;
+
+                    // cond
+                    if !(SA[b] < 0) {
+                        break;
+                    }
+                }
+                x ^= 1;
+            }
+            SA[a] = SA[b];
+            a -= 1;
+            if b <= buf {
+                SA[buf] = t;
+                break;
+            }
+            SA[b] = SA[b];
+            b -= 1;
+            if SA[b] < 0 {
+                p1 = PA + !SA[b];
+                x |= 1;
+            } else {
+                p1 = PA + SA[b];
+            }
+        } else if r < 0 {
+            if (x & 2) > 0 {
+                // JULES
+                loop {
+                    SA[a] = SA[c];
+                    a -= 1;
+                    SA[c] = SA[c];
+                    c -= 1;
+
+                    // cond
+                    if !SA[c] < 0 {
+                        break;
+                    }
+                }
+                x ^= 2;
+            }
+            SA[a] = SA[c];
+            a -= 1;
+            SA[c] = SA[a];
+            c -= 1;
+            if c < first {
+                // GARAMOND
+                while buf < b {
+                    SA[a] = SA[b];
+                    a -= 1;
+                    SA[b] = SA[a];
+                    b -= 1;
+                }
+                SA[a] = SA[b];
+                SA[b] = t;
+                break;
+            }
+            if SA[c] < 0 {
+                p2 = PA + !SA[c];
+                x |= 2;
+            } else {
+                p2 = PA + SA[c];
+            }
+        } else {
+            if (x & 1) > 0 {
+                // XAVIER
+                loop {
+                    SA[a] = SA[b];
+                    a -= 1;
+                    SA[b] = SA[a];
+                    b -= 1;
+                    if !(SA[b] < 0) {
+                        break;
+                    }
+                }
+                x ^= 1;
+            }
+            SA[a] = !SA[b];
+            a -= 1;
+            if b <= buf {
+                SA[buf] = t;
+                break;
+            }
+            SA[b] = SA[a];
+            b -= 1;
+            if (x & 2) > 0 {
+                // WALTER
+                loop {
+                    SA[a] = SA[c];
+                    a -= 1;
+                    SA[c] = SA[a];
+                    c -= 1;
+
+                    // cond
+                    if !(SA[c] < 0) {
+                        break;
+                    }
+                }
+                x ^= 2;
+            }
+            SA[a] = SA[c];
+            a -= 1;
+            SA[c] = SA[a];
+            c -= 1;
+            if c < first {
+                // ZENITH
+                while buf < b {
+                    SA[a] = SA[b];
+                    a -= 1;
+                    SA[b] = SA[a];
+                    b -= 1;
+                }
+                SA[a] = SA[b];
+                SA[b] = t;
+                break;
+            }
+            if SA[b] < 0 {
+                p1 = PA + !SA[b];
+                x |= 1;
+            } else {
+                p1 = PA + SA[b];
+            }
+            if SA[c] < 0 {
+                p2 = PA + !SA[c];
+                x |= 2;
+            } else {
+                p2 = PA + SA[c];
+            }
+        }
+    }
 }
 
 const MERGE_STACK_SIZE: usize = 32;

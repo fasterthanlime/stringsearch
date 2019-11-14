@@ -220,6 +220,13 @@ impl SubAssign<Idx> for SAPtr {
     }
 }
 
+impl SubAssign<Self> for SAPtr {
+    #[inline(always)]
+    fn sub_assign(&mut self, rhs: Self) {
+        self.0 -= rhs.0
+    }
+}
+
 impl PartialEq<Idx> for SAPtr {
     #[inline(always)]
     fn eq(&self, other: &Idx) -> bool {
