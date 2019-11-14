@@ -363,12 +363,8 @@ static void ss_mintrosort(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
   saint_t limit;
   saint_t v, x = 0;
 
-  crosscheck("mintrosort first=%d last=%d depth=%d", first - PA, last - PA,
-             depth);
-
   // RENEE
   for (ssize = 0, limit = ss_ilg(last - first);;) {
-    crosscheck("renee limit=%d", limit);
     if ((last - first) <= SS_INSERTIONSORT_THRESHOLD) {
 #if 1 < SS_INSERTIONSORT_THRESHOLD
       if (1 < (last - first)) {
@@ -376,7 +372,6 @@ static void ss_mintrosort(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
       }
 #endif
       STACK_POP(first, last, depth, limit);
-      crosscheck("renee1 continue");
       continue;
     }
 
@@ -386,7 +381,6 @@ static void ss_mintrosort(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
       ss_heapsort(Td, PA, first, last - first);
       SA_dump(first, 0, last - first, "after heapsort");
     }
-    crosscheck("heapsort-adjacent limit=%d", limit);
 
     if (limit < 0) {
       // DAVE
@@ -403,33 +397,26 @@ static void ss_mintrosort(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
         first = ss_partition(PA, first, a, depth);
       }
       if ((a - first) <= (last - a)) {
-        crosscheck("star");
         if (1 < (a - first)) {
-          crosscheck("give");
           STACK_PUSH(a, last, depth, -1);
           last = a;
           depth += 1;
           limit = ss_ilg(a - first);
         } else {
-          crosscheck("take");
           first = a;
           limit = -1;
         }
       } else {
-        crosscheck("bard");
         if (1 < (last - a)) {
-          crosscheck("mage");
           STACK_PUSH(first, a, depth + 1, ss_ilg(a - first));
           first = a;
           limit = -1;
         } else {
-          crosscheck("rend");
           last = a;
           depth += 1;
           limit = ss_ilg(a - first);
         }
       }
-      crosscheck("renee neg-limit continue");
       continue;
     }
 
@@ -483,7 +470,6 @@ static void ss_mintrosort(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
     }
 
     if (a <= d) {
-      crosscheck("post-juliet a <= d");
       c = b - 1;
 
       if ((s = a - first) > (t = b - a)) {
@@ -510,7 +496,6 @@ static void ss_mintrosort(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
       } else {
         b = ss_partition(PA, a, c, depth);
       }
-      crosscheck("chose b=%d", b - PA);
 
       if ((a - first) <= (last - c)) {
         if ((last - c) <= (c - b)) {
@@ -542,10 +527,8 @@ static void ss_mintrosort(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
         }
       }
     } else {
-      crosscheck("a > d");
       limit += 1;
       if (Td[PA[*first] - 1] < v) {
-        crosscheck("a > d :: partition/ilg");
         first = ss_partition(PA, first, last, depth);
         limit = ss_ilg(last - first);
       }

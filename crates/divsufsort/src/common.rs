@@ -29,7 +29,7 @@ impl<'a> Index<Idx> for Text<'a> {
 impl<'a> Text<'a> {
     #[inline(always)]
     pub fn get(&self, i: Idx) -> Idx {
-        assert!(i >= 0, "assert violated: {} >= 0", i);
+        debug_assert!(i >= 0, "assert violated: {} >= 0", i);
         self.0[i as usize] as Idx
     }
 
@@ -69,6 +69,7 @@ impl<'a> Index<Idx> for SuffixArray<'a> {
     type Output = Idx;
 
     fn index(&self, index: Idx) -> &Self::Output {
+        debug_assert!(index >= 0, "assert violated: {} >= 0", index);
         &self.0[index as usize]
     }
 }
@@ -83,6 +84,7 @@ impl<'a> Index<SAPtr> for SuffixArray<'a> {
     type Output = Idx;
 
     fn index(&self, index: SAPtr) -> &Self::Output {
+        debug_assert!(index.0 >= 0, "assert violated: {} >= 0", index);
         &self.0[index.0 as usize]
     }
 }
