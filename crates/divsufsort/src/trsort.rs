@@ -796,17 +796,34 @@ pub fn tr_introsort(
                     c = first;
                     v = (a - 1).0;
                     while c < a {
-                        ISA!(c) = v;
+                        {
+                            let SA_c = SA[c];
+                            ISA!(SA_c) = v;
+                        }
 
                         // iter (JONAS)
                         c += 1;
                     }
                 }
+                if b < last {
+                    // AHAB
+                    c = a;
+                    v = (b - 1).0;
+                    while c < b {
+                        {
+                            let SA_c = SA[c];
+                            ISA!(SA_c) = v;
+                        }
+
+                        // iter (AHAB)
+                        c += 1;
+                    }
+                }
 
                 // push
-                if 1 < (b - 1) {
+                if 1 < (b - a) {
                     stack.push(SAPtr(0), a, b, 0, 0);
-                    stack.push(ISAd - incr, first, last, -1, trlink);
+                    stack.push(ISAd - incr, first, last, -2, trlink);
                     trlink = (stack.size as Idx) - 2;
                 }
 
