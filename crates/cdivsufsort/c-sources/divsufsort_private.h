@@ -153,10 +153,10 @@ extern FILE *CROSSCHECK_FILE;
       fprintf(CROSSCHECK_FILE, "\n"); \
     } while (0)
 
-#define SA_dump(SA, start, end, label) \
+#define SA_dump(SA, start, len, label) \
   do { \
     fprintf(CROSSCHECK_FILE, ":: %s\n", label); \
-    for (int z = 0; z < end; z++) { \
+    for (int z = 0; z < len; z++) { \
       fprintf(CROSSCHECK_FILE, "%d ", SA[start+z]); \
       if ((z+1)%25==0) { \
         fprintf(CROSSCHECK_FILE, "\n"); \
@@ -206,7 +206,7 @@ extern FILE *CROSSCHECK_FILE;
 #else
 
 #define crosscheck(...) 
-#define SA_dump(SA, start, end, label) 
+#define SA_dump(SA, start, len, label) 
 #define A_dump(A, label) 
 #define BSTAR_dump(label)
 

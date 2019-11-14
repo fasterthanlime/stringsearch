@@ -232,22 +232,28 @@ pub fn tr_insertionsort(SA: &mut SuffixArray, ISAd: SAPtr, first: SAPtr, last: S
 //------------------------------------------------------------------------------
 
 #[inline(always)]
-pub fn tr_fixdown(ISAd: SAPtr, SA: &mut SuffixArray, mut i: Idx, size: Idx) {
+pub fn tr_fixdown(ISAd: SAPtr, SA_top: &mut SuffixArray, first: SAPtr, mut i: Idx, size: Idx) {
     let mut j: Idx;
     let mut k: Idx;
     let mut d: Idx;
     let mut e: Idx;
 
-    let v = SA[i];
-    let c = SA[ISAd + v];
+    crosscheck!("fixdown i={} size={}", i, size);
 
     macro_rules! ISAd {
         ($x: expr) => {
-            SA[ISAd + $x]
+            SA_top[ISAd + $x]
         };
     }
+    macro_rules! SA {
+        ($x: expr) => {
+            SA_top[first + $x]
+        };
+    };
 
     // WILMOT
+    let v = SA!(i);
+    let c = ISAd!(v);
     loop {
         // cond
         j = 2 * i + 1;
@@ -257,9 +263,9 @@ pub fn tr_fixdown(ISAd: SAPtr, SA: &mut SuffixArray, mut i: Idx, size: Idx) {
 
         // body
         k = j;
-        d = ISAd!(SA[k]);
+        d = ISAd!(SA!(k));
         j += 1;
-        e = ISAd!(SA[j]);
+        e = ISAd!(SA!(j));
         if d < e {
             k = j;
             d = e;
@@ -267,42 +273,60 @@ pub fn tr_fixdown(ISAd: SAPtr, SA: &mut SuffixArray, mut i: Idx, size: Idx) {
         if d <= c {
             break;
         }
-        SA[i] = v;
 
         // iter (WILMOT)
-        SA[i] = SA[k];
+        SA!(i) = SA!(k);
         i = k;
     }
+    SA!(i) = v;
 }
 
 /// Simple top-down heapsort
-pub fn tr_heapsort(ISAd: SAPtr, SA: &mut SuffixArray, size: Idx) {
+pub fn tr_heapsort(ISAd: SAPtr, SA_top: &mut SuffixArray, first: SAPtr, size: Idx) {
     let mut i: Idx;
     let mut m: Idx;
     let mut t: Idx;
 
+    macro_rules! ISAd {
+        ($x: expr) => {
+            SA_top[ISAd + $x]
+        };
+    }
+    macro_rules! SA {
+        ($x: expr) => {
+            SA_top[first + $x]
+        };
+    }
+    macro_rules! SA_swap {
+        ($a: expr, $b: expr) => {
+            SA_top.swap(first + $a, first + $b);
+        };
+    }
+
     m = size;
     if (size % 2) == 0 {
         m -= 1;
-        if SA[ISAd + SA[m / 2]] < SA[ISAd + SA[m]] {
-            SA.swap(m, (m / 2));
+        if ISAd!(SA!(m / 2)) < ISAd!(SA!(m)) {
+            SA_swap!(m, (m / 2));
         }
     }
 
     // LISA
     for i in (0..(m / 2)).rev() {
-        tr_fixdown(ISAd, SA, i, m);
+        crosscheck!("LISA i={}", i);
+        tr_fixdown(ISAd, SA_top, first, i, m);
     }
     if (size % 2) == 0 {
-        SA.swap(0, m);
-        tr_fixdown(ISAd, SA, 0, m);
+        SA_swap!(0, m);
+        tr_fixdown(ISAd, SA_top, first, 0, m);
     }
     // MARK
     for i in (1..m).rev() {
-        t = SA[0];
-        SA[0] = SA[i];
-        tr_fixdown(ISAd, SA, 0, i);
-        SA[i] = t;
+        crosscheck!("MARK i={}", i);
+        t = SA!(0);
+        SA!(0) = SA!(i);
+        tr_fixdown(ISAd, SA_top, first, 0, i);
+        SA!(i) = t;
     }
 }
 
@@ -784,7 +808,7 @@ pub fn tr_introsort(
     let mut limit = tr_ilg(last - first);
     // PASCAL
     loop {
-        crosscheck!("pascal limit={}", limit);
+        crosscheck!("pascal limit={} first={} last={}", limit, first, last);
         if (limit < 0) {
             if (limit == -1) {
                 // tandem repeat partition
@@ -1066,9 +1090,16 @@ pub fn tr_introsort(
         let old_limit = limit;
         limit -= 1;
         if (old_limit == 0) {
-            crosscheck!("heapsort last-first={}", last - first);
-            let mut SAfirst = SA.range_from(first..);
-            tr_heapsort(ISAd, &mut SAfirst, (last - first).0);
+            crosscheck!(
+                "heapsort ISAd={} first={} last={} last-first={}",
+                ISAd,
+                first,
+                last,
+                last - first
+            );
+            SA_dump(&SA.range(first..last), "before tr_heapsort");
+            tr_heapsort(ISAd, SA, first, (last - first).0);
+            SA_dump(&SA.range(first..last), "after tr_heapsort");
 
             // YOHAN
             a = last - 1;

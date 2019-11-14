@@ -106,6 +106,8 @@ static INLINE void tr_fixdown(const saidx_t *ISAd, saidx_t *SA, saidx_t i,
   saidx_t v;
   saidx_t c, d, e;
 
+  crosscheck("fixdown i=%d size=%d", i, size);
+
   // WILMOT
   for (v = SA[i], c = ISAd[v]; (j = 2 * i + 1) < size; SA[i] = SA[k], i = k) {
     d = ISAd[SA[k = j++]];
@@ -135,6 +137,7 @@ static void tr_heapsort(const saidx_t *ISAd, saidx_t *SA, saidx_t size) {
 
   // LISA
   for (i = m / 2 - 1; 0 <= i; --i) {
+    crosscheck("LISA i=%d", i);
     tr_fixdown(ISAd, SA, i, m);
   }
   if ((size % 2) == 0) {
@@ -143,6 +146,7 @@ static void tr_heapsort(const saidx_t *ISAd, saidx_t *SA, saidx_t size) {
   }
   // MARK
   for (i = m - 1; 0 < i; --i) {
+    crosscheck("MARK i=%d", i);
     t = SA[0], SA[0] = SA[i];
     tr_fixdown(ISAd, SA, 0, i);
     SA[i] = t;
@@ -416,7 +420,7 @@ static void tr_introsort(saidx_t *ISA, const saidx_t *ISAd, saidx_t *SA,
 
   // PASCAL
   for (ssize = 0, limit = tr_ilg(last - first);;) {
-    crosscheck("pascal limit=%d", limit);
+    crosscheck("pascal limit=%d first=%d last=%d", limit, first-SA, last-SA);
     if (limit < 0) {
       if (limit == -1) {
         /* tandem repeat partition */
@@ -572,8 +576,11 @@ static void tr_introsort(saidx_t *ISA, const saidx_t *ISAd, saidx_t *SA,
     }
 
     if (limit-- == 0) {
-      crosscheck("heapsort last-first=%d", last-first);
+      crosscheck("heapsort ISAd=%d first=%d last=%d last-first=%d", ISAd - SA,
+                 first - SA, last - SA, last - first);
+      SA_dump(SA, first-SA, last-first, "before tr_heapsort")
       tr_heapsort(ISAd, first, last - first);
+      SA_dump(SA, first-SA, last-first, "after tr_heapsort")
 
       // YOHAN
       for (a = last - 1; first < a; a = b) {
