@@ -18,7 +18,7 @@ pub use common::Idx;
 mod tests {
     #[test]
     fn fuzz1() {
-        sort(b"\xfd\xfe\xfd\xff\xfd\xff\xfd\xff\xfd\xff&\xff\xfd\xff\xfd\xff\xff");
+        sort(include_bytes!("./testdata/fuzz1"));
     }
 
     #[test]
