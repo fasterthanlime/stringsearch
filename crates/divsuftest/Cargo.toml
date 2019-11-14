@@ -4,9 +4,12 @@ version = "0.1.0"
 authors = ["Amos Wenger <amoswenger@gmail.com>"]
 edition = "2018"
 
+[features]
+crosscheck = ["divsufsort/crosscheck", "cdivsufsort/crosscheck"]
+
 [dependencies]
-divsufsort = { path = "../divsufsort", features = ["crosscheck"] }
-cdivsufsort = { path = "../cdivsufsort", features = ["crosscheck"] }
+divsufsort = { path = "../divsufsort" }
+cdivsufsort = { path = "../cdivsufsort" }
 suffix_array = "0.4.0"
 better-panic = "0.2.0"
 size_format = "1.0.2"
