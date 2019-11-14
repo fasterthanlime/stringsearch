@@ -196,7 +196,7 @@ pub fn tr_insertionsort(SA: &mut SuffixArray, ISAd: SAPtr, first: SAPtr, last: S
         t = SA[a];
         b = a - 1;
         loop {
-            // cond
+            // cond (JEZEBEL)
             r = ISAd!(t) - ISAd!(SA[b]);
             if !(0 > r) {
                 break;
@@ -206,14 +206,14 @@ pub fn tr_insertionsort(SA: &mut SuffixArray, ISAd: SAPtr, first: SAPtr, last: S
             loop {
                 SA[b + 1] = SA[b];
 
-                // cond
+                // cond (LILITH)
                 b -= 1;
                 if !((first <= b) && (SA[b] < 0)) {
                     break;
                 }
             }
 
-            // body
+            // body (JEZEBEL)
             if b < first {
                 break;
             }
@@ -241,6 +241,13 @@ pub fn tr_fixdown(ISAd: SAPtr, SA: &mut SuffixArray, mut i: Idx, size: Idx) {
     let v = SA[i];
     let c = SA[ISAd + v];
 
+    macro_rules! ISAd {
+        ($x: expr) => {
+            SA[ISAd + $x]
+        };
+    }
+
+    // WILMOT
     loop {
         // cond
         j = 2 * i + 1;
@@ -250,9 +257,9 @@ pub fn tr_fixdown(ISAd: SAPtr, SA: &mut SuffixArray, mut i: Idx, size: Idx) {
 
         // body
         k = j;
-        d = SA[ISAd + SA[k]];
+        d = ISAd!(SA[k]);
         j += 1;
-        e = SA[ISAd + SA[j]];
+        e = ISAd!(SA[j]);
         if d < e {
             k = j;
             d = e;
@@ -262,7 +269,7 @@ pub fn tr_fixdown(ISAd: SAPtr, SA: &mut SuffixArray, mut i: Idx, size: Idx) {
         }
         SA[i] = v;
 
-        // iter
+        // iter (WILMOT)
         SA[i] = SA[k];
         i = k;
     }
@@ -282,6 +289,7 @@ pub fn tr_heapsort(ISAd: SAPtr, SA: &mut SuffixArray, size: Idx) {
         }
     }
 
+    // LISA
     for i in (0..(m / 2)).rev() {
         tr_fixdown(ISAd, SA, i, m);
     }
@@ -289,6 +297,7 @@ pub fn tr_heapsort(ISAd: SAPtr, SA: &mut SuffixArray, size: Idx) {
         SA.swap(0, m);
         tr_fixdown(ISAd, SA, 0, m);
     }
+    // MARK
     for i in (1..m).rev() {
         t = SA[0];
         SA[0] = SA[i];
@@ -661,6 +670,12 @@ pub fn tr_partialcopy(
     let mut lastrank: Idx;
     let mut newrank: Idx = -1;
 
+    macro_rules! ISA {
+        ($x: expr) => {
+            SA[ISA + $x]
+        };
+    }
+
     v = (b - 1).0;
     lastrank = -1;
     // JETHRO
@@ -668,19 +683,39 @@ pub fn tr_partialcopy(
     d = a - 1;
     while c <= d {
         s = SA[c] - depth;
-        if (0 <= s) && (SA[ISA + s] == v) {
+        if (0 <= s) && (ISA!(s) == v) {
             d += 1;
             SA[d] = s;
-            rank = SA[ISA + s + depth];
+            rank = ISA!(s + depth);
             if lastrank != rank {
                 lastrank = rank;
                 newrank = d.0;
             }
-            SA[ISA + s] = newrank;
+            ISA!(s) = newrank;
         }
 
         // iter (JETHRO)
         c += 1;
+    }
+
+    lastrank = -1;
+    // SCROOGE
+    e = d;
+    while first <= e {
+        rank = ISA![SA[e]];
+        if lastrank != rank {
+            lastrank = rank;
+            newrank = e.0;
+        }
+        if newrank != rank {
+            {
+                let SA_e = SA[e];
+                ISA!(SA_e) = newrank;
+            }
+        }
+
+        // iter (SCROOGE)
+        e -= 1;
     }
 
     lastrank = -1;
@@ -690,15 +725,15 @@ pub fn tr_partialcopy(
     d = b;
     while e < d {
         s = SA[c] - depth;
-        if (0 <= s) && (SA[ISA + s] == v) {
+        if (0 <= s) && (ISA!(s) == v) {
             d -= 1;
             SA[d] = s;
-            rank = SA[ISA + s + depth];
+            rank = ISA!(s + depth);
             if lastrank != rank {
                 lastrank = rank;
                 newrank = d.0;
             }
-            SA[ISA + s] = newrank;
+            ISA!(s) = newrank;
         }
 
         // iter (DEWEY)
@@ -714,7 +749,7 @@ pub fn tr_introsort(
     mut last: SAPtr,
     budget: &mut Budget,
 ) {
-    let mut a: SAPtr;
+    let mut a: SAPtr = SAPtr(0);
     let mut b: SAPtr = SAPtr(0);
     let mut c: SAPtr;
     let mut t: Idx;
@@ -727,15 +762,108 @@ pub fn tr_introsort(
 
     let mut stack = Stack::new();
 
+    macro_rules! ISA {
+        ($x: expr) => {
+            SA[ISA + $x]
+        };
+    }
+    macro_rules! ISAd {
+        ($x: expr) => {
+            SA[ISAd + $x]
+        };
+    }
+
     let mut limit = tr_ilg(last - first);
     // PASCAL
     loop {
         if (limit < 0) {
             if (limit == -1) {
-                unimplemented!()
+                // tandem repeat partition
+                tr_partition(
+                    SA,
+                    ISAd - incr,
+                    first,
+                    first,
+                    last,
+                    &mut a,
+                    &mut b,
+                    (last - 1).0,
+                );
+
+                // update ranks
+                if a < last {
+                    // JONAS
+                    c = first;
+                    v = (a - 1).0;
+                    while c < a {
+                        ISA!(c) = v;
+
+                        // iter (JONAS)
+                        c += 1;
+                    }
+                }
+
+                // push
+                if 1 < (b - 1) {
+                    stack.push(SAPtr(0), a, b, 0, 0);
+                    stack.push(ISAd - incr, first, last, -1, trlink);
+                    trlink = (stack.size as Idx) - 2;
+                }
+
+                if (a - first) <= (last - b) {
+                    if 1 < (a - first) {
+                        stack.push(ISAd, b, last, tr_ilg(last - b), trlink);
+                        last = a;
+                        limit = tr_ilg(a - first);
+                    } else if 1 < (last - b) {
+                        first = b;
+                        limit = tr_ilg(last - b);
+                    } else {
+                        if !stack
+                            .pop(&mut ISAd, &mut first, &mut last, &mut limit, &mut trlink)
+                            .is_ok()
+                        {
+                            return;
+                        }
+                    }
+                } else {
+                    if 1 < (last - b) {
+                        stack.push(ISAd, first, a, tr_ilg(a - first), trlink);
+                        first = b;
+                        limit = tr_ilg(last - b);
+                    } else if 1 < (a - first) {
+                        last = a;
+                        limit = tr_ilg(a - first);
+                    } else {
+                        if !stack
+                            .pop(&mut ISAd, &mut first, &mut last, &mut limit, &mut trlink)
+                            .is_ok()
+                        {
+                            return;
+                        }
+                    }
+                }
             } else if (limit == -2) {
                 // end if limit == -1
-                unimplemented!()
+
+                // tandem repeat copy
+                stack.size -= 1;
+                a = stack.items[stack.size].b;
+                b = stack.items[stack.size].c;
+                if stack.items[stack.size].d == 0 {
+                    tr_copy(ISA, SA, first, a, b, last, (ISAd - ISA).0);
+                } else {
+                    if 0 <= trlink {
+                        stack.items[trlink as usize].d = -1;
+                    }
+                    tr_partialcopy(ISA, SA, first, a, b, last, (ISAd - ISA).0);
+                }
+                if !stack
+                    .pop(&mut ISAd, &mut first, &mut last, &mut limit, &mut trlink)
+                    .is_ok()
+                {
+                    return;
+                }
             } else {
                 // end if limit == -2
 
@@ -746,7 +874,7 @@ pub fn tr_introsort(
                     loop {
                         {
                             let SA_a = SA[a];
-                            SA[ISA + SA_a] = a.0;
+                            ISA!(SA_a) = a.0;
                         }
 
                         // cond (GEMINI)
@@ -770,7 +898,7 @@ pub fn tr_introsort(
                         }
                     }
 
-                    next = if SA[ISA + SA[a]] != SA[ISAd + SA[a]] {
+                    next = if ISA!(SA[a]) != ISAd!(SA[a]) {
                         tr_ilg(a - first + 1)
                     } else {
                         -1
@@ -780,17 +908,17 @@ pub fn tr_introsort(
                         // CLEMENTINE
                         b = first;
                         v = (a - 1).0;
-                        while b < 1 {
+                        while b < a {
                             {
                                 let SA_b = SA[b];
-                                SA[ISA + SA_b] = v;
+                                ISA!(SA_b) = v;
                             }
                             b += 1;
                         }
                     }
 
                     // push
-                    if (budget.check((last - first).0)) {
+                    if (budget.check((a - first).0)) {
                         if (a - first) <= (last - a) {
                             stack.push(ISAd, a, last, -3, trlink);
                             ISAd += incr;
@@ -851,9 +979,9 @@ pub fn tr_introsort(
             a = last - 1;
             while first < a {
                 // VINCENT
-                x = SA[ISAd + SA[a]];
+                x = ISAd!(SA[a]);
                 b = a - 1;
-                while (first <= b) && (SA[ISAd + SA[b]]) == x {
+                while (first <= b) && (ISAd!(SA[b])) == x {
                     SA[b] = !SA[b];
 
                     // iter (VINCENT)
@@ -870,16 +998,12 @@ pub fn tr_introsort(
         // choose pivot
         a = tr_pivot(SA, ISAd, first, last);
         SA.swap(first, a);
-        v = SA[ISAd + SA[first]];
+        v = ISAd!(SA[first]);
 
         // partition
         tr_partition(SA, ISAd, first, first + 1, last, &mut a, &mut b, v);
         if (last - first) != (b - a) {
-            next = if SA[ISA + SA[a]] != v {
-                tr_ilg(b - a)
-            } else {
-                -1
-            };
+            next = if ISAd!(SA[a]) != v { tr_ilg(b - a) } else { -1 };
 
             // update ranks
             // NOLWENN
@@ -888,7 +1012,7 @@ pub fn tr_introsort(
             while c < a {
                 {
                     let SAc = SA[c];
-                    SA[ISA + SAc] = v;
+                    ISA!(SAc) = v;
                 }
                 c += 1;
             }
@@ -899,7 +1023,7 @@ pub fn tr_introsort(
                 while c < b {
                     {
                         let SAc = SA[c];
-                        SA[ISA + SAc] = v;
+                        ISA!(SAc) = v;
                     }
                     c += 1;
                 }
@@ -1047,6 +1171,13 @@ pub fn trsort(ISA: SAPtr, SA: &mut SuffixArray, n: Idx, depth: Idx) {
     let mut unsorted: Idx;
     let mut budget = Budget::new(tr_ilg(n) * 2 / 3, n);
 
+    macro_rules! ISA {
+        ($x: expr) => {
+            SA[ISA + $x]
+        };
+    }
+
+    // JERRY
     ISAd = ISA + depth;
     while (-n < SA[0]) {
         first = SAPtr(0);
@@ -1064,7 +1195,7 @@ pub fn trsort(ISA: SAPtr, SA: &mut SuffixArray, n: Idx, depth: Idx) {
                     SA[first + skip] = skip;
                     skip = 0;
                 }
-                last = SAPtr(SA[ISA + t] + 1);
+                last = SAPtr(ISA!(t) + 1);
                 if (1 < (last - first)) {
                     budget.count = 0;
                     tr_introsort(ISA, ISAd, SA, first, last, &mut budget);
@@ -1079,7 +1210,7 @@ pub fn trsort(ISA: SAPtr, SA: &mut SuffixArray, n: Idx, depth: Idx) {
                 first = last;
             }
 
-            // cond for do..while
+            // cond (PETER)
             if !(first < n) {
                 break;
             }

@@ -95,9 +95,6 @@ DIVSUFSORT_API
 const char *
 divsufsort_version(void);
 
-DIVSUFSORT_API
-saidx_t exported_ss_isqrt(saidx_t x);
-
 
 /**
  * Constructs the burrows-wheeler transformed string of a given string and suffix array.

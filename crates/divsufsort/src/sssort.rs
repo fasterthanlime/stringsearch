@@ -1620,8 +1620,6 @@ pub fn sssort(
         first += 1;
     }
 
-    // 🎃
-
     limit = ss_isqrt(last - first);
     if ((bufsize < SS_BLOCKSIZE) && (bufsize < (last - first)) && (bufsize < limit)) {
         if (SS_BLOCKSIZE < limit) {
@@ -1635,8 +1633,7 @@ pub fn sssort(
         limit = 0;
     }
 
-    // ☕
-
+    // ESPRESSO
     a = first;
     i = 0;
     while SS_BLOCKSIZE < (middle - a) {
@@ -1649,6 +1646,7 @@ pub fn sssort(
             curbuf = buf;
         }
 
+        // FRESCO
         b = a;
         k = SS_BLOCKSIZE;
         j = i;
@@ -1668,8 +1666,7 @@ pub fn sssort(
 
     ss_mintrosort(T, SA, PA, a, middle, depth);
 
-    // 😈
-
+    // MARIACHI
     k = SS_BLOCKSIZE;
     while i != 0 {
         if (i & 1) > 0 {
