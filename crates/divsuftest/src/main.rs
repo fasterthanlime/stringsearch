@@ -1,128 +1,168 @@
 use size_format::SizeFormatterBinary;
-use std::time::Instant;
+use std::{env, process};
 
 fn main() {
     better_panic::install();
 
-    #[cfg(feature = "crosscheck")]
-    {
-        println!("Cross-checking enabled");
-        std::fs::create_dir_all("crosscheck").unwrap();
+    let all_args: Vec<String> = env::args().collect();
+    let args = &all_args[1..];
+
+    if args.len() == 0 {
+        println!("Usage: divsuftest bench|crosscheck INPUT [LENGTH]");
+        process::exit(1);
     }
 
-    let first_arg = std::env::args().nth(1).unwrap_or_else(|| {
-        std::path::PathBuf::from("testdata")
-            .join("input")
-            .to_string_lossy()
-            .into()
-    });
-    let orig_input = std::fs::read(first_arg).unwrap();
-    let maxlen: usize = std::env::args()
-        .nth(2)
-        .map(|x| x.parse().unwrap())
-        .unwrap_or_else(|| orig_input.len());
-    let input = &orig_input[..maxlen];
+    let (cmd, args) = (&args[0], &args[1..]);
+
+    let input_path = args.get(0).expect("INPUT argument expected");
+    let input_full = std::fs::read(input_path).unwrap();
+    let len = args
+        .get(1)
+        .map(parse_size)
+        .unwrap_or_else(|| input_full.len());
+    let input = &input_full[..len];
     println!(
-        "{:>20} {}B",
-        "Input size",
-        SizeFormatterBinary::new(maxlen as u64)
+        "Input is size {}B",
+        SizeFormatterBinary::new(input.len() as u64)
     );
 
-    println!("{:>20} Running", "wavelet");
-    let wavelet_duration = {
-        let (before, eighties, after) = unsafe { input.align_to::<u64>() };
-        println!(
-            "original {:10} split {:10} {:10} {:10}",
-            input.len(),
-            before.len(),
-            eighties.len(),
-            after.len()
-        );
-
-        let before_wavelet = Instant::now();
-        let wm = wavelet_matrix::WaveletMatrix::new(eighties);
-        let res = before_wavelet.elapsed();
-
-        {
-            let needle = "call (netbsd-amd64-cgo), const ENOSYS = 78
-pkg syscall (netbsd-amd64-cgo), const ENOTBLK = 15
-pkg syscall (netbs";
-            let needle = needle;
-            let needle_bytes = needle.as_bytes();
-            let (_, needle_eighties, _) = unsafe { needle_bytes.align_to::<u64>() };
-
-            let mut range = 0..eighties.len();
-            let mut lastoffset = 0;
-            for &c in needle_eighties {
-                let offset = wm.search_prefix(range.clone(), c, 0).next().unwrap();
-                range = offset..eighties.len();
+    match cmd.as_ref() {
+        "crosscheck" => {
+            #[cfg(not(feature = "crosscheck"))]
+            {
                 println!(
-                    "offset = {:x} ({:x}) text = {:?}",
-                    offset * 8,
-                    offset - lastoffset,
-                    std::str::from_utf8(&input[offset * 8..(offset + 1) * 8])
+                    "Error: This version of divsuftest wasn't built with crosscheck enabled :("
                 );
-                lastoffset = offset;
+                println!("Bailing out.");
+                process::exit(1);
             }
+
+            #[cfg(feature = "crosscheck")]
+            command_crosscheck(input);
         }
-        res
-    };
+        "bench" => command_bench(input),
+        x => panic!("unknown command {:?}", x),
+    }
+}
 
-    println!("{:>20} Running", "c");
+#[cfg(feature = "crosscheck")]
+fn command_crosscheck(input: &[u8]) {
+    println!("Cross-checking!");
+    std::fs::create_dir_all("crosscheck").unwrap();
 
-    let before_c = Instant::now();
-    let c_duration;
-
-    unsafe {
-        let mut sa = vec![0_i32; input.len()];
-        cdivsufsort::divsufsort(input.as_ptr(), sa.as_mut_ptr(), input.len() as i32);
-        c_duration = before_c.elapsed();
-        cdivsufsort::dss_flush();
-        check_order(|i| sa[i], input);
+    {
+        println!("Running C version...");
+        let sa = cdivsufsort::sort(input);
+        unsafe {
+            cdivsufsort::dss_flush();
+        }
+        println!("Verifying C result...");
+        sa.verify().expect("cdivsufsort should sort all suffixes");
     }
 
-    let rust_duration = {
+    {
         let res = std::panic::catch_unwind(|| {
-            println!("{:>20} Running...", "rust");
-            let mut sa = vec![0 as divsufsort::Idx; input.len()];
-            let before_rust = Instant::now();
-
+            println!("Running Rust version...");
             std::thread::spawn(|| loop {
                 std::thread::sleep(std::time::Duration::from_millis(500));
                 divsufsort::crosscheck::flush();
             });
 
-            divsufsort::divsufsort(&input[..], &mut sa[..]);
-            let rust_duration = before_rust.elapsed();
-            check_order(|i| sa[i], input);
-            rust_duration
+            let sa = divsufsort::sort(input);
+
+            println!("Verifying Rust result...");
+            sa.verify().expect("cdivsufsort should sort all suffixes");
         });
         divsufsort::crosscheck::flush();
         res.unwrap()
     };
-
-    let huc_duration = {
-        println!("{:>20} Running...", "rust-ref");
-        let before_huc = Instant::now();
-        let sa = suffix_array::SuffixArray::new(&input[..]);
-        let (_, sa) = sa.into_parts();
-        let sa = &sa[1..];
-        check_order(|i| sa[i] as i32, input);
-        before_huc.elapsed()
-    };
-
-    let s0 = format!("wavelet {:?}", wavelet_duration);
-    let s1 = format!("c {:?}", c_duration);
-    let s2 = format!("rust {:?}", rust_duration);
-    let s3 = format!("rust-ref {:?}", huc_duration);
-    println!("{:20} {:20} {:20} {:20}", s0, s1, s2, s3);
 }
 
-fn check_order<SA: Fn(usize) -> i32>(sa: SA, input: &[u8]) {
-    for i in 0..(input.len() - 1) {
-        assert!(
-            input[sa(i) as usize..] < input[sa(i + 1) as usize..],
-            "suffixes should be ordered"
-        );
+fn command_bench(input: &[u8]) {
+    #[cfg(debug_assertions)]
+    {
+        println!("==========================================");
+        println!("Warning: benchmarking with a debug build.");
+        println!("This will be slow..");
+        println!("==========================================");
     }
+
+    #[cfg(feature = "crosscheck")]
+    {
+        println!("==========================================");
+        println!("Warning: benchmarking with crosscheck enabled.");
+        println!("This will be slow..");
+        println!("==========================================");
+    }
+
+    use std::io::Write;
+    use std::time::Instant;
+
+    let flush = || {
+        std::io::stdout().lock().flush().unwrap();
+    };
+
+    let mut datapoints = Vec::new();
+    let mut measure = |name: &'static str, f: &dyn Fn()| {
+        print!(".");
+        flush();
+        let before = Instant::now();
+        f();
+        datapoints.push((name, before.elapsed()))
+    };
+
+    print!("measuring");
+    flush();
+
+    measure("c-divsufsort", &|| {
+        cdivsufsort::sort(input);
+    });
+    measure("divsufsort", &|| {
+        divsufsort::sort(input);
+    });
+    measure("saca-k", &|| {
+        suffix_array::SuffixArray::new(input);
+    });
+
+    println!("done!");
+
+    {
+        use cli_table::{format::CellFormat, Cell, Row, Table};
+        let bold = CellFormat::builder().bold(true).build();
+        let regular = CellFormat::builder().build();
+
+        let mut rows = vec![Row::new(vec![
+            Cell::new("Algorithm", bold),
+            Cell::new("Time", bold),
+            Cell::new("Average speed", bold),
+        ])];
+        for dp in datapoints {
+            let bps = (input.len() as f64 / dp.1.as_secs_f64()) as u64;
+            rows.push(Row::new(vec![
+                Cell::new(dp.0, regular),
+                Cell::new(&format!("{:?}", dp.1), regular),
+                Cell::new(&format!("{}B/s", SizeFormatterBinary::new(bps)), regular),
+            ]));
+        }
+
+        Table::new(rows, Default::default()).print_stdout().unwrap();
+    }
+}
+
+fn parse_size<I: AsRef<str>>(input: I) -> usize {
+    let mut factor = 1_usize;
+
+    let input = input.as_ref().to_lowercase();
+    let input = if input.ends_with("k") {
+        factor = 1024;
+        input.trim_end_matches("k")
+    } else if input.ends_with("m") {
+        factor = 1024 * 1024;
+        input.trim_end_matches("m")
+    } else {
+        &input[..]
+    };
+
+    let size: usize = input.parse().unwrap();
+    size * factor
 }

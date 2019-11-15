@@ -13,8 +13,6 @@ pub const ALPHABET_SIZE: usize = u8::max_value() as usize + 1;
 pub const BUCKET_A_SIZE: usize = ALPHABET_SIZE;
 pub const BUCKET_B_SIZE: usize = ALPHABET_SIZE * ALPHABET_SIZE;
 
-pub const MAX_INPUT_SIZE: usize = i32::max_value() as usize;
-
 // Read-only input to suffix-sort
 pub struct Text<'a>(pub &'a [Char]);
 

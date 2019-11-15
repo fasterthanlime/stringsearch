@@ -9,3 +9,4 @@ crosscheck = ["once_cell"]
 
 [dependencies]
 once_cell = { version = "1.2.0", optional = true }
+sacabase = { path = "../sacabase" }

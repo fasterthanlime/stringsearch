@@ -11,8 +11,22 @@ mod divsufsort;
 mod sssort;
 mod trsort;
 
-pub use crate::divsufsort::divsufsort;
-pub use common::Idx;
+use common::Idx;
+use sacabase::SuffixArray;
+
+/// Sort suffixes of `text` and store their lexographic order
+/// in the given suffix array `sa`.
+/// Will panic if `sa.len()` != `text.len()`
+pub fn sort_in_place(text: &[u8], sa: &mut [Idx]) {
+    divsufsort::divsufsort(text, sa);
+}
+
+//// Sort suffixes
+pub fn sort<'a>(text: &'a [u8]) -> sacabase::SuffixArray<Idx> {
+    let mut sa = vec![0; text.len()];
+    sort_in_place(text, &mut sa);
+    sacabase::SuffixArray::new(text, sa)
+}
 
 #[cfg(test)]
 mod tests {
@@ -30,8 +44,6 @@ mod tests {
     where
         T: AsRef<[u8]>,
     {
-        let s = s.as_ref();
-        let mut SA = vec![0; s.len()];
-        super::divsufsort(s, &mut SA[..]);
+        super::sort(s.as_ref());
     }
 }

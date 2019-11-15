@@ -8,6 +8,7 @@ edition = "2018"
 crosscheck = []
 
 [dependencies]
+sacabase = { path = "../sacabase" }
 
 [build-dependencies]
 cc = "1.0.47"

@@ -1,18 +1,18 @@
 use crate::{common::*, crosscheck, crosscheck::*, sssort, trsort};
 
 pub fn divsufsort(T: &[Char], SA: &mut [Idx]) {
-    if T.len() != SA.len() {
-        panic!("divsufsort: T and SA arguments should have same length");
-    }
+    assert_eq!(
+        T.len(),
+        SA.len(),
+        "text and suffix array should have same len"
+    );
+    assert!(
+        T.len() < i32::max_value() as usize,
+        "text too large, should not exceed {} bytes",
+        i32::max_value() - 1
+    );
 
     let n = T.len();
-    if n >= MAX_INPUT_SIZE {
-        // This one ought to not be a panic, maybe?
-        panic!(
-            "divsufsort: input too large (max input size: {})",
-            MAX_INPUT_SIZE
-        )
-    }
 
     // short T cases
     match n {
