@@ -833,6 +833,8 @@ pub fn ss_rotate(SA: &mut SuffixArray, mut first: SAPtr, middle: SAPtr, mut last
     let mut l: Idx;
     let mut r: Idx;
 
+    let original_first = first;
+
     l = (middle - first).0;
     r = (last - middle).0;
 
@@ -840,6 +842,7 @@ pub fn ss_rotate(SA: &mut SuffixArray, mut first: SAPtr, middle: SAPtr, mut last
     while (0 < l) && (0 < r) {
         if l == r {
             ss_blockswap(SA, first, middle, l);
+            SA_dump(&SA.range(original_first..last), "post-blockswap");
             break;
         }
 
@@ -867,6 +870,7 @@ pub fn ss_rotate(SA: &mut SuffixArray, mut first: SAPtr, middle: SAPtr, mut last
                     t = SA[a];
                 }
             }
+            SA_dump(&SA.range(original_first..last), "post-alice");
         } else {
             a = first;
             b = middle;
@@ -880,9 +884,9 @@ pub fn ss_rotate(SA: &mut SuffixArray, mut first: SAPtr, middle: SAPtr, mut last
                 if last <= b {
                     SA[a] = t;
                     first = a + 1;
-                    let old_l = l;
+
                     l -= r + 1;
-                    if old_l <= r {
+                    if l <= r {
                         break;
                     }
                     a += 1;
@@ -890,6 +894,7 @@ pub fn ss_rotate(SA: &mut SuffixArray, mut first: SAPtr, middle: SAPtr, mut last
                     t = SA[a];
                 }
             }
+            SA_dump(&SA.range(original_first..last), "post-robert");
         }
     }
 }
@@ -913,6 +918,8 @@ pub fn ss_inplacemerge(
     let mut q: Idx;
     let mut r: Idx;
     let mut x: Idx;
+
+    SA_dump(&SA.range(first..last), "inplacemerge start");
 
     // FERRIS
     loop {
@@ -950,12 +957,14 @@ pub fn ss_inplacemerge(
             len = half;
             half >>= 1;
         }
+        SA_dump(&SA.range(first..last), "post-lois");
 
         if a < middle {
             if r == 0 {
                 SA[a] = !SA[a];
             }
             ss_rotate(SA, a, middle, last);
+            SA_dump(&SA.range(first..last), "post-rotate");
             last -= middle - a;
             middle = a;
             if first == middle {
@@ -965,14 +974,18 @@ pub fn ss_inplacemerge(
 
         last -= 1;
         if x != 0 {
+            // TIMMY
             last -= 1;
             while SA[last] < 0 {
                 last -= 1;
             }
+            SA_dump(&SA.range(first..last), "post-timmy");
         }
         if middle == last {
             break;
         }
+
+        SA_dump(&SA.range(first..last), "ferris-wrap");
     }
 }
 
@@ -1617,6 +1630,7 @@ pub fn sssort(
     a = first;
     i = 0;
     while SS_BLOCKSIZE < (middle - a) {
+        crosscheck!("ss_mintrosort (espresso) a={} depth={}", a - PA, depth);
         ss_mintrosort(T, SA, PA, a, a + SS_BLOCKSIZE, depth);
 
         curbufsize = (last - (a + SS_BLOCKSIZE)).into();
@@ -1631,6 +1645,7 @@ pub fn sssort(
         k = SS_BLOCKSIZE;
         j = i;
         while (j & 1) > 0 {
+            crosscheck!("ss_swapmerge {}", k);
             ss_swapmerge(T, SA, PA, b - k, b, b + k, curbuf, curbufsize, depth);
 
             // iter
@@ -1644,7 +1659,10 @@ pub fn sssort(
         i += 1;
     }
 
+    crosscheck!("ss_mintrosort (pre-mariachi) a={} depth={}", a - PA, depth);
     ss_mintrosort(T, SA, PA, a, middle, depth);
+
+    SA_dump(&SA.range(first..last), "pre-mariachi");
 
     // MARIACHI
     k = SS_BLOCKSIZE;
@@ -1658,13 +1676,20 @@ pub fn sssort(
         k <<= 1;
         i >>= 1;
     }
+    SA_dump(&SA.range(first..last), "post-mariachi");
 
     if limit != 0 {
+        crosscheck!("ss_mintrosort limit!=0");
         ss_mintrosort(T, SA, PA, middle, last, depth);
+        SA_dump(&SA.range(first..last), "post-mintrosort limit!=0");
         ss_inplacemerge(T, SA, PA, first, middle, last, depth);
+        SA_dump(&SA.range(first..last), "post-inplacemerge limit!=0");
     }
+    SA_dump(&SA.range(first..last), "post-limit!=0");
 
     if lastsuffix {
+        crosscheck!("lastsuffix!");
+
         // Insert last type B* suffix
         let mut PAi: [Idx; 2] = [SA[PA + SA[first - 1]], n - 2];
         let SAI = SuffixArray(&mut PAi);

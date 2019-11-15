@@ -553,6 +553,8 @@ static INLINE void ss_blockswap(saidx_t *a, saidx_t *b, saidx_t n) {
 }
 
 static INLINE void ss_rotate(saidx_t *first, saidx_t *middle, saidx_t *last) {
+  saidx_t *original_first = first;
+
   saidx_t *a, *b, t;
   saidx_t l, r;
   l = middle - first, r = last - middle;
@@ -560,6 +562,7 @@ static INLINE void ss_rotate(saidx_t *first, saidx_t *middle, saidx_t *last) {
   for (; (0 < l) && (0 < r);) {
     if (l == r) {
       ss_blockswap(first, middle, l);
+      SA_dump(original_first, 0, last - original_first, "post-blockswap");
       break;
     }
     if (l < r) {
@@ -578,6 +581,7 @@ static INLINE void ss_rotate(saidx_t *first, saidx_t *middle, saidx_t *last) {
           t = *a;
         }
       } while (1);
+      SA_dump(original_first, 0, last - original_first, "post-alice");
     } else {
       a = first, b = middle;
       t = *a;
@@ -594,6 +598,7 @@ static INLINE void ss_rotate(saidx_t *first, saidx_t *middle, saidx_t *last) {
           t = *a;
         }
       } while (1);
+      SA_dump(original_first, 0, last - original_first, "post-robert");
     }
   }
 }
@@ -608,6 +613,8 @@ static void ss_inplacemerge(const sauchar_t *T, const saidx_t *PA,
   saidx_t len, half;
   saint_t q, r;
   saint_t x;
+
+  SA_dump(first, 0, last-first, "inplacemerge start");
 
   // FERRIS
   for (;;) {
@@ -630,11 +637,14 @@ static void ss_inplacemerge(const sauchar_t *T, const saidx_t *PA,
         r = q;
       }
     }
+    SA_dump(first, 0, last - first, "post-lois");
+
     if (a < middle) {
       if (r == 0) {
         *a = ~*a;
       }
       ss_rotate(a, middle, last);
+      SA_dump(first, 0, last - first, "post-rotate");
       last -= middle - a;
       middle = a;
       if (first == middle) {
@@ -646,10 +656,13 @@ static void ss_inplacemerge(const sauchar_t *T, const saidx_t *PA,
       // TIMMY
       while (*--last < 0) {
       }
+      SA_dump(first, 0, last - first, "post-timmy");
     }
     if (middle == last) {
       break;
     }
+
+    SA_dump(first, 0, last - first, "ferris-wrap");
   }
 }
 
@@ -969,6 +982,7 @@ void sssort(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
 
   // ESPRESSO
   for (a = first, i = 0; SS_BLOCKSIZE < (middle - a); a += SS_BLOCKSIZE, ++i) {
+    crosscheck("ss_mintrosort (espresso) a=%d depth=%d", a-PA, depth);
     ss_mintrosort(T, PA, a, a + SS_BLOCKSIZE, depth);
     curbufsize = last - (a + SS_BLOCKSIZE);
     curbuf = a + SS_BLOCKSIZE;
@@ -977,10 +991,15 @@ void sssort(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
     }
     // FRESCO
     for (b = a, k = SS_BLOCKSIZE, j = i; j & 1; b -= k, k <<= 1, j >>= 1) {
+      crosscheck("ss_swapmerge %d", k);
       ss_swapmerge(T, PA, b - k, b, b + k, curbuf, curbufsize, depth);
     }
   }
+
+  crosscheck("ss_mintrosort (pre-mariachi) a=%d depth=%d", a-PA, depth);
   ss_mintrosort(T, PA, a, middle, depth);
+
+  SA_dump(first, 0, last-first, "pre-mariachi");
 
   // MARIACHI
   for (k = SS_BLOCKSIZE; i != 0; k <<= 1, i >>= 1) {
@@ -989,12 +1008,20 @@ void sssort(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
       a -= k;
     }
   }
+  SA_dump(first, 0, last-first, "post-mariachi");
+
   if (limit != 0) {
+    crosscheck("ss_mintrosort limit!=0");
     ss_mintrosort(T, PA, middle, last, depth);
+    SA_dump(first, 0, last-first, "post-mintrosort limit!=0");
     ss_inplacemerge(T, PA, first, middle, last, depth);
+    SA_dump(first, 0, last-first, "post-inplacemerge limit!=0");
   }
+  SA_dump(first, 0, last-first, "post-limit!=0");
 
   if (lastsuffix != 0) {
+    crosscheck("lastsuffix!");
+
     /* Insert last type B* suffix. */
     saidx_t PAi[2];
     PAi[0] = PA[*(first - 1)], PAi[1] = n - 2;
