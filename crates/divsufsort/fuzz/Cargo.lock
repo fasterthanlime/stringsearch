@@ -6,6 +6,11 @@ version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "autocfg"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "cc"
 version = "1.0.47"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -13,6 +18,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "divsufsort"
 version = "0.1.0"
+dependencies = [
+ "sacabase 0.1.0",
+]
 
 [[package]]
 name = "divsufsort-fuzz"
@@ -31,7 +39,24 @@ dependencies = [
  "cc 1.0.47 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
+[[package]]
+name = "num-traits"
+version = "0.2.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "autocfg 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "sacabase"
+version = "0.1.0"
+dependencies = [
+ "num-traits 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
 [metadata]
 "checksum arbitrary 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "6c7d1523aa3a127adf8b27af2404c03c12825b4c4d0698f01648d63fa9df62ee"
+"checksum autocfg 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)" = "1d49d90015b3c36167a20fe2810c5cd875ad504b39cff3d4eae7977e6b7c1cb2"
 "checksum cc 1.0.47 (registry+https://github.com/rust-lang/crates.io-index)" = "aa87058dce70a3ff5621797f1506cb837edd02ac4c0ae642b4542dce802908b8"
 "checksum libfuzzer-sys 0.1.0 (git+https://github.com/rust-fuzz/libfuzzer-sys.git)" = "<none>"
+"checksum num-traits 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)" = "443c53b3c3531dfcbfa499d8893944db78474ad7a1d87fa2d94d1a2231693ac6"

@@ -22,7 +22,7 @@ pub fn sort_in_place(text: &[u8], sa: &mut [Idx]) {
 }
 
 //// Sort suffixes
-pub fn sort<'a>(text: &'a [u8]) -> sacabase::SuffixArray<Idx> {
+pub fn sort(text: &[u8]) -> sacabase::SuffixArray<Idx> {
     let mut sa = vec![0; text.len()];
     sort_in_place(text, &mut sa);
     sacabase::SuffixArray::new(text, sa)
@@ -33,6 +33,11 @@ mod tests {
     #[test]
     fn fuzz1() {
         sort(include_bytes!("./testdata/fuzz1"));
+    }
+
+    #[test]
+    fn fuzz2() {
+        sort(include_bytes!("./testdata/fuzz2"));
     }
 
     #[test]
