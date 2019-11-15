@@ -34,42 +34,51 @@ pub fn flush() {
     }
 }
 
-pub fn SA_dump(SA: &SuffixArray, label: &str) {
-    #[cfg(feature = "crosscheck")]
-    {
-        use std::io::Write;
-        let mut f = crate::crosscheck::CROSSCHECK_FILE.lock().unwrap();
+#[macro_export]
+macro_rules! SA_dump {
+    ($SA: expr, $label: expr) => {
+        #[cfg(feature = "crosscheck")]
+        {
+            use std::io::Write;
+            let mut f = crate::crosscheck::CROSSCHECK_FILE.lock().unwrap();
 
-        writeln!(f, ":: {}", label).unwrap();
-        for i in 0..SA.0.len() {
-            write!(f, "{} ", SA.0[i]).unwrap();
-            if (i + 1) % 25 == 0 {
-                writeln!(f).unwrap();
+            writeln!(f, ":: {}", $label).unwrap();
+            for i in 0..$SA.0.len() {
+                write!(f, "{} ", $SA.0[i]).unwrap();
+                if (i + 1) % 25 == 0 {
+                    writeln!(f).unwrap();
+                }
             }
+            writeln!(f).unwrap();
         }
-        writeln!(f).unwrap();
-    }
+    };
 }
 
-pub fn A_dump(A: &ABucket, label: &str) {
-    #[cfg(feature = "crosscheck")]
-    {
-        crosscheck!(":: {}", label);
-        crosscheck!("A = {:?}", A.0);
-    }
+#[macro_export]
+macro_rules! A_dump {
+    ($A: expr, $label: expr) => {
+        #[cfg(feature = "crosscheck")]
+        {
+            crosscheck!(":: {}", $label);
+            crosscheck!("A = {:?}", $A.0);
+        }
+    };
 }
 
-pub fn BSTAR_dump(B: &mut BMixBucket, label: &str) {
-    #[cfg(feature = "crosscheck")]
-    {
-        use std::io::Write;
-        let mut f = crate::crosscheck::CROSSCHECK_FILE.lock().unwrap();
+#[macro_export]
+macro_rules! BSTAR_dump {
+    ($B: expr, $label: expr) => {
+        #[cfg(feature = "crosscheck")]
+        {
+            use std::io::Write;
+            let mut f = crate::crosscheck::CROSSCHECK_FILE.lock().unwrap();
 
-        writeln!(f, "{} B* dump:", label).unwrap();
-        for ii in 0..(ALPHABET_SIZE as Idx) {
-            for jj in 0..(ALPHABET_SIZE as Idx) {
-                writeln!(f, "{} B*[{},{}]={}", label, ii, jj, B.bstar()[(ii, jj)]).unwrap();
+            writeln!(f, "{} B* dump:", $label).unwrap();
+            for ii in 0..(ALPHABET_SIZE as Idx) {
+                for jj in 0..(ALPHABET_SIZE as Idx) {
+                    writeln!(f, "{} B*[{},{}]={}", $label, ii, jj, $B.bstar()[(ii, jj)]).unwrap();
+                }
             }
         }
-    }
+    };
 }

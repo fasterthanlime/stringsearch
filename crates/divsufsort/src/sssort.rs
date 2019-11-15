@@ -1,4 +1,4 @@
-use crate::{common::*, crosscheck, crosscheck::*};
+use crate::{common::*, crosscheck, crosscheck::*, SA_dump};
 use std::{cmp, default::Default, mem};
 
 //--------------------
@@ -569,9 +569,9 @@ pub fn ss_mintrosort(
         let old_limit = limit;
         limit -= 1;
         if (old_limit == 0) {
-            SA_dump(&SA.range(first..last), "before heapsort");
+            SA_dump!(&SA.range(first..last), "before heapsort");
             ss_heapsort(T, Td, SA, PA, first, (last - first).into());
-            SA_dump(&SA.range(first..last), "after heapsort");
+            SA_dump!(&SA.range(first..last), "after heapsort");
         }
 
         if (limit < 0) {
@@ -834,15 +834,18 @@ pub fn ss_rotate(SA: &mut SuffixArray, mut first: SAPtr, middle: SAPtr, mut last
     let mut r: Idx;
 
     let original_first = first;
+    let original_last = last;
 
     l = (middle - first).0;
     r = (last - middle).0;
+
+    SA_dump!(&SA.range(original_first..original_last), "pre-brendan");
 
     // BRENDAN
     while (0 < l) && (0 < r) {
         if l == r {
             ss_blockswap(SA, first, middle, l);
-            SA_dump(&SA.range(original_first..last), "post-blockswap");
+            SA_dump!(&SA.range(original_first..original_last), "post-blockswap");
             break;
         }
 
@@ -860,9 +863,8 @@ pub fn ss_rotate(SA: &mut SuffixArray, mut first: SAPtr, middle: SAPtr, mut last
                 if b < first {
                     SA[a] = t;
                     last = a;
-                    let old_r = r;
                     r -= l + 1;
-                    if old_r <= l {
+                    if r <= l {
                         break;
                     }
                     a -= 1;
@@ -870,7 +872,7 @@ pub fn ss_rotate(SA: &mut SuffixArray, mut first: SAPtr, middle: SAPtr, mut last
                     t = SA[a];
                 }
             }
-            SA_dump(&SA.range(original_first..last), "post-alice");
+            SA_dump!(&SA.range(original_first..original_last), "post-alice");
         } else {
             a = first;
             b = middle;
@@ -894,7 +896,7 @@ pub fn ss_rotate(SA: &mut SuffixArray, mut first: SAPtr, middle: SAPtr, mut last
                     t = SA[a];
                 }
             }
-            SA_dump(&SA.range(original_first..last), "post-robert");
+            SA_dump!(&SA.range(original_first..original_last), "post-robert");
         }
     }
 }
@@ -919,7 +921,13 @@ pub fn ss_inplacemerge(
     let mut r: Idx;
     let mut x: Idx;
 
-    SA_dump(&SA.range(first..last), "inplacemerge start");
+    let original_first = first;
+    let original_last = last;
+
+    SA_dump!(
+        &SA.range(original_first..original_last),
+        "inplacemerge start"
+    );
 
     // FERRIS
     loop {
@@ -957,14 +965,14 @@ pub fn ss_inplacemerge(
             len = half;
             half >>= 1;
         }
-        SA_dump(&SA.range(first..last), "post-lois");
+        SA_dump!(&SA.range(original_first..original_last), "post-lois");
 
         if a < middle {
             if r == 0 {
                 SA[a] = !SA[a];
             }
             ss_rotate(SA, a, middle, last);
-            SA_dump(&SA.range(first..last), "post-rotate");
+            SA_dump!(&SA.range(original_first..original_last), "post-rotate");
             last -= middle - a;
             middle = a;
             if first == middle {
@@ -979,13 +987,13 @@ pub fn ss_inplacemerge(
             while SA[last] < 0 {
                 last -= 1;
             }
-            SA_dump(&SA.range(first..last), "post-timmy");
+            SA_dump!(&SA.range(original_first..original_last), "post-timmy");
         }
         if middle == last {
             break;
         }
 
-        SA_dump(&SA.range(first..last), "ferris-wrap");
+        SA_dump!(&SA.range(original_first..original_last), "ferris-wrap");
     }
 }
 
@@ -1662,7 +1670,7 @@ pub fn sssort(
     crosscheck!("ss_mintrosort (pre-mariachi) a={} depth={}", a - PA, depth);
     ss_mintrosort(T, SA, PA, a, middle, depth);
 
-    SA_dump(&SA.range(first..last), "pre-mariachi");
+    SA_dump!(&SA.range(first..last), "pre-mariachi");
 
     // MARIACHI
     k = SS_BLOCKSIZE;
@@ -1676,16 +1684,16 @@ pub fn sssort(
         k <<= 1;
         i >>= 1;
     }
-    SA_dump(&SA.range(first..last), "post-mariachi");
+    SA_dump!(&SA.range(first..last), "post-mariachi");
 
     if limit != 0 {
         crosscheck!("ss_mintrosort limit!=0");
         ss_mintrosort(T, SA, PA, middle, last, depth);
-        SA_dump(&SA.range(first..last), "post-mintrosort limit!=0");
+        SA_dump!(&SA.range(first..last), "post-mintrosort limit!=0");
         ss_inplacemerge(T, SA, PA, first, middle, last, depth);
-        SA_dump(&SA.range(first..last), "post-inplacemerge limit!=0");
+        SA_dump!(&SA.range(first..last), "post-inplacemerge limit!=0");
     }
-    SA_dump(&SA.range(first..last), "post-limit!=0");
+    SA_dump!(&SA.range(first..last), "post-limit!=0");
 
     if lastsuffix {
         crosscheck!("lastsuffix!");

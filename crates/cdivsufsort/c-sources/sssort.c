@@ -554,15 +554,19 @@ static INLINE void ss_blockswap(saidx_t *a, saidx_t *b, saidx_t n) {
 
 static INLINE void ss_rotate(saidx_t *first, saidx_t *middle, saidx_t *last) {
   saidx_t *original_first = first;
+  saidx_t *original_last = last;
 
   saidx_t *a, *b, t;
   saidx_t l, r;
   l = middle - first, r = last - middle;
+
+  SA_dump(original_first, 0, original_last - original_first, "pre-brendan");
+
   // BRENDAN
   for (; (0 < l) && (0 < r);) {
     if (l == r) {
       ss_blockswap(first, middle, l);
-      SA_dump(original_first, 0, last - original_first, "post-blockswap");
+      SA_dump(original_first, 0, original_last - original_first, "post-blockswap");
       break;
     }
     if (l < r) {
@@ -581,7 +585,7 @@ static INLINE void ss_rotate(saidx_t *first, saidx_t *middle, saidx_t *last) {
           t = *a;
         }
       } while (1);
-      SA_dump(original_first, 0, last - original_first, "post-alice");
+      SA_dump(original_first, 0, original_last - original_first, "post-alice");
     } else {
       a = first, b = middle;
       t = *a;
@@ -598,7 +602,7 @@ static INLINE void ss_rotate(saidx_t *first, saidx_t *middle, saidx_t *last) {
           t = *a;
         }
       } while (1);
-      SA_dump(original_first, 0, last - original_first, "post-robert");
+      SA_dump(original_first, 0, original_last - original_first, "post-robert");
     }
   }
 }
@@ -614,7 +618,9 @@ static void ss_inplacemerge(const sauchar_t *T, const saidx_t *PA,
   saint_t q, r;
   saint_t x;
 
-  SA_dump(first, 0, last-first, "inplacemerge start");
+  saidx_t *original_first = first;
+
+  SA_dump(original_first, 0, last-original_first, "inplacemerge start");
 
   // FERRIS
   for (;;) {
@@ -637,14 +643,14 @@ static void ss_inplacemerge(const sauchar_t *T, const saidx_t *PA,
         r = q;
       }
     }
-    SA_dump(first, 0, last - first, "post-lois");
+    SA_dump(original_first, 0, last - original_first, "post-lois");
 
     if (a < middle) {
       if (r == 0) {
         *a = ~*a;
       }
       ss_rotate(a, middle, last);
-      SA_dump(first, 0, last - first, "post-rotate");
+      SA_dump(original_first, 0, last - original_first, "post-rotate");
       last -= middle - a;
       middle = a;
       if (first == middle) {
@@ -656,13 +662,13 @@ static void ss_inplacemerge(const sauchar_t *T, const saidx_t *PA,
       // TIMMY
       while (*--last < 0) {
       }
-      SA_dump(first, 0, last - first, "post-timmy");
+      SA_dump(original_first, 0, last - original_first, "post-timmy");
     }
     if (middle == last) {
       break;
     }
 
-    SA_dump(first, 0, last - first, "ferris-wrap");
+    SA_dump(original_first, 0, last - original_first, "ferris-wrap");
   }
 }
 

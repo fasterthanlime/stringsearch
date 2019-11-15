@@ -1,4 +1,4 @@
-use crate::{common::*, crosscheck, crosscheck::*, sssort, trsort};
+use crate::{common::*, crosscheck, crosscheck::*, sssort, trsort, SA_dump};
 
 pub fn divsufsort(T: &[Char], SA: &mut [Idx]) {
     assert_eq!(
@@ -174,7 +174,7 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
                 i = B.bstar()[(c0, c1)];
 
                 if (1 < (j - i)) {
-                    SA_dump(&SA.range(i..j), "sssort(A)");
+                    SA_dump!(&SA.range(i..j), "sssort(A)");
                     sssort::sssort(
                         T,
                         SA,
@@ -187,7 +187,7 @@ fn sort_typeBstar(T: &Text, SA: &mut SuffixArray) -> SortTypeBstarResult {
                         n,
                         SA[i] == (m - 1),
                     );
-                    SA_dump(&SA.range(i..j), "sssort(B)");
+                    SA_dump!(&SA.range(i..j), "sssort(B)");
                 }
 
                 // iter (inner)

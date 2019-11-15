@@ -1,4 +1,4 @@
-use crate::{common::*, crosscheck, crosscheck::*};
+use crate::{common::*, crosscheck, crosscheck::*, SA_dump};
 use std::mem;
 
 //--------------------
@@ -1097,9 +1097,9 @@ pub fn tr_introsort(
                 last,
                 last - first
             );
-            SA_dump(&SA.range(first..last), "before tr_heapsort");
+            SA_dump!(&SA.range(first..last), "before tr_heapsort");
             tr_heapsort(ISAd, SA, first, (last - first).0);
-            SA_dump(&SA.range(first..last), "after tr_heapsort");
+            SA_dump!(&SA.range(first..last), "after tr_heapsort");
 
             // YOHAN
             a = last - 1;

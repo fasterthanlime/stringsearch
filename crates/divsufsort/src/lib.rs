@@ -49,6 +49,7 @@ mod tests {
     where
         T: AsRef<[u8]>,
     {
-        super::sort(s.as_ref());
+        let sa = super::sort(s.as_ref());
+        sa.verify().unwrap();
     }
 }
