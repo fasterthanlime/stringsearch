@@ -1,0 +1,16 @@
+:: sssort(A)
+7 1 2 3 4 6 
+:: sssort(B)
+4 6 -2 -3 -4 7 
+pascal limit=2 first=3 last=7
+insertionsort last-first=4
+pascal limit=-3 first=3 last=7
+0<=*first
+first<last
+++a<last
+budget pass
+pascal limit=1 first=4 last=6
+insertionsort last-first=2
+pascal limit=-3 first=4 last=6
+0<=*first
+times pop

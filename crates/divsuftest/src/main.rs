@@ -3,7 +3,12 @@ use std::time::Instant;
 
 fn main() {
     better_panic::install();
-    std::fs::create_dir_all("crosscheck").unwrap();
+
+    #[cfg(feature = "crosscheck")]
+    {
+        println!("Cross-checking enabled");
+        std::fs::create_dir_all("crosscheck").unwrap();
+    }
 
     let first_arg = std::env::args().nth(1).unwrap_or_else(|| {
         std::path::PathBuf::from("testdata")
@@ -22,6 +27,46 @@ fn main() {
         "Input size",
         SizeFormatterBinary::new(maxlen as u64)
     );
+
+    println!("{:>20} Running", "wavelet");
+    let wavelet_duration = {
+        let (before, eighties, after) = unsafe { input.align_to::<u64>() };
+        println!(
+            "original {:10} split {:10} {:10} {:10}",
+            input.len(),
+            before.len(),
+            eighties.len(),
+            after.len()
+        );
+
+        let before_wavelet = Instant::now();
+        let wm = wavelet_matrix::WaveletMatrix::new(eighties);
+        let res = before_wavelet.elapsed();
+
+        {
+            let needle = "call (netbsd-amd64-cgo), const ENOSYS = 78
+pkg syscall (netbsd-amd64-cgo), const ENOTBLK = 15
+pkg syscall (netbs";
+            let needle = needle;
+            let needle_bytes = needle.as_bytes();
+            let (_, needle_eighties, _) = unsafe { needle_bytes.align_to::<u64>() };
+
+            let mut range = 0..eighties.len();
+            let mut lastoffset = 0;
+            for &c in needle_eighties {
+                let offset = wm.search_prefix(range.clone(), c, 0).next().unwrap();
+                range = offset..eighties.len();
+                println!(
+                    "offset = {:x} ({:x}) text = {:?}",
+                    offset * 8,
+                    offset - lastoffset,
+                    std::str::from_utf8(&input[offset * 8..(offset + 1) * 8])
+                );
+                lastoffset = offset;
+            }
+        }
+        res
+    };
 
     println!("{:>20} Running", "c");
 
@@ -66,10 +111,11 @@ fn main() {
         before_huc.elapsed()
     };
 
+    let s0 = format!("wavelet {:?}", wavelet_duration);
     let s1 = format!("c {:?}", c_duration);
     let s2 = format!("rust {:?}", rust_duration);
     let s3 = format!("rust-ref {:?}", huc_duration);
-    println!("{:30} {:30} {:30}", s1, s2, s3);
+    println!("{:20} {:20} {:20} {:20}", s0, s1, s2, s3);
 }
 
 fn check_order<SA: Fn(usize) -> i32>(sa: SA, input: &[u8]) {
