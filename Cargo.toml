@@ -7,3 +7,7 @@ members = [
     "crates/dc3",
 ]
 
+[profile.release]
+debug = true
+
+
