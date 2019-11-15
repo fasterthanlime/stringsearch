@@ -1,5 +1,5 @@
 use size_format::SizeFormatterBinary;
-use std::{env, process};
+use std::{env, io::Write, process, time::Instant};
 
 fn main() {
     better_panic::install();
@@ -41,6 +41,7 @@ fn main() {
             command_crosscheck(input);
         }
         "bench" => command_bench(input),
+        "run" => command_run(input),
         x => panic!("unknown command {:?}", x),
     }
 }
@@ -78,6 +79,12 @@ fn command_crosscheck(input: &[u8]) {
     };
 }
 
+fn command_run(input: &[u8]) {
+    let before = Instant::now();
+    divsufsort::sort(input);
+    println!("Done in {:?}", before.elapsed());
+}
+
 fn command_bench(input: &[u8]) {
     #[cfg(debug_assertions)]
     {
@@ -94,9 +101,6 @@ fn command_bench(input: &[u8]) {
         println!("This will be slow..");
         println!("==========================================");
     }
-
-    use std::io::Write;
-    use std::time::Instant;
 
     let flush = || {
         std::io::stdout().lock().flush().unwrap();
