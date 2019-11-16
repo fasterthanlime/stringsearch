@@ -7,7 +7,7 @@ edition = "2018"
 description = "Rust bindings for Yuta Mori's divsufsort"
 repository = "https://github.com/fasterthanlime/stringsearch"
 readme = "README.md"
-keywords = ["saca", "suffix", "search", "index", "divsufsort", "c"]
+keywords = ["saca", "suffix", "search", "index", "divsufsort"]
 categories = ["algorithms", "api-bindings"]
 license = "MIT"
 
