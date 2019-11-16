@@ -73,10 +73,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "cdivsufsort"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "cc 1.0.47 (registry+https://github.com/rust-lang/crates.io-index)",
- "sacabase 0.1.0",
+ "sacabase 1.0.0",
 ]
 
 [[package]]
@@ -178,10 +178,10 @@ version = "0.1.0"
 
 [[package]]
 name = "divsufsort"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "once_cell 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sacabase 0.1.0",
+ "sacabase 1.0.0",
 ]
 
 [[package]]
@@ -189,9 +189,9 @@ name = "divsuftest"
 version = "0.1.0"
 dependencies = [
  "better-panic 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "cdivsufsort 0.1.0",
+ "cdivsufsort 1.0.0",
  "cli-table 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "divsufsort 0.1.0",
+ "divsufsort 1.0.0",
  "size_format 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "suffix_array 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -378,7 +378,7 @@ dependencies = [
 
 [[package]]
 name = "sacabase"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "num-traits 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
