@@ -41,15 +41,17 @@ mod tests {
     }
 
     #[test]
-    fn shruggy() {
-        sort(r#"¯\_(ツ)_/¯"#);
+    fn fuzz3() {
+        sort(include_bytes!("./testdata/fuzz3"));
     }
 
-    fn sort<T>(s: T)
-    where
-        T: AsRef<[u8]>,
-    {
-        let sa = super::sort(s.as_ref());
+    #[test]
+    fn shruggy() {
+        sort(r#"¯\_(ツ)_/¯"#.as_bytes());
+    }
+
+    fn sort(s: &[u8]) {
+        let sa = super::sort(s);
         sa.verify().unwrap();
     }
 }
