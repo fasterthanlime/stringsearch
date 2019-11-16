@@ -1,14 +1,21 @@
 [package]
 name = "cdivsufsort"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["Amos Wenger <amoswenger@gmail.com>"]
 edition = "2018"
+
+description = "Rust bindings for Yuta Mori's divsufsort"
+repository = "https://github.com/fasterthanlime/stringsearch"
+readme = "README.md"
+keywords = ["saca", "suffix", "search", "index", "divsufsort"]
+categories = ["algorithms", "api-bindings"]
+license = "MIT"
 
 [features]
 crosscheck = []
 
 [dependencies]
-sacabase = { path = "../sacabase" }
+sacabase = { path = "../sacabase", version = "1.0.0" }
 
 [build-dependencies]
 cc = "1.0.47"
