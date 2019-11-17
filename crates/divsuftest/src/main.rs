@@ -1,23 +1,55 @@
+use failure::Fallible;
 use size_format::SizeFormatterBinary;
 use std::{env, io::Write, process, time::Instant};
 
-fn main() {
+struct Args {
+    partitions: u32,
+    free: Vec<String>,
+}
+
+enum Command {
+    Crosscheck,
+    Bench,
+    Run,
+}
+
+impl Command {
+    fn parse(s: &str) -> Option<Self> {
+        match s {
+            "crosscheck" => Some(Self::Crosscheck),
+            "bench" => Some(Self::Bench),
+            "run" => Some(Self::Run),
+            _ => None,
+        }
+    }
+}
+
+fn main() -> Fallible<()> {
     better_panic::install();
 
-    let all_args: Vec<String> = env::args().collect();
-    let args = &all_args[1..];
+    let mut args = pico_args::Arguments::from_env();
+    let args = Args {
+        partitions: args.opt_value_from_str("--partitions")?.unwrap_or(1),
+        free: args.free()?,
+    };
 
-    if args.len() == 0 {
-        println!("Usage: divsuftest bench|crosscheck INPUT [LENGTH]");
-        process::exit(1);
+    if args.free.is_empty() {
+        usage();
     }
+    let cmd = Command::parse(&args.free.get(0).unwrap_or_else(|| {
+        usage();
+        unreachable!();
+    }))
+    .expect("Command should be one of crosscheck bench or run");
 
-    let (cmd, args) = (&args[0], &args[1..]);
-
-    let input_path = args.get(0).expect("INPUT argument expected");
+    let input_path = args.free.get(1).unwrap_or_else(|| {
+        usage();
+        unreachable!();
+    });
     let input_full = std::fs::read(input_path).unwrap();
     let len = args
-        .get(1)
+        .free
+        .get(2)
         .map(parse_size)
         .unwrap_or_else(|| input_full.len());
     let input = &input_full[..len];
@@ -26,8 +58,8 @@ fn main() {
         SizeFormatterBinary::new(input.len() as u64)
     );
 
-    match cmd.as_ref() {
-        "crosscheck" => {
+    match cmd {
+        Command::Crosscheck => {
             #[cfg(not(feature = "crosscheck"))]
             {
                 println!(
@@ -38,12 +70,17 @@ fn main() {
             }
 
             #[cfg(feature = "crosscheck")]
-            command_crosscheck(input);
+            command_crosscheck(input)?;
         }
-        "bench" => command_bench(input),
-        "run" => command_run(input),
-        x => panic!("unknown command {:?}", x),
+        Command::Bench => command_bench(input)?,
+        Command::Run => command_run(input)?,
     }
+    Ok(())
+}
+
+fn usage() {
+    println!("Usage: divsuftest bench|crosscheck|run INPUT [LENGTH]");
+    process::exit(1);
 }
 
 #[cfg(feature = "crosscheck")]
@@ -79,13 +116,15 @@ fn command_crosscheck(input: &[u8]) {
     };
 }
 
-fn command_run(input: &[u8]) {
+fn command_run(input: &[u8]) -> Fallible<()> {
     let before = Instant::now();
     divsufsort::sort(input);
     println!("Done in {:?}", before.elapsed());
+
+    Ok(())
 }
 
-fn command_bench(input: &[u8]) {
+fn command_bench(input: &[u8]) -> Fallible<()> {
     #[cfg(debug_assertions)]
     {
         println!("==========================================");
@@ -151,6 +190,7 @@ fn command_bench(input: &[u8]) {
 
         Table::new(rows, Default::default()).print_stdout().unwrap();
     }
+    Ok(())
 }
 
 fn parse_size<I: AsRef<str>>(input: I) -> usize {
