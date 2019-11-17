@@ -178,7 +178,7 @@ version = "0.1.0"
 
 [[package]]
 name = "divsufsort"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "once_cell 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "sacabase 1.0.0",
@@ -191,7 +191,7 @@ dependencies = [
  "better-panic 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "cdivsufsort 1.0.0",
  "cli-table 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "divsufsort 1.0.0",
+ "divsufsort 1.0.1",
  "size_format 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "suffix_array 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
