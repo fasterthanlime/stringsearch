@@ -889,19 +889,23 @@ static void ss_swapmerge(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
   saint_t ssize;
   saint_t check, next;
 
-  SA_dump(first, 0, last-first, "ss_swapmerge start");
-
   // BARBARIAN
   for (check = 0, ssize = 0;;) {
+    crosscheck("barbarian check=%d", check);
+    SA_dump(first, 0, last-first, "ss_swapmerge barbarian");
+    SA_dump(buf, 0, bufsize, "ss_swapmerge barbarian buf");
     if ((last - middle) <= bufsize) {
       crosscheck("<=bufsize");
       if ((first < middle) && (middle < last)) {
         crosscheck("f<m&&m<l");
         ss_mergebackward(T, PA, first, middle, last, buf, depth);
+        SA_dump(first, 0, last-first, "ss_swapmerge post-mergebackward");
+        SA_dump(buf, 0, bufsize, "ss_swapmerge post-mergebackward buf");
       }
       MERGE_CHECK(first, last, check);
       SA_dump(first, 0, last-first, "ss_swapmerge pop 1");
       STACK_POP(first, middle, last, check);
+      SA_dump(first, 0, last-first, "ss_swapmerge pop 1 survived");
       continue;
     }
 
@@ -930,6 +934,7 @@ static void ss_swapmerge(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
     }
 
     if (0 < m) {
+      crosscheck("0 < m, m=%d", m);
       lm = middle - m, rm = middle + m;
       ss_blockswap(lm, middle, m);
       l = r = middle, next = 0;
@@ -1038,8 +1043,11 @@ void sssort(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
   // MARIACHI
   for (k = SS_BLOCKSIZE; i != 0; k <<= 1, i >>= 1) {
     if (i & 1) {
+      SA_dump(first, 0, last - first, "in-mariachi pre-swap");
+      crosscheck("a=%d middle=%d bufsize=%d depth=%d", a - first,
+                 middle - first, bufsize, depth);
       ss_swapmerge(T, PA, a - k, a, middle, buf, bufsize, depth);
-      SA_dump(first, 0, last - first, "in-mariachi");
+      SA_dump(first, 0, last - first, "in-mariachi post-swap");
       a -= k;
     }
   }

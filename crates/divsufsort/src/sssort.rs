@@ -1185,7 +1185,7 @@ pub fn ss_mergebackward(
                 SA[buf] = t;
                 break;
             }
-            SA[b] = SA[b];
+            SA[b] = SA[a];
             b -= 1;
             if SA[b] < 0 {
                 p1 = PA + !SA[b];
@@ -1199,7 +1199,7 @@ pub fn ss_mergebackward(
                 loop {
                     SA[a] = SA[c];
                     a -= 1;
-                    SA[c] = SA[c];
+                    SA[c] = SA[a];
                     c -= 1;
 
                     // cond
@@ -1410,16 +1410,22 @@ pub fn ss_swapmerge(
     let mut check: Idx;
     let mut next: Idx;
 
-    SA_dump!(&SA.range(first..last), "ss_swapmerge start");
-
     // BARBARIAN
     check = 0;
     loop {
+        crosscheck!("barbarian check={}", check);
+        SA_dump!(&SA.range(first..last), "ss_swapmerge barbarian");
+        SA_dump!(&SA.range(buf..buf + bufsize), "ss_swapmerge barbarian buf");
         if (last - middle) <= bufsize {
             crosscheck!("<=bufsize");
             if (first < middle) && (middle < last) {
                 crosscheck!("f<m&&m<l");
                 ss_mergebackward(T, SA, PA, first, middle, last, buf, depth);
+                SA_dump!(&SA.range(first..last), "ss_swapmerge post-mergebackward");
+                SA_dump!(
+                    &SA.range(buf..buf + bufsize),
+                    "ss_swapmerge post-mergebackward buf"
+                );
             }
             merge_check!(first, last, check);
 
@@ -1430,6 +1436,7 @@ pub fn ss_swapmerge(
             {
                 return;
             }
+            SA_dump!(&SA.range(first..last), "ss_swapmerge pop 1 survived");
             continue;
         }
 
@@ -1476,6 +1483,7 @@ pub fn ss_swapmerge(
         }
 
         if 0 < m {
+            crosscheck!("0 < m, m={}", m);
             lm = middle - m;
             rm = middle + m;
             ss_blockswap(SA, lm, middle, m);
@@ -1705,8 +1713,16 @@ pub fn sssort(
     k = SS_BLOCKSIZE;
     while i != 0 {
         if (i & 1) > 0 {
+            SA_dump!(&SA.range(first..last), "in-mariachi pre-swap");
+            crosscheck!(
+                "a={} middle={} bufsize={} depth={}",
+                a - first,
+                middle - first,
+                bufsize,
+                depth
+            );
             ss_swapmerge(T, SA, PA, a - k, a, middle, buf, bufsize, depth);
-            SA_dump!(&SA.range(first..last), "in-mariachi");
+            SA_dump!(&SA.range(first..last), "in-mariachi post-swap");
             a -= k;
         }
 
