@@ -1017,6 +1017,8 @@ pub fn ss_mergeforward(
     let mut t: Idx;
     let mut r: Idx;
 
+    SA_dump!(&SA.range(first..last), "ss_mergeforward start");
+
     bufend = buf + (middle - first) - 1;
     ss_blockswap(SA, buf, first, (middle - first).0);
 
@@ -1380,15 +1382,18 @@ pub fn ss_swapmerge(
     }
     macro_rules! merge_check {
         ($a: expr, $b: expr, $c: expr) => {
+            crosscheck!("mc c={}", $c);
             if ($c & 1 > 0)
                 || (($c & 2 > 0)
                     && (ss_compare(T, SA, PA + get_idx!(SA[$a - 1]), SA, PA + SA[$a], depth) == 0))
             {
+                crosscheck!("swapping a-first={}", $a - first);
                 SA[$a] = !SA[$a];
             }
             if ($c & 4 > 0)
                 && (ss_compare(T, SA, PA + get_idx!(SA[$b - 1]), SA, PA + SA[$b], depth) == 0)
             {
+                crosscheck!("swapping b-first={}", $b - first);
                 SA[$b] = !SA[$b];
             }
         };
@@ -1405,14 +1410,20 @@ pub fn ss_swapmerge(
     let mut check: Idx;
     let mut next: Idx;
 
+    SA_dump!(&SA.range(first..last), "ss_swapmerge start");
+
     // BARBARIAN
     check = 0;
     loop {
         if (last - middle) <= bufsize {
+            crosscheck!("<=bufsize");
             if (first < middle) && (middle < last) {
+                crosscheck!("f<m&&m<l");
                 ss_mergebackward(T, SA, PA, first, middle, last, buf, depth);
             }
             merge_check!(first, last, check);
+
+            SA_dump!(&SA.range(first..last), "ss_swapmerge pop 1");
             if !stack
                 .pop(&mut first, &mut middle, &mut last, &mut check)
                 .is_ok()
@@ -1423,10 +1434,14 @@ pub fn ss_swapmerge(
         }
 
         if (middle - first) <= bufsize {
+            crosscheck!("m-f<=bufsize");
             if first < middle {
+                crosscheck!("f<m");
                 ss_mergeforward(T, SA, PA, first, middle, last, buf, depth);
+                SA_dump!(&SA.range(first..last), "after mergeforward");
             }
             merge_check!(first, last, check);
+            SA_dump!(&SA.range(first..last), "ss_swapmerge pop 2");
             if !stack
                 .pop(&mut first, &mut middle, &mut last, &mut check)
                 .is_ok()
@@ -1441,6 +1456,7 @@ pub fn ss_swapmerge(
         len = cmp::min((middle - first).0, (last - middle).0);
         half = len >> 1;
         while 0 < len {
+            crosscheck!("in-olanna len={} half={}", len, half);
             if ss_compare(
                 T,
                 SA,
@@ -1455,8 +1471,8 @@ pub fn ss_swapmerge(
             }
 
             // iter
-            half >>= 1;
             len = half;
+            half >>= 1;
         }
 
         if 0 < m {
@@ -1475,30 +1491,42 @@ pub fn ss_swapmerge(
                         while SA[l] < 0 {
                             l -= 1;
                         }
+                        crosscheck!("post-koopa l-first={}", l - first);
                         next |= 4;
+                        crosscheck!("post-koopa next={}", next);
                     }
+                    next |= 1;
                 } else if first < lm {
                     // MUNCHER
                     while SA[r] < 0 {
                         r += 1;
                     }
+                    crosscheck!("post-muncher r-first={}", r - first);
                     next |= 2;
                 }
             }
 
             if (l - first) <= (last - r) {
+                crosscheck!("post-muncher l-f<l-r");
                 stack.push(r, rm, last, (next & 3) | (check & 4));
                 middle = lm;
                 last = l;
+                crosscheck!("post-muncher check was={} next was={}", check, next);
                 check = (check & 3) | (next & 4);
+                crosscheck!("post-muncher check  is={} next  is={}", check, next);
             } else {
+                crosscheck!("post-muncher not l-f<l-r");
                 if (next & 2 > 0) && (r == middle) {
-                    next ^= 6
+                    crosscheck!("post-muncher next ^= 6 old={}", next);
+                    next ^= 6;
+                    crosscheck!("post-muncher next ^= 6 new={}", next);
                 }
                 stack.push(first, lm, l, (check & 3) | (next & 4));
                 first = r;
                 middle = rm;
+                crosscheck!("post-muncher not, check was={} next was={}", check, next);
                 check = (next & 3) | (check & 4);
+                crosscheck!("post-muncher not, check  is={} next  is={}", check, next);
             }
         } else {
             if ss_compare(
@@ -1513,6 +1541,7 @@ pub fn ss_swapmerge(
                 SA[middle] = !SA[middle];
             }
             merge_check!(first, last, check);
+            SA_dump!(&SA.range(first..last), "ss_swapmerge pop 3");
             if !stack
                 .pop(&mut first, &mut middle, &mut last, &mut check)
                 .is_ok()
@@ -1677,6 +1706,7 @@ pub fn sssort(
     while i != 0 {
         if (i & 1) > 0 {
             ss_swapmerge(T, SA, PA, a - k, a, middle, buf, bufsize, depth);
+            SA_dump!(&SA.range(first..last), "in-mariachi");
             a -= k;
         }
 

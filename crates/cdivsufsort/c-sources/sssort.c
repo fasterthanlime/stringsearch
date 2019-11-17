@@ -683,6 +683,8 @@ static void ss_mergeforward(const sauchar_t *T, const saidx_t *PA,
   saidx_t t;
   saint_t r;
 
+  SA_dump(first, 0, last-first, "ss_mergeforward start");
+
   bufend = buf + (middle - first) - 1;
   ss_blockswap(buf, first, middle - first);
 
@@ -866,12 +868,15 @@ static void ss_swapmerge(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
 #define GETIDX(a) ((0 <= (a)) ? (a) : (~(a)))
 #define MERGE_CHECK(a, b, c)                                                   \
   do {                                                                         \
+    crosscheck("mc c=%d", c);                                                  \
     if (((c)&1) || (((c)&2) && (ss_compare(T, PA + GETIDX(*((a)-1)),           \
                                            PA + *(a), depth) == 0))) {         \
+      crosscheck("swapping a-first=%d", a - first);                            \
       *(a) = ~*(a);                                                            \
     }                                                                          \
     if (((c)&4) &&                                                             \
         ((ss_compare(T, PA + GETIDX(*((b)-1)), PA + *(b), depth) == 0))) {     \
+      crosscheck("swapping b-first=%d", b - first);                            \
       *(b) = ~*(b);                                                            \
     }                                                                          \
   } while (0)
@@ -884,22 +889,31 @@ static void ss_swapmerge(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
   saint_t ssize;
   saint_t check, next;
 
+  SA_dump(first, 0, last-first, "ss_swapmerge start");
+
   // BARBARIAN
   for (check = 0, ssize = 0;;) {
     if ((last - middle) <= bufsize) {
+      crosscheck("<=bufsize");
       if ((first < middle) && (middle < last)) {
+        crosscheck("f<m&&m<l");
         ss_mergebackward(T, PA, first, middle, last, buf, depth);
       }
       MERGE_CHECK(first, last, check);
+      SA_dump(first, 0, last-first, "ss_swapmerge pop 1");
       STACK_POP(first, middle, last, check);
       continue;
     }
 
     if ((middle - first) <= bufsize) {
+      crosscheck("m-f<=bufsize");
       if (first < middle) {
+        crosscheck("f<m");
         ss_mergeforward(T, PA, first, middle, last, buf, depth);
+        SA_dump(first, 0, last-first, "after mergeforward");
       }
       MERGE_CHECK(first, last, check);
+      SA_dump(first, 0, last-first, "ss_swapmerge pop 2");
       STACK_POP(first, middle, last, check);
       continue;
     }
@@ -907,6 +921,7 @@ static void ss_swapmerge(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
     // OLANNA
     for (m = 0, len = MIN(middle - first, last - middle), half = len >> 1;
          0 < len; len = half, half >>= 1) {
+      crosscheck("in-olanna len=%d half=%d", len, half);
       if (ss_compare(T, PA + GETIDX(*(middle + m + half)),
                      PA + GETIDX(*(middle - m - half - 1)), depth) < 0) {
         m += half + 1;
@@ -925,32 +940,44 @@ static void ss_swapmerge(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
             // KOOPA
             for (; *--l < 0;) {
             }
+            crosscheck("post-koopa l-first=%d", l - first);
             next |= 4;
+            crosscheck("post-koopa next=%d", next);
           }
           next |= 1;
         } else if (first < lm) {
           // MUNCHER
           for (; *r < 0; ++r) {
           }
+          crosscheck("post-muncher r-first=%d", r - first);
           next |= 2;
         }
       }
 
       if ((l - first) <= (last - r)) {
+        crosscheck("post-muncher l-f<l-r");
         STACK_PUSH(r, rm, last, (next & 3) | (check & 4));
+        crosscheck("post-muncher check was=%d", check);
         middle = lm, last = l, check = (check & 3) | (next & 4);
+        crosscheck("post-muncher check  is=%d", check);
       } else {
+        crosscheck("post-muncher not l-f<l-r");
         if ((next & 2) && (r == middle)) {
+          crosscheck("post-muncher next ^= 6 old=%d", next);
           next ^= 6;
+          crosscheck("post-muncher next ^= 6 new=%d", next);
         }
         STACK_PUSH(first, lm, l, (check & 3) | (next & 4));
+        crosscheck("post-muncher not, check was=%d next was=%d", check, next);
         first = r, middle = rm, check = (next & 3) | (check & 4);
+        crosscheck("post-muncher not, check  is=%d next  is=%d", check, next);
       }
     } else {
       if (ss_compare(T, PA + GETIDX(*(middle - 1)), PA + *middle, depth) == 0) {
         *middle = ~*middle;
       }
       MERGE_CHECK(first, last, check);
+      SA_dump(first, 0, last-first, "ss_swapmerge pop 3");
       STACK_POP(first, middle, last, check);
     }
   }
@@ -1012,6 +1039,7 @@ void sssort(const sauchar_t *T, const saidx_t *PA, saidx_t *first,
   for (k = SS_BLOCKSIZE; i != 0; k <<= 1, i >>= 1) {
     if (i & 1) {
       ss_swapmerge(T, PA, a - k, a, middle, buf, bufsize, depth);
+      SA_dump(first, 0, last - first, "in-mariachi");
       a -= k;
     }
   }
