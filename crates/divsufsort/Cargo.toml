@@ -1,6 +1,6 @@
 [package]
 name = "divsufsort"
-version = "1.0.1"
+version = "1.0.2"
 authors = ["Amos Wenger <amoswenger@gmail.com>"]
 edition = "2018"
 
