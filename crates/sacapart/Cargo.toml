@@ -1,0 +1,13 @@
+[package]
+name = "sacapart"
+version = "2.0.0"
+authors = ["Amos Wenger <amoswenger@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+sacabase = { path = "../sacabase", version = "2.0.0" }
+num-traits = "0.2.9"
+rayon = "1.2.1"
+
+[dev-dependencies]
+divsufsort = { path = "../divsufsort", version = "2.0.0" }

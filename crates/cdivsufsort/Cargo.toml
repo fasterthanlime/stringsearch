@@ -1,6 +1,6 @@
 [package]
 name = "cdivsufsort"
-version = "1.0.0"
+version = "2.0.0"
 authors = ["Amos Wenger <amoswenger@gmail.com>"]
 edition = "2018"
 
@@ -15,7 +15,7 @@ license = "MIT"
 crosscheck = []
 
 [dependencies]
-sacabase = { path = "../sacabase", version = "1.0.0" }
+sacabase = { path = "../sacabase", version = "2.0.0" }
 
 [build-dependencies]
 cc = "1.0.47"

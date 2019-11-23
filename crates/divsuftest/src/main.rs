@@ -1,9 +1,8 @@
 use failure::Fallible;
 use size_format::SizeFormatterBinary;
-use std::{env, io::Write, process, time::Instant};
+use std::{io::Write, process, time::Instant};
 
 struct Args {
-    partitions: u32,
     free: Vec<String>,
 }
 
@@ -27,11 +26,8 @@ impl Command {
 fn main() -> Fallible<()> {
     better_panic::install();
 
-    let mut args = pico_args::Arguments::from_env();
-    let args = Args {
-        partitions: args.opt_value_from_str("--partitions")?.unwrap_or(1),
-        free: args.free()?,
-    };
+    let args = pico_args::Arguments::from_env();
+    let args = Args { free: args.free()? };
 
     if args.free.is_empty() {
         usage();

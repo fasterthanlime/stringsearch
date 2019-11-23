@@ -2,9 +2,9 @@ use num_traits::ToPrimitive;
 use std::{cmp::min, fmt};
 
 pub struct LongestCommonSubstring<'a> {
-    text: &'a [u8],
-    start: usize,
-    len: usize,
+    pub text: &'a [u8],
+    pub start: usize,
+    pub len: usize,
 }
 
 impl<'a> fmt::Debug for LongestCommonSubstring<'a> {
@@ -17,16 +17,6 @@ impl<'a> LongestCommonSubstring<'a> {
     #[inline(always)]
     pub fn as_bytes(&self) -> &[u8] {
         &self.text[self.start..self.start + self.len]
-    }
-
-    #[inline(always)]
-    pub fn start(&self) -> usize {
-        self.start
-    }
-
-    #[inline(always)]
-    pub fn len(&self) -> usize {
-        self.len
     }
 }
 
@@ -52,7 +42,7 @@ pub fn longest_substring_match<'a, Index>(
     needle: &[u8],
 ) -> LongestCommonSubstring<'a>
 where
-    Index: num_traits::ToPrimitive,
+    Index: ToPrimitive,
 {
     macro_rules! sa {
         ($x: expr) => {
@@ -167,6 +157,11 @@ where
     text: &'a [u8],
 }
 
+pub trait StringIndex<'a> {
+    /// Returns the longest substring that matches `needle` in text
+    fn longest_substring_match(&self, needle: &[u8]) -> LongestCommonSubstring<'a>;
+}
+
 impl<'a, Index> SuffixArray<'a, Index>
 where
     Index: ToPrimitive,
@@ -176,18 +171,28 @@ where
         Self { sa, text }
     }
 
-    /// Returns the longest
-    pub fn longest_substring_match(&self, needle: &[u8]) -> LongestCommonSubstring<'a> {
-        longest_substring_match(self.text, &self.sa[..], needle)
-    }
-
     /// Return (text, sa), giving back ownership of `sa`
     pub fn into_parts(self) -> (&'a [u8], Vec<Index>) {
         (self.text, self.sa)
     }
 
+    /// Verifies that this suffix array is sorted.
     pub fn verify(&self) -> Result<(), NotSorted> {
         verify(self.text, &self.sa[..])
+    }
+
+    /// Returns a reference to the text
+    pub fn text(&self) -> &[u8] {
+        return self.text;
+    }
+}
+
+impl<'a, Index> StringIndex<'a> for SuffixArray<'a, Index>
+where
+    Index: ToPrimitive,
+{
+    fn longest_substring_match(&self, needle: &[u8]) -> LongestCommonSubstring<'a> {
+        longest_substring_match(self.text, &self.sa[..], needle)
     }
 }
 

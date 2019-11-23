@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "crates/sacabase",
+    "crates/sacapart",
     "crates/divsufsort",
     "crates/cdivsufsort",
     "crates/divsuftest",
