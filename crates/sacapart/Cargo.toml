@@ -4,6 +4,13 @@ version = "2.0.0"
 authors = ["Amos Wenger <amoswenger@gmail.com>"]
 edition = "2018"
 
+description = "Partitioned suffix arrays, for use with `sacabase`"
+repository = "https://github.com/fasterthanlime/stringsearch"
+readme = "README.md"
+keywords = ["saca", "suffix", "search", "index"]
+categories = ["algorithms", "data-structures"]
+license = "MIT"
+
 [dependencies]
 sacabase = { path = "../sacabase", version = "2.0.0" }
 num-traits = "0.2.9"
